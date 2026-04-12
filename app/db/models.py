@@ -100,6 +100,26 @@ class Influencer(Base):
         cascade="all, delete-orphan",
     )
 
+    posts = relationship(
+        "InfluencerPost",
+        back_populates="influencer",
+        cascade="all, delete-orphan",
+    )
+
+    source_relations = relationship(
+        "InfluencerRelated",
+        foreign_keys="InfluencerRelated.source_influencer_id",
+        back_populates="source_influencer",
+        cascade="all, delete-orphan",
+    )
+
+    target_relations = relationship(
+        "InfluencerRelated",
+        foreign_keys="InfluencerRelated.related_influencer_id",
+        back_populates="related_influencer",
+        cascade="all, delete-orphan",
+    )
+
 
 class InfluencerCategory(Base):
     __tablename__ = "influencer_category"
@@ -268,3 +288,64 @@ class RecommendationResultSelection(Base):
 
     user = relationship("User", back_populates="result_selections")
     result = relationship("RecommendationResult", back_populates="selections")
+
+
+class InfluencerPost(Base):
+    __tablename__ = "influencer_post"
+    __table_args__ = (
+        Index("idx_influencer_post_influencer_id", "influencer_id"),
+    )
+
+    post_id = Column(String(50), primary_key=True)
+    influencer_id = Column(
+        Integer,
+        ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    post_type = Column(String(50), nullable=True)
+    caption = Column(Text, nullable=True)
+    likes_count = Column(BigInteger, nullable=True)
+    comments_count = Column(BigInteger, nullable=True)
+    posted_at = Column(DateTime, nullable=True)
+    post_url = Column(Text, nullable=True)
+    display_url = Column(Text, nullable=True)
+    hashtags_json = Column(JSON, nullable=True)
+    mentions_json = Column(JSON, nullable=True)
+
+    influencer = relationship("Influencer", back_populates="posts")
+
+
+class InfluencerRelated(Base):
+    __tablename__ = "influencer_related"
+    __table_args__ = (
+        UniqueConstraint(
+            "source_influencer_id",
+            "related_influencer_id",
+            name="uq_source_related_influencer",
+        ),
+        Index("idx_influencer_related_source_id", "source_influencer_id"),
+        Index("idx_influencer_related_related_id", "related_influencer_id"),
+    )
+
+    relation_id = Column(Integer, primary_key=True, autoincrement=True)
+    source_influencer_id = Column(
+        Integer,
+        ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    related_influencer_id = Column(
+        Integer,
+        ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    source_influencer = relationship(
+        "Influencer",
+        foreign_keys=[source_influencer_id],
+        back_populates="source_relations",
+    )
+    related_influencer = relationship(
+        "Influencer",
+        foreign_keys=[related_influencer_id],
+        back_populates="target_relations",
+    )
