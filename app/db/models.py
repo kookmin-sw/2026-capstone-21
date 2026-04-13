@@ -42,6 +42,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    action_logs = relationship(
+        "UserActionLog",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class Category(Base):
@@ -99,24 +104,26 @@ class Influencer(Base):
         back_populates="influencer",
         cascade="all, delete-orphan",
     )
-
     posts = relationship(
         "InfluencerPost",
         back_populates="influencer",
         cascade="all, delete-orphan",
     )
-
     source_relations = relationship(
         "InfluencerRelated",
         foreign_keys="InfluencerRelated.source_influencer_id",
         back_populates="source_influencer",
         cascade="all, delete-orphan",
     )
-
     target_relations = relationship(
         "InfluencerRelated",
         foreign_keys="InfluencerRelated.related_influencer_id",
         back_populates="related_influencer",
+        cascade="all, delete-orphan",
+    )
+    action_logs = relationship(
+        "UserActionLog",
+        back_populates="influencer",
         cascade="all, delete-orphan",
     )
 
@@ -349,3 +356,32 @@ class InfluencerRelated(Base):
         foreign_keys=[related_influencer_id],
         back_populates="target_relations",
     )
+
+
+class UserActionLog(Base):
+    __tablename__ = "user_action_log"
+    __table_args__ = (
+        Index("idx_user_action_log_user_id", "user_id"),
+        Index("idx_user_action_log_influencer_id", "influencer_id"),
+    )
+
+    log_id = Column(Integer, primary_key=True, autoincrement=True)
+
+    user_id = Column(
+        Integer,
+        ForeignKey("users.user_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    influencer_id = Column(
+        Integer,
+        ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+
+    action_type = Column(String(50), nullable=False)
+    reward = Column(Integer, nullable=False)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+
+    user = relationship("User", back_populates="action_logs")
+    influencer = relationship("Influencer", back_populates="action_logs")
