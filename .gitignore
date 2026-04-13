@@ -1,2 +1,20 @@
+# Python 관련 캐시 및 컴파일 파일
 __pycache__/
-*.pyc
+*.py[cod]
+*$py.class
+
+# 가상환경 (Virtual Environments)
+venv/
+.venv/
+env/
+
+# 환경변수 파일 (API 키 보안)
+.env
+
+# 운영체제 생성 파일
+.DS_Store
+Thumbs.db
+
+# IDE 설정 (VS Code 등)
+.vscode/
+.idea/
