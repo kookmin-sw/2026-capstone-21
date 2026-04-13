@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.db.models import (
     RecommendationRun,
     RecommendationResult,
-    RecommendationResultSelection,
 )
 
 
@@ -41,22 +40,3 @@ def create_recommendation_result(db: Session, data):
 
 def get_recommendation_results(db: Session):
     return db.query(RecommendationResult).order_by(RecommendationResult.result_id.asc()).all()
-
-
-def create_recommendation_result_selection(db: Session, data):
-    selection = RecommendationResultSelection(
-        user_id=data.user_id,
-        result_id=data.result_id,
-    )
-    db.add(selection)
-    db.commit()
-    db.refresh(selection)
-    return selection
-
-
-def get_recommendation_result_selections(db: Session):
-    return (
-        db.query(RecommendationResultSelection)
-        .order_by(RecommendationResultSelection.selection_id.asc())
-        .all()
-    )

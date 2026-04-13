@@ -37,11 +37,6 @@ class User(Base):
 
     mall_inputs = relationship("MallInput", back_populates="user", cascade="all, delete-orphan")
     recommendation_runs = relationship("RecommendationRun", back_populates="user", cascade="all, delete-orphan")
-    result_selections = relationship(
-        "RecommendationResultSelection",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
     action_logs = relationship(
         "UserActionLog",
         back_populates="user",
@@ -271,30 +266,6 @@ class RecommendationResult(Base):
 
     run = relationship("RecommendationRun", back_populates="results")
     influencer = relationship("Influencer", back_populates="recommendation_results")
-    selections = relationship(
-        "RecommendationResultSelection",
-        back_populates="result",
-        cascade="all, delete-orphan",
-    )
-
-
-class RecommendationResultSelection(Base):
-    __tablename__ = "recommendation_result_selection"
-    __table_args__ = (
-        UniqueConstraint("user_id", "result_id", name="uq_user_result"),
-    )
-
-    selection_id = Column(Integer, primary_key=True, autoincrement=True)
-    user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
-    result_id = Column(
-        Integer,
-        ForeignKey("recommendation_result.result_id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-
-    user = relationship("User", back_populates="result_selections")
-    result = relationship("RecommendationResult", back_populates="selections")
 
 
 class InfluencerPost(Base):
@@ -366,19 +337,16 @@ class UserActionLog(Base):
     )
 
     log_id = Column(Integer, primary_key=True, autoincrement=True)
-
     user_id = Column(
         Integer,
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
     )
-
     influencer_id = Column(
         Integer,
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
-
     action_type = Column(String(50), nullable=False)
     reward = Column(Integer, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())

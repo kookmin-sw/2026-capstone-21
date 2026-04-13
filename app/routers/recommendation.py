@@ -8,8 +8,6 @@ from app.schemas.recommendation import (
     RecommendationRunResponse,
     RecommendationResultCreate,
     RecommendationResultResponse,
-    RecommendationResultSelectionCreate,
-    RecommendationResultSelectionResponse,
 )
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
@@ -33,13 +31,3 @@ def create_result(data: RecommendationResultCreate, db: Session = Depends(get_db
 @router.get("/results", response_model=list[RecommendationResultResponse])
 def get_results(db: Session = Depends(get_db)):
     return crud_recommendation.get_recommendation_results(db)
-
-
-@router.post("/selections", response_model=RecommendationResultSelectionResponse)
-def create_selection(data: RecommendationResultSelectionCreate, db: Session = Depends(get_db)):
-    return crud_recommendation.create_recommendation_result_selection(db, data)
-
-
-@router.get("/selections", response_model=list[RecommendationResultSelectionResponse])
-def get_selections(db: Session = Depends(get_db)):
-    return crud_recommendation.get_recommendation_result_selections(db)

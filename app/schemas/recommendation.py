@@ -40,17 +40,3 @@ class RecommendationResultResponse(BaseModel):
 
     class Config:
         from_attributes = True
-
-
-class RecommendationResultSelectionCreate(BaseModel):
-    user_id: int
-    result_id: int
-
-
-class RecommendationResultSelectionResponse(BaseModel):
-    selection_id: int
-    user_id: int
-    result_id: int
-
-    class Config:
-        from_attributes = True
