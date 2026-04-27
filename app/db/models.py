@@ -41,6 +41,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    favorite_influencers = relationship(
+        "FavoriteInfluencer",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
 
 class Category(Base):
@@ -120,6 +125,11 @@ class Influencer(Base):
         back_populates="influencer",
         cascade="all, delete-orphan",
     )
+    favorite_users = relationship(
+        "FavoriteInfluencer",
+        back_populates="influencer",
+        cascade="all, delete-orphan",
+    )
 
 
 class InfluencerCategory(Base):
@@ -139,10 +149,7 @@ class InfluencerCategory(Base):
         primary_key=True,
     )
 
-    # 현재는 카테고리 1개만 받으므로 항상 priority=1로 저장
-    # 추후 2순위 카테고리가 생기면 priority=2로 확장 가능
     priority = Column(Integer, nullable=False, default=1)
-
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     influencer = relationship("Influencer", back_populates="influencer_categories")
@@ -357,3 +364,35 @@ class UserActionLog(Base):
 
     user = relationship("User", back_populates="action_logs")
     influencer = relationship("Influencer", back_populates="action_logs")
+
+
+class FavoriteInfluencer(Base):
+    __tablename__ = "favorite_influencer"
+    __table_args__ = (
+        UniqueConstraint("user_id", "influencer_id", name="uq_user_influencer_favorite"),
+        Index("idx_favorite_influencer_user_id", "user_id"),
+        Index("idx_favorite_influencer_influencer_id", "influencer_id"),
+    )
+
+    favorite_id = Column(Integer, primary_key=True, autoincrement=True)
+    user_id = Column(
+        Integer,
+        ForeignKey("users.user_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    influencer_id = Column(
+        Integer,
+        ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    reason = Column(String(255), nullable=True)
+    created_at = Column(DateTime, nullable=False, server_default=func.now())
+    updated_at = Column(
+        DateTime,
+        nullable=False,
+        server_default=func.now(),
+        onupdate=func.now(),
+    )
+
+    user = relationship("User", back_populates="favorite_influencers")
+    influencer = relationship("Influencer", back_populates="favorite_users")
