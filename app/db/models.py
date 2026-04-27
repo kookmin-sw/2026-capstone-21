@@ -1,6 +1,5 @@
 from sqlalchemy import (
     BigInteger,
-    Boolean,
     Column,
     DateTime,
     Float,
@@ -125,6 +124,9 @@ class Influencer(Base):
 
 class InfluencerCategory(Base):
     __tablename__ = "influencer_category"
+    __table_args__ = (
+        UniqueConstraint("influencer_id", "priority", name="uq_influencer_category_priority"),
+    )
 
     influencer_id = Column(
         Integer,
@@ -136,7 +138,11 @@ class InfluencerCategory(Base):
         ForeignKey("category.category_id", ondelete="CASCADE"),
         primary_key=True,
     )
-    is_primary = Column(Boolean, nullable=False, default=False)
+
+    # 현재는 카테고리 1개만 받으므로 항상 priority=1로 저장
+    # 추후 2순위 카테고리가 생기면 priority=2로 확장 가능
+    priority = Column(Integer, nullable=False, default=1)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     influencer = relationship("Influencer", back_populates="influencer_categories")
@@ -155,7 +161,6 @@ class InfluencerEmbedding(Base):
     )
     embedding_text = Column(Text, nullable=False)
     embedding_vector = Column(JSON, nullable=False)
-    embedding_model = Column(String(100), nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
@@ -211,7 +216,6 @@ class MallInputEmbedding(Base):
     )
     embedding_text = Column(Text, nullable=False)
     embedding_vector = Column(JSON, nullable=False)
-    embedding_model = Column(String(100), nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     mall_input = relationship("MallInput", back_populates="embedding")
