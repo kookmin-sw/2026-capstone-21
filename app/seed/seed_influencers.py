@@ -101,32 +101,18 @@ def upsert_influencer(db: Session, item: dict):
             print(f"[경고] category 테이블에 없는 카테고리: {primary_category_name}")
             return
 
-        existing_links = (
-            db.query(InfluencerCategory)
-            .filter(InfluencerCategory.influencer_id == influencer.influencer_id)
-            .all()
-        )
+        # 현재 JSON에서는 카테고리 1개만 제공되므로 1순위(priority=1)로 저장
+        db.query(InfluencerCategory).filter(
+            InfluencerCategory.influencer_id == influencer.influencer_id
+        ).delete()
 
-        for link in existing_links:
-            link.is_primary = (link.category_id == category.category_id)
-
-        target_link = (
-            db.query(InfluencerCategory)
-            .filter(
-                InfluencerCategory.influencer_id == influencer.influencer_id,
-                InfluencerCategory.category_id == category.category_id,
+        db.add(
+            InfluencerCategory(
+                influencer_id=influencer.influencer_id,
+                category_id=category.category_id,
+                priority=1,
             )
-            .first()
         )
-
-        if target_link is None:
-            db.add(
-                InfluencerCategory(
-                    influencer_id=influencer.influencer_id,
-                    category_id=category.category_id,
-                    is_primary=True,
-                )
-            )
 
 
 def seed_from_json_file(json_path: str):

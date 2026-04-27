@@ -13,7 +13,7 @@ def make_embedding_text(influencer):
     primary_category = "카테고리 없음"
 
     for ic in influencer.influencer_categories:
-        if ic.is_primary and ic.category:
+        if ic.priority == 1 and ic.category:
             primary_category = ic.category.category_name
             break
 
@@ -55,7 +55,6 @@ def build_embeddings():
 
         print(f"총 {len(influencers)}명")
 
-        # 텍스트 생성
         texts = [make_embedding_text(inf) for inf in influencers]
 
         print("모델 로드 중...")
@@ -74,17 +73,14 @@ def build_embeddings():
         for inf, text, vec in zip(influencers, texts, vectors):
             vec_list = vec.tolist()
 
-            # ✅ 이미 있으면 업데이트
             if inf.embedding:
                 inf.embedding.embedding_text = text
                 inf.embedding.embedding_vector = vec_list
-                inf.embedding.embedding_model = MODEL_NAME
             else:
                 new_emb = InfluencerEmbedding(
                     influencer_id=inf.influencer_id,
                     embedding_text=text,
                     embedding_vector=vec_list,
-                    embedding_model=MODEL_NAME,
                 )
                 db.add(new_emb)
 
