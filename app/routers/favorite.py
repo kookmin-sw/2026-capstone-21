@@ -15,22 +15,14 @@ router = APIRouter(
 )
 
 
-@router.post("/", response_model=FavoriteInfluencerResponse)
-def create_favorite(
-    favorite: FavoriteInfluencerCreate,
-    db: Session = Depends(get_db),
-):
-    result = favorite_crud.create_favorite(
-        db=db,
-        user_id=favorite.user_id,
-        influencer_id=favorite.influencer_id,
-        reason=favorite.reason,
-    )
+@router.post("/")
+def add_favorite(influencer_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    return FavoriteService.create_favorite_with_log(db, current_user.id, influencer_id)
 
-    if result is None:
-        raise HTTPException(status_code=400, detail="이미 관심 등록된 인플루언서입니다.")
+@router.delete("/{influencer_id}")
+def remove_favorite(influencer_id: int, db: Session = Depends(get_db), current_user = Depends(get_current_user)):
+    return FavoriteService.delete_favorite_with_log(db, current_user.id, influencer_id)
 
-    return result
 
 
 @router.get("/{user_id}", response_model=list[FavoriteInfluencerResponse])
@@ -59,21 +51,3 @@ def update_favorite_reason(
         raise HTTPException(status_code=404, detail="관심 등록 정보를 찾을 수 없습니다.")
 
     return result
-
-
-@router.delete("/{user_id}/{influencer_id}")
-def delete_favorite(
-    user_id: int,
-    influencer_id: int,
-    db: Session = Depends(get_db),
-):
-    success = favorite_crud.delete_favorite(
-        db=db,
-        user_id=user_id,
-        influencer_id=influencer_id,
-    )
-
-    if not success:
-        raise HTTPException(status_code=404, detail="관심 등록 정보를 찾을 수 없습니다.")
-
-    return {"message": "관심 목록에서 삭제되었습니다."}

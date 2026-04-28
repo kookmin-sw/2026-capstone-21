@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import os
 from sqlalchemy.orm import Session
-from app.services.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE, BASE_BRAND, SEED_BRAND
+from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE, BASE_BRAND, SEED_BRAND
 
 class CrawlerService:
     def __init__(self, db: Session):
