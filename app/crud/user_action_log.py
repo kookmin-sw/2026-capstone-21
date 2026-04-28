@@ -1,12 +1,6 @@
 from sqlalchemy.orm import Session
 from app.db.models import UserActionLog
-
-ACTION_REWARD_MAP = {
-    "view": 1,
-    "favorite_add": 2,
-    "favorite_remove": -2,
-    "contact": 3,
-}
+from app.utils.config import ACTION_REWARD_MAP
 
 
 def create_user_action_log(db: Session, user_id: int, influencer_id: int, action_type: str):

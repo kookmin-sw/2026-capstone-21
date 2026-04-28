@@ -13,5 +13,9 @@ API_TOKEN = os.getenv("API_TOKEN")
 
 client = ApifyClient(API_TOKEN)
 
-BASE_BRAND = ["todayhouse", "ggumigi", "ikeakorea", "housegram_", "danim_home"]
-SEED_BRAND = ["홈데코", "단순제공", "광고", "협찬", "유료광고포함", "제품제공", "단순선물", "서포터즈", "협업문의", "광고문의", "프로필링크"]
+ACTION_REWARD_MAP = {
+    "view": 1,
+    "favorite_add": 2,
+    "favorite_remove": -2,
+    "contact": 3,
+}
