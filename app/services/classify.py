@@ -1182,6 +1182,13 @@ def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
             acct = result["account_type"]
             conf = result["category_confidence"]
 
+        except Exception as e:
+            cat = "라이프스타일"
+            acct = _fallback_account_type(influencer, summary)
+            conf = 0
+            print(f"[{idx}/{total}] {username} AI 분류 실패 → 기본값 적용 ({e})")
+
+        try:
             try:
                 style_keywords = extract_style_keywords(client, inf_dict, summary, cat, acct)
             except Exception:
@@ -1194,7 +1201,7 @@ def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
             influencer.style_keywords_text = ", ".join(style_keywords)
 
             upsert_category_only(db, influencer, cat)
-            
+
             db.commit()
             print(f"✅ {inf.username} 분류 및 DB 업데이트 완료")
 
@@ -1203,76 +1210,4 @@ def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
             print(f"❌ {inf.username} 분류 실패: {e}")
 
 
-    example_bank = load_example_bank(EXAMPLE_BANK_PATH)
-    if os.path.exists(DEBUG_LOG_PATH):
-        os.remove(DEBUG_LOG_PATH)
 
-    results: List[Dict] = []
-    total = len(influencers)
-
-    for idx, influencer in enumerate(influencers, 1):
-        username = safe_text(influencer.get("username"))
-
-        # 이번 batch에 해당하는 계정의 최근 12개 post만 사용
-        user_posts = posts_by_u.get(username, [])[:RECENT_POST_LIMIT]
-        summary = build_recent_post_summary(user_posts)
-
-        # grade
-        grade = final_grade_5(
-            score_avg_likes_5(summary["avg_likes_recent12"]),
-            score_avg_comments_5(summary["avg_comments_recent12"]),
-            score_upload_interval_5(float(influencer.get("avg_upload_interval_days", 0) or 0)),
-            score_posts_per_week_5(float(influencer.get("posts_per_week", 0) or 0)),
-            score_posts_count_5(float(influencer.get("postsCount", 0) or 0)),
-        )
-
-        debug = {
-            "username": username,
-            "idx": idx,
-            "avg_likes_recent12": summary["avg_likes_recent12"],
-            "avg_comments_recent12": summary["avg_comments_recent12"],
-            "grade": grade,
-        }
-
-        # classification
-        try:
-            result = classify_account(client, influencer, summary, example_bank=example_bank)
-            cat  = result["primary_category"]
-            acct = result["account_type"]
-            conf = result["category_confidence"]
-            debug.update({
-                "category": cat,
-                "account_type": acct,
-                "confidence": conf,
-                "pass": result.get("pass", 1),
-                "reason": result.get("category_reason", ""),
-                "alternative": result.get("alternative_category", ""),
-                "examples_used": result.get("examples_used", 0),
-            })
-        except Exception as e:
-            cat = "라이프스타일"
-            acct = _fallback_account_type(influencer, summary)
-            conf = 0
-            debug["error"] = str(e)
-            print(f"[{idx}/{total}] {username} 실패 → {e}")
-
-        # style keywords
-        try:
-            style_keywords = extract_style_keywords(client, influencer, summary, cat, acct)
-        except Exception:
-            style_keywords = _extract_style_keywords_rule(influencer, summary, cat)
-
-        row = build_output_row(influencer, acct, cat, style_keywords, grade, conf)
-        results.append(row)
-
-        debug["style_keywords"] = style_keywords
-        append_debug_log(DEBUG_LOG_PATH, debug)
-
-        print(f"\n[{idx}/{total}] ──────────────────────────────────")
-        print(json.dumps(row, ensure_ascii=False, indent=2))
-        print("──────────────────────────────────────────────────")
-        time.sleep(SLEEP_BETWEEN_CALLS)
-
-    save_json(OUTPUT_JSON_PATH, results)
-    print(f"\nSaved: {OUTPUT_JSON_PATH}")
-    print(f"Debug: {DEBUG_LOG_PATH}")
