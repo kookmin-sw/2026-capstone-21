@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session, joinedload
 
-from app.db.models import Influencer, InfluencerCategory
+from app.db.models import Influencer, InfluencerCategory, InfluencerPost, InfluencerRelated
 
 
 def get_primary_category(influencer: Influencer):
@@ -62,3 +62,41 @@ def get_influencer_by_id(db: Session, influencer_id: int):
         return None
 
     return influencer_to_response(influencer)
+
+def create_influencer_posts(db: Session, influencer_id: int, posts_data: list):
+    """게시물 목록을 DB에 저장 (upload_db의 build_db 로직)"""
+    for p in posts_data:
+        # 기존에 이미 있는 게시물인지 확인 (중복 방지)
+        exists = db.query(InfluencerPost).filter(InfluencerPost.post_id == p.get('id')).first()
+        if not exists:
+            new_post = InfluencerPost(
+                post_id=p.get('id'),
+                influencer_id=influencer_id,
+                post_type=p.get('type'),
+                caption=p.get('caption'),
+                likes_count=p.get('likesCount', 0),
+                comments_count=p.get('commentsCount', 0),
+                posted_at=pd.to_datetime(p.get('timestamp')),
+                post_url=p.get('url'),
+                display_url=p.get('displayUrl'),
+                hashtags_json=p.get('hashtags'),
+                mentions_json=p.get('mentions'),
+            )
+            db.add(new_post)
+
+def create_related_relations(db: Session, source_id: int, related_usernames: list):
+    """연관 계정 관계 저장 (related_db.json 로직)"""
+    for r_username in related_usernames:
+        # 연관된 유저가 이미 우리 influencer 테이블에 있는지 확인
+        target = db.query(Influencer).filter(Influencer.username == r_username).first()
+        if target:
+            # 관계 저장 (이미 있으면 무시)
+            exists = db.query(InfluencerRelated).filter(
+                InfluencerRelated.source_influencer_id == source_id,
+                InfluencerRelated.related_influencer_id == target.influencer_id
+            ).first()
+            if not exists:
+                db.add(InfluencerRelated(
+                    source_influencer_id=source_id,
+                    related_influencer_id=target.influencer_id
+                ))
