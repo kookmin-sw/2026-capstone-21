@@ -39,7 +39,31 @@ class CrawlerService:
         
         self.db.commit()
         return count
+    
+    def run_targeted_crawl(self, keywords: list[str]):
+        # 기존 expand_seed와 유사하지만, SEED_BRAND 대신 넘겨받은 keywords를 사용
+        print(f"타겟 키워드 {keywords}로 크롤링을 시작합니다.")
+        
+        # 1. 키워드 기반 타겟 수집 (기존 로직 재활용)
+        new_df = self.expand_seed(seed_brand=keywords)
+        count = 0
+        for _, row in final_df.iterrows():
+            inf_item = row.to_dict()
+            db_influencer = upsert_influencer(self.db, item)
 
+            # 2. 게시물 정보 찢어서 저장 (Original build_db 로직)
+            if 'latestPosts' in row and row['latestPosts']:
+                create_influencer_posts(self.db, db_influencer.influencer_id, row['latestPosts'])
+
+            # 3. 연관 관계 찢어서 저장 (Original related_db 로직)
+            if 'relatedProfiles' in row and row['relatedProfiles']:
+                related_unames = [r.get('username') for r in row['relatedProfiles'] if r.get('username')]
+                create_related_relations(self.db, db_influencer.influencer_id, related_unames)
+            
+            count += 1
+        
+        self.db.commit()
+        return count
 
 
 def filter_influencer(row, min_f=MIN_FOLLOWERS, min_p=MIN_POSTS, f_ratio=FOLLOW_RATIO, e_rate=ENGAGEMENT_RATE):
