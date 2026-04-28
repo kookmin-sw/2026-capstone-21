@@ -3,7 +3,8 @@ import pandas as pd
 from datetime import datetime, timedelta, timezone
 import numpy as np
 import os
-from config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE, BASE_BRAND, SEED_BRAND
+from sqlalchemy.orm import Session
+from app.services.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE, BASE_BRAND, SEED_BRAND
 
 class CrawlerService:
     def __init__(self, db: Session):
@@ -231,7 +232,7 @@ def expand_seed(existing_usernames = {}, seed_brand = SEED_BRAND, client=client)
     return seed_df
 
 def download_image(row):
-    url = str(row['profilePicUrlHD']).replace('\/', '/')
+    url = str(row['profilePicUrlHD']).replace(r'\/', '/')
     username = row['username']
 
     if username in existing_files:
@@ -327,9 +328,3 @@ def upload_db(final_df):
 
     df_cleaned.to_json("influencers_result.json", orient="records", force_ascii=False, indent=4)
     # df_cleaned.to_csv("influencers_result.csv")
-
-
-final_df = pd.concat([seeds_df, brands_df], ignore_index=True).drop_duplicates(subset=['username'])
-final_df = get_from_related(final_df)
-upload_db(final_df)
-
