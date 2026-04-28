@@ -16,7 +16,7 @@ env/
 Thumbs.db
 
 # DB
-.db
+*.db
 
 # IDE 설정 (VS Code 등)
 .vscode/
