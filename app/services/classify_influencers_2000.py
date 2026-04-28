@@ -1131,38 +1131,77 @@ def run_evaluation(results: List[Dict], gold_path: str) -> None:
     print("=" * 50)
 
 
-# =========================
-# Main
-# =========================
-def classify_all(eval_mode: bool = False) -> None:
-    api_key = os.getenv("OPENAI_API_KEY", "").strip()
-    if not api_key:
-        raise RuntimeError("OPENAI_API_KEY 환경변수 미설정")
-    client = OpenAI(api_key=api_key)
+def upsert_category_only(db: Session, influencer: Influencer, category_name: str):
+    """카테고리 할당만 전담하는 보조 함수"""
+    category = db.query(Category).filter(Category.category_name == category_name).first()
+    if category:
+        # 기존 우선순위 1번 카테고리 삭제 후 새로 추가
+        db.query(InfluencerCategory).filter(
+            InfluencerCategory.influencer_id == influencer.influencer_id,
+            InfluencerCategory.priority == 1
+        ).delete()
+        
+        db.add(InfluencerCategory(
+            influencer_id=influencer.influencer_id,
+            category_id=category.category_id,
+            priority=1
+        ))
 
-    all_influencers = load_json(INFLUENCERS_PATH)
-    all_posts       = load_json(POSTS_PATH)
+def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
+    # DB에서 아직 카테고리가 없는 인플루언서들을 찾아 AI 분류를 수행합니다.
+    influencer = db.query(Influencer).filter(Influencer.primary_category == None).all()
+    total = len(influencers)
 
-    batch_start = BATCH_START_INDEX
-    batch_end   = min(BATCH_START_INDEX + BATCH_SIZE, len(all_influencers))
+    example_bank = load_example_bank(example_bank_path)
 
-    # influencers_result_2000에서 원하는 구간 100개만 선택
-    influencers = all_influencers[batch_start:batch_end]
+    for idx, influencer in enumerate(influencers, 1):
+        username = influencer.username
 
-    # 선택된 100명 username만 추출
-    target_usernames = {
-        safe_text(inf.get("username"))
-        for inf in influencers
-        if safe_text(inf.get("username"))
-    }
+        posts_raw = (
+            db.query(InfluencerPost)
+            .filter(InfluencerPost.influencer_id == influencer.influencer_id)
+            .order_by(InfluencerPost.posted_at.desc())
+            .limit(12).all())
 
-    # posts_db_2000 전체 중에서 이번 batch 100명에 해당하는 post만 선택
-    selected_posts = [
-        post for post in all_posts
-        if safe_text(post.get("username")) in target_usernames
-    ]
+        posts = [p.to_dict_for_ai() for p in posts_raw]
+        summary = build_recent_post_summary(posts)
 
-    posts_by_u = group_posts_by_username(selected_posts)
+        grade = final_grade_5(
+            score_avg_likes_5(summary["avg_likes_recent12"]),
+            score_avg_comments_5(summary["avg_comments_recent12"]),
+            score_upload_interval_5(float(influencer.avg_upload_interval_days or 0)),
+            score_posts_per_week_5(float(influencer.posts_per_week or 0)),
+            score_posts_count_5(float(influencer.posts_count or 0)),
+        )
+
+        try:
+            inf_dict = influencer.to_dict_for_ai()
+            result = classify_account(client, inf_dict, summary, example_bank=example_bank)
+
+            cat  = result["primary_category"]
+            acct = result["account_type"]
+            conf = result["category_confidence"]
+
+            try:
+                style_keywords = extract_style_keywords(client, inf_dict, summary, cat, acct)
+            except Exception:
+                style_keywords = _extract_style_keywords_rule(influencer, summary, cat)
+
+            # DB에 결과 저장
+            influencer.account_type = acct
+            influencer.grade_score = grade # 계산된 grade 저장
+            influencer.style_keywords_json = style_keywords
+            influencer.style_keywords_text = ", ".join(style_keywords)
+
+            upsert_category_only(db, influencer, cat)
+            
+            db.commit()
+            print(f"✅ {inf.username} 분류 및 DB 업데이트 완료")
+
+        except Exception as e:
+            db.rollback()
+            print(f"❌ {inf.username} 분류 실패: {e}")
+
 
     example_bank = load_example_bank(EXAMPLE_BANK_PATH)
     if os.path.exists(DEBUG_LOG_PATH):
@@ -1237,10 +1276,3 @@ def classify_all(eval_mode: bool = False) -> None:
     save_json(OUTPUT_JSON_PATH, results)
     print(f"\nSaved: {OUTPUT_JSON_PATH}")
     print(f"Debug: {DEBUG_LOG_PATH}")
-
-    if eval_mode:
-        run_evaluation(results, GOLD_SET_PATH)
-
-
-if __name__ == "__main__":
-    classify_all(eval_mode="--eval" in sys.argv)
