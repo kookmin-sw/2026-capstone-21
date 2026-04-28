@@ -10,6 +10,7 @@ from app.routers import (
     favorite,
     insight,
     admin,
+    auth
 )
 
 app = FastAPI(root_path="/proxy/8000")
@@ -17,6 +18,7 @@ app = FastAPI(root_path="/proxy/8000")
 Base.metadata.create_all(bind=engine)
 
 app.include_router(category.router)
+app.include_router(auth.router)
 app.include_router(influencer.router)
 app.include_router(mall_input.router)
 app.include_router(recommendation.router)
