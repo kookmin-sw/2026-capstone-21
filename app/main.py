@@ -12,7 +12,7 @@ from app.routers import (
     admin,
 )
 
-app = FastAPI()
+app = FastAPI(root_path="/proxy/8000")
 
 Base.metadata.create_all(bind=engine)
 
