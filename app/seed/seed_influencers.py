@@ -147,4 +147,4 @@ def seed_from_json_file(json_path: str):
 
 
 if __name__ == "__main__":
-    seed_from_json_file("classified_influencers_result.json")
+    seed_from_json_file("data/classified_influencers_result.json")
