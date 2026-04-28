@@ -51,7 +51,7 @@ def get_category_by_name(db: Session, category_name: str) -> Category | None:
 def upsert_influencer(db: Session, item: dict):
     username = item.get("username")
     if not username:
-        return
+        return None
 
     influencer = db.query(Influencer).filter(Influencer.username == username).first()
 
@@ -61,6 +61,8 @@ def upsert_influencer(db: Session, item: dict):
 
     style_keywords_text = ", ".join([str(x) for x in style_keywords]) if style_keywords else None
     primary_category_name = normalize_category_name(item.get("primary_category"))
+
+    local_pic_url = f"/data/profile_pics/{username}.jpg"
 
     if influencer is None:
         influencer = Influencer(
@@ -72,7 +74,8 @@ def upsert_influencer(db: Session, item: dict):
             followers_count=item.get("followersCount"),
             follows_count=item.get("followsCount"),
             posts_count=item.get("postsCount"),
-            profile_pic_url=item.get("profilePicUrl"),
+            # profile_pic_url=item.get("profilePicUrl"),
+            profile_pic_url= local_pic_url,
             account_type=item.get("account_type"),
             grade_score=parse_grade(item.get("grade")),
             style_keywords_json=style_keywords,
@@ -88,7 +91,8 @@ def upsert_influencer(db: Session, item: dict):
         influencer.followers_count = item.get("followersCount")
         influencer.follows_count = item.get("followsCount")
         influencer.posts_count = item.get("postsCount")
-        influencer.profile_pic_url = item.get("profilePicUrl")
+        # influencer.profile_pic_url = item.get("profilePicUrl")
+        influencer.profile_pic_url = local_pic_url
         influencer.account_type = item.get("account_type")
         influencer.grade_score = parse_grade(item.get("grade"))
         influencer.style_keywords_json = style_keywords
@@ -101,18 +105,19 @@ def upsert_influencer(db: Session, item: dict):
             print(f"[경고] category 테이블에 없는 카테고리: {primary_category_name}")
             return
 
-        # 현재 JSON에서는 카테고리 1개만 제공되므로 1순위(priority=1)로 저장
-        db.query(InfluencerCategory).filter(
-            InfluencerCategory.influencer_id == influencer.influencer_id
-        ).delete()
+        if category:
+            db.query(InfluencerCategory).filter(
+                InfluencerCategory.influencer_id == influencer.influencer_id
+            ).delete()
 
-        db.add(
-            InfluencerCategory(
-                influencer_id=influencer.influencer_id,
-                category_id=category.category_id,
-                priority=1,
+            db.add(
+                InfluencerCategory(
+                    influencer_id=influencer.influencer_id,
+                    category_id=category.category_id,
+                    priority=1,
+                )
             )
-        )
+    return influencer
 
 
 def seed_from_json_file(json_path: str):
