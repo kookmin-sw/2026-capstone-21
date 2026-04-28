@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, BackgroundTasks
 from sqlalchemy.orm import Session
 from app.db.database import get_db
-from app.services.crawler_service import CrawlerService
+from app.services.crawler import CrawlerService
 from app.services.build_influencer_embeddings import build_embeddings # GPU 작업
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
