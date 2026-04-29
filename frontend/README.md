@@ -1,3 +1,7 @@
+frontend/src/app/components/InfluencerProfileModal.tsx <<< 이 파일은 프론트엔드에서 API랑 직접 관련된 파일이 아니라 UI 컴포넌트
+
+
+
 각 폴더안에 있는 README.md 에 진행 상황 다 적어놓기!
 1) influencers  api 연동 끝
 2) 
