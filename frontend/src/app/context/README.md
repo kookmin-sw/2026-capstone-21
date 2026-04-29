@@ -8,3 +8,4 @@ InfluencerContext.tsx 파일은 인플루언서 목록 관리 / 관심 목록 / 
 2) API 연동하기 때문에 mockInfluencers는 필요 없어졌고, mockSelectionHistory로 파일 이름 바꿈
 3) InfluencerContext.tsx 파일에서 
 import { mockSelectionHistory } from '../data/mockData'; 을 import { mockSelectionHistory } from '../data/selectionHistory'; 로 바꿈
+4) 2026-capstone-21/frontend/src/app/context/InfluencerContext.tsx 에 favortie api까지 연동 끝
