@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
+from app.utils.auth import get_current_user
 from app.crud import favorite as favorite_crud
 from app.schemas.favorite import (
     FavoriteInfluencerCreate,
