@@ -22,7 +22,7 @@ from collections import defaultdict, Counter
 from typing import Any, Dict, List, Optional
 
 from openai import OpenAI
-
+from app.db.models import Influencer, InfluencerPost, Category, InfluencerCategory
 
 # =========================
 # Config
@@ -1148,34 +1148,45 @@ def upsert_category_only(db: Session, influencer: Influencer, category_name: str
         ))
 
 def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
-    # DB에서 아직 카테고리가 없는 인플루언서들을 찾아 AI 분류를 수행합니다.
-    influencer = db.query(Influencer).filter(Influencer.primary_category == None).all()
+    # 1. 변수명 수정: influencer(단수)와 influencers(복수) 구분
+    # 2. 필터 조건 수정: Influencer 모델에 'primary_category' 컬럼이 직접 없다면 
+    #    Relationship이나 InfluencerCategory 테이블을 체크해야 합니다.
+    influencers = db.query(Influencer).all() # 전체를 가져오거나, 특정 조건으로 필터링
     total = len(influencers)
 
     example_bank = load_example_bank(example_bank_path)
 
-    for idx, influencer in enumerate(influencers, 1):
-        username = influencer.username
+    for idx, inf in enumerate(influencers, 1): # 변수명을 inf로 변경하여 중복 방지
+        username = inf.username
 
+        # 게시물 가져오기
         posts_raw = (
             db.query(InfluencerPost)
-            .filter(InfluencerPost.influencer_id == influencer.influencer_id)
+            .filter(InfluencerPost.influencer_id == inf.influencer_id)
             .order_by(InfluencerPost.posted_at.desc())
-            .limit(12).all())
+            .limit(12).all()
+        )
+
+        # 게시물이 하나도 없으면 분류가 불가능하므로 스킵
+        if not posts_raw:
+            print(f"[{idx}/{total}] {username} 게시물 없음 → 스킵")
+            continue
 
         posts = [p.to_dict_for_ai() for p in posts_raw]
         summary = build_recent_post_summary(posts)
 
+        # 점수 계산 (inf 객체의 필드 사용)
         grade = final_grade_5(
             score_avg_likes_5(summary["avg_likes_recent12"]),
             score_avg_comments_5(summary["avg_comments_recent12"]),
-            score_upload_interval_5(float(influencer.avg_upload_interval_days or 0)),
-            score_posts_per_week_5(float(influencer.posts_per_week or 0)),
-            score_posts_count_5(float(influencer.posts_count or 0)),
+            score_upload_interval_5(float(inf.avg_upload_interval_days or 0)),
+            score_posts_per_week_5(float(inf.posts_per_week or 0)),
+            score_posts_count_5(float(inf.posts_count or 0)),
         )
 
+        # AI 분류 시작
         try:
-            inf_dict = influencer.to_dict_for_ai()
+            inf_dict = inf.to_dict_for_ai()
             result = classify_account(client, inf_dict, summary, example_bank=example_bank)
 
             cat  = result["primary_category"]
@@ -1184,30 +1195,38 @@ def run_db_classification(db: Session, client: OpenAI, example_bank_path: str):
 
         except Exception as e:
             cat = "라이프스타일"
-            acct = _fallback_account_type(influencer, summary)
+            acct = _fallback_account_type(inf, summary)
             conf = 0
             print(f"[{idx}/{total}] {username} AI 분류 실패 → 기본값 적용 ({e})")
 
+        # 스타일 키워드 및 DB 저장
         try:
             try:
                 style_keywords = extract_style_keywords(client, inf_dict, summary, cat, acct)
             except Exception:
-                style_keywords = _extract_style_keywords_rule(influencer, summary, cat)
+                style_keywords = _extract_style_keywords_rule(inf, summary, cat)
 
-            # DB에 결과 저장
-            influencer.account_type = acct
-            influencer.grade_score = grade # 계산된 grade 저장
-            influencer.style_keywords_json = style_keywords
-            influencer.style_keywords_text = ", ".join(style_keywords)
+            # DB 객체 업데이트
+            inf.account_type = acct
+            inf.grade_score = grade 
+            inf.style_keywords_json = style_keywords
+            inf.style_keywords_text = ", ".join(style_keywords)
 
-            upsert_category_only(db, influencer, cat)
+            # 카테고리 매핑 함수 호출
+            upsert_category_only(db, inf, cat)
 
-            db.commit()
-            print(f"✅ {inf.username} 분류 및 DB 업데이트 완료")
+            # 매번 commit하면 느리므로 flush 후 마지막에 commit하거나, 
+            # 루프 밖에서 하는 게 좋지만 안전을 위해 10명마다 commit 권장
+            if idx % 10 == 0:
+                db.commit()
+                print(f"--- {idx}명 완료 중간 커밋 ---")
+            
+            print(f"✅ [{idx}/{total}] {username} 분류 완료")
 
         except Exception as e:
             db.rollback()
-            print(f"❌ {inf.username} 분류 실패: {e}")
+            print(f"❌ {username} 처리 중 오류: {e}")
 
+    db.commit() # 최종 남은 데이터 커밋
 
 

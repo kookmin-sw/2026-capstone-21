@@ -1,17 +1,17 @@
 from sqlalchemy.orm import Session, joinedload
-
+import pandas as pd
 from app.db.models import Influencer, InfluencerCategory, InfluencerPost, InfluencerRelated
 
 
-def get_primary_category(influencer: Influencer):
+def influencer_to_response(influencer: Influencer):
+    # 인플루언서 객체를 딕셔너리로 변환하는 공통 로직
+    # (코드 중복을 방지하기 위해 crud 내부에 유지하거나 별도 util로 분리 가능)
+    primary_cat = None
     for ic in influencer.influencer_categories:
         if ic.priority == 1 and ic.category:
-            return ic.category.category_name
+            primary_cat = ic.category.category_name
+            break
 
-    return None
-
-
-def influencer_to_response(influencer: Influencer):
     return {
         "influencer_id": influencer.influencer_id,
         "username": influencer.username,
@@ -27,7 +27,7 @@ def influencer_to_response(influencer: Influencer):
         "grade_score": influencer.grade_score,
         "style_keywords_json": influencer.style_keywords_json,
         "style_keywords_text": influencer.style_keywords_text,
-        "primary_category": get_primary_category(influencer),
+        "primary_category": primary_cat,
     }
 
 

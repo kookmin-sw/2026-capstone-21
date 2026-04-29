@@ -5,10 +5,8 @@ import { getInfluencers } from '../../api/influencer';
 
 interface InfluencerContextType {
   influencers: Influencer[];
-  interestList: string[];
   selectionHistory: SelectionHistory[];
   notes: Record<string, string>;
-  toggleInterest: (influencerId: string) => void;
   selectInfluencer: (influencerId: string) => void;
   saveNote: (influencerId: string, note: string) => void;
 }
@@ -17,7 +15,6 @@ const InfluencerContext = createContext<InfluencerContextType | undefined>(undef
 
 export function InfluencerProvider({ children }: { children: ReactNode }) {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
-  const [interestList, setInterestList] = useState<string[]>([]);
   const [selectionHistory, setSelectionHistory] = useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
@@ -26,14 +23,6 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       .then(setInfluencers)
       .catch(console.error);
   }, []);
-
-  const toggleInterest = (influencerId: string) => {
-    setInterestList(prev =>
-      prev.includes(influencerId)
-        ? prev.filter(id => id !== influencerId)
-        : [...prev, influencerId]
-    );
-  };
 
   const selectInfluencer = (influencerId: string) => {
     setInfluencers(prev =>
@@ -70,10 +59,8 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     <InfluencerContext.Provider
       value={{
         influencers,
-        interestList,
         selectionHistory,
         notes,
-        toggleInterest,
         selectInfluencer,
         saveNote,
       }}
@@ -86,7 +73,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
 export function useInfluencers() {
   const context = useContext(InfluencerContext);
 
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useInfluencers must be used within InfluencerProvider');
   }
 
