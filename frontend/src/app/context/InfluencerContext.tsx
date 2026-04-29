@@ -3,69 +3,74 @@ import { Influencer, SelectionHistory } from '../types';
 import { mockSelectionHistory } from '../data/selectionHistory';
 import { getInfluencers } from '../../api/influencer';
 import { getFavorites, toggleFavorite } from '../../api/favorite';
-import { useAuth } from './AuthContext';
 
 interface InfluencerContextType {
   influencers: Influencer[];
   interestList: string[];
   selectionHistory: SelectionHistory[];
   notes: Record<string, string>;
-
   toggleInterest: (influencerId: string) => Promise<void>;
   selectInfluencer: (influencerId: string) => void;
   saveNote: (influencerId: string, note: string) => void;
+  refreshFavorites: () => Promise<void>;
 }
 
 const InfluencerContext = createContext<InfluencerContextType | undefined>(undefined);
 
 export function InfluencerProvider({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
-
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [interestList, setInterestList] = useState<string[]>([]);
   const [selectionHistory, setSelectionHistory] = useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  // 1. 인플루언서 전체 목록 로딩
+  /* =========================
+     1. influencers load
+  ========================= */
   useEffect(() => {
     getInfluencers()
       .then(setInfluencers)
       .catch(console.error);
   }, []);
 
-  // 2. ⭐ 핵심: 로그인 상태 기준 favorite 동기화
-  useEffect(() => {
-    if (!isAuthenticated) {
-      setInterestList([]);
-      return;
+  /* =========================
+     2. favorites load (LOGIN SYNC 핵심)
+  ========================= */
+  const refreshFavorites = async () => {
+    try {
+      const data = await getFavorites();
+
+      setInterestList(
+        data.map((f: any) => String(f.influencer_id))
+      );
+    } catch (err) {
+      console.error("favorite sync 실패:", err);
     }
+  };
 
-    getFavorites()
-      .then((data) => {
-        setInterestList(
-          data.map((f: any) => String(f.influencer_id))
-        );
-      })
-      .catch(console.error);
-  }, [isAuthenticated]);
+  useEffect(() => {
+    refreshFavorites();
+  }, []);
 
-  // 3. 관심 토글 (DB 연동)
+  /* =========================
+     3. toggle favorite (DB 기준)
+  ========================= */
   const toggleInterest = async (influencerId: string) => {
     try {
-      const res = await toggleFavorite(Number(influencerId));
+      const result = await toggleFavorite(Number(influencerId));
 
-      // 서버 결과 기준 동기화
-      if (res.status === 'added') {
+      if (result.status === 'added') {
         setInterestList(prev => [...prev, influencerId]);
       } else {
         setInterestList(prev => prev.filter(id => id !== influencerId));
       }
     } catch (err) {
-      console.error('toggleFavorite 실패:', err);
+      console.error('favorite toggle 실패:', err);
     }
   };
 
-  // 4. 선택 카운트 (기존 로직 유지)
+  /* =========================
+     4. select influencer
+  ========================= */
   const selectInfluencer = (influencerId: string) => {
     setInfluencers(prev =>
       prev.map(inf =>
@@ -90,7 +95,6 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // 5. 노트 저장
   const saveNote = (influencerId: string, note: string) => {
     setNotes(prev => ({
       ...prev,
@@ -108,6 +112,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
         toggleInterest,
         selectInfluencer,
         saveNote,
+        refreshFavorites
       }}
     >
       {children}
@@ -118,7 +123,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
 export function useInfluencers() {
   const context = useContext(InfluencerContext);
 
-  if (!context) {
+  if (context === undefined) {
     throw new Error('useInfluencers must be used within InfluencerProvider');
   }
 
