@@ -1,23 +1,22 @@
-from pydantic import BaseModel, EmailStr
+from app.db.models import User
+from pydantic import BaseModel, EmailStr, Field, field_validator
+import re
 
-from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.sql import func
-from app.db.database import Base
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str = Field(..., min_length=8, max_length=50)
+    user_name: str = Field(..., min_length=2, max_length=100) # 이름 필드 추가
 
-class User(Base):
-    __tablename__ = "users"
+    @field_validator('password')
+    @classmethod
+    def password_complexity(cls, v: str) -> str:
+        pattern = r"^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+        if not re.match(pattern, v):
+            raise ValueError(
+                '비밀번호는 최소 8자 이상이며, 영문 소문자, 숫자, 특수문자를 각각 최소 1개 이상 포함해야 합니다.'
+            )
+        return v
 
-    user_id = Column(Integer, primary_key=True, autoincrement=True)
-    email = Column(String(255), nullable=False, unique=True)
-    password_hash = Column(String(255), nullable=False)
-    user_name = Column(String(100), nullable=False)
-    role = Column(String(50), nullable=False, default="user")
-    status = Column(String(50), nullable=False, default="active")
-    
-    created_at = Column(DateTime, nullable=False, server_default=func.now())
-    updated_at = Column(
-        DateTime, 
-        nullable=False, 
-        server_default=func.now(), 
-        onupdate=func.now()
-    )
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
