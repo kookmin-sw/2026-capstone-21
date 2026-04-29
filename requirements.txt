@@ -7,3 +7,6 @@ pydantic
 pydantic-settings
 sentence-transformers
 pandas
+bcrypt==4.0.1
+faiss-cpu
+lightfm @ git+https://github.com/lyst/lightfm.git@master

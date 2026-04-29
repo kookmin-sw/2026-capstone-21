@@ -8,8 +8,8 @@ from app.schemas.recommendation import (
     RecommendationRunResponse,
     RecommendationResultCreate,
     RecommendationResultResponse,
-    RecommendationEngine,
 )
+from app.services.recommendation import RecommendationEngine
 from typing import Optional, List
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
