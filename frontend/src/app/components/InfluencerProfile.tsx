@@ -1,13 +1,12 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, Star, X } from 'lucide-react';
+import { Search, SlidersHorizontal } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
-import { FilterState, Category, FollowerRange, Influencer } from '../types';
-import { InfluencerProfileModal } from './InfluencerProfileModal';
+import { FilterState, Category, Influencer } from '../types';
 import { getCategories } from '../../api/category';
 
-// follower range는 그대로 유지
-const followerRanges: { value: FollowerRange; label: string }[] = [
+// follower range 유지
+const followerRanges = [
   { value: '500-1000', label: '500 - 1K' },
   { value: '1000-2000', label: '1K - 2K' },
   { value: '2000-3000', label: '2K - 3K' },
@@ -15,7 +14,7 @@ const followerRanges: { value: FollowerRange; label: string }[] = [
   { value: '5000+', label: '5K+' },
 ];
 
-// 키워드 추출 함수 (변경 없음)
+// keyword function 유지
 function extractKeywords(text: string): string[] {
   if (!text) return [];
 
@@ -37,12 +36,14 @@ function extractKeywords(text: string): string[] {
 };
 
 export function InfluencerProfile() {
-  const { influencers, interestList, toggleInterest, selectInfluencer } = useInfluencers();
+  const { influencers, selectInfluencer } = useInfluencers();
 
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedInfluencer, setSelectedInfluencer] = useState<{ influencer: Influencer; rank: number } | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] = useState<{
+    influencer: Influencer;
+    rank: number;
+  } | null>(null);
 
-  // ⭐ 핵심 변경: categories를 state로 관리
   const [categories, setCategories] = useState<Category[]>([]);
 
   const [filters, setFilters] = useState<FilterState>({
@@ -53,17 +54,22 @@ export function InfluencerProfile() {
     mainAges: [],
   });
 
-  // ⭐ API에서 카테고리 가져오기
+  /* =========================
+     1. CATEGORY API FIX (수정됨)
+  ========================= */
   useEffect(() => {
     getCategories()
       .then((data) => {
-        // 백엔드 응답 형태 맞추기
-        const mapped = data.map((item: any) => item.category_name);
-        setCategories(mapped);
+        // ✅ 수정: map 제거 (백엔드 그대로 사용)
+        setCategories(data);
       })
       .catch(console.error);
   }, []);
 
+  /* =========================
+     2. FILTER LOGIC (수정됨)
+     influencer.category → influencer.primary_category
+  ========================= */
   const filteredInfluencers = useMemo(() => {
     return influencers.filter((influencer) => {
       if (filters.search) {
@@ -105,9 +111,10 @@ export function InfluencerProfile() {
         }
       }
 
+      /* ⭐ 수정 핵심 */
       if (
         filters.categories.length > 0 &&
-        !filters.categories.includes(influencer.category)
+        !filters.categories.includes(influencer.primary_category as any)
       ) {
         return false;
       }
@@ -148,27 +155,28 @@ export function InfluencerProfile() {
     <div>
       {/* Header */}
       <div className="mb-8 space-y-4">
-        <h1 className="text-3xl font-bold text-slate-900">
-          Discover Influencers
-        </h1>
+        <h1 className="text-3xl font-bold">Discover Influencers</h1>
 
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" />
             <input
               type="text"
               placeholder="Search influencers..."
               value={filters.search}
               onChange={(e) =>
-                setFilters((prev) => ({ ...prev, search: e.target.value }))
+                setFilters((prev) => ({
+                  ...prev,
+                  search: e.target.value,
+                }))
               }
-              className="w-full pl-12 pr-4 py-3 border border-slate-300 rounded-xl"
+              className="w-full pl-12 pr-4 py-3 border rounded-xl"
             />
           </div>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-6 py-3 rounded-xl font-semibold border"
+            className="px-6 py-3 border rounded-xl"
           >
             <SlidersHorizontal className="w-5 h-5" />
             Filters
@@ -176,13 +184,13 @@ export function InfluencerProfile() {
         </div>
       </div>
 
-      {/* Filter Panel */}
+      {/* Filters */}
       <AnimatePresence>
         {showFilters && (
           <motion.div>
             <div className="bg-white p-6 rounded-2xl border">
 
-              {/* Category (API 기반) */}
+              {/* CATEGORY (FIXED) */}
               <div>
                 <label className="font-semibold block mb-3">
                   Category
@@ -210,7 +218,7 @@ export function InfluencerProfile() {
         )}
       </AnimatePresence>
 
-      {/* Results */}
+      {/* LIST */}
       <div className="grid grid-cols-4 gap-6">
         {filteredInfluencers.map((influencer) => (
           <div
@@ -219,6 +227,7 @@ export function InfluencerProfile() {
             className="cursor-pointer"
           >
             <img src={influencer.photo} />
+
             <div onClick={(e) => handleNameClick(influencer, e)}>
               {influencer.name}
             </div>
