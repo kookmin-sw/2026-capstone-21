@@ -1,4 +1,4 @@
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'motion/react';
 import { X, Star, Instagram, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Influencer } from '../types';
