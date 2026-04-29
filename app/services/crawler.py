@@ -5,6 +5,7 @@ import numpy as np
 import os
 from sqlalchemy.orm import Session
 from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE
+from app.seed.seed_influencers import upsert_influencer
 
 class CrawlerService:
     def __init__(self, db: Session):

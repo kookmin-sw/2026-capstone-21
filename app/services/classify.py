@@ -20,6 +20,7 @@ import time
 import sys
 from collections import defaultdict, Counter
 from typing import Any, Dict, List, Optional
+from sqlalchemy.orm import Session
 
 from openai import OpenAI
 from app.db.models import Influencer, InfluencerPost, Category, InfluencerCategory
