@@ -16,9 +16,12 @@ python -m app.seed.seed_influencers
 echo "📝 [5/7] 초기 액션 로그 데이터 시딩..."
 python -m app.seed.seed_logs
 
-echo "🧠 [6/7] FAISS 벡터 임베딩 구축..."
+echo "🤷‍♀️ [6/7] 초기 유저 데이터 시딩..."
+python -m app.seed.seed_users
+
+echo "🧠 [7/7] FAISS 벡터 임베딩 구축..."
 python -m app.services.build_influencer_embeddings
 
 echo "✅ 모든 준비 완료! 서버를 정식으로 시작합니다."
-echo "📡 [7/7] Server running at http://localhost:8000"
+echo "📡 Server running at http://localhost:8000"
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
