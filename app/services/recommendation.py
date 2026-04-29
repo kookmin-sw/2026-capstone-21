@@ -15,20 +15,27 @@ class RecommendationEngine:
         self.model = SentenceTransformer("BAAI/bge-m3")
         self.lfm_model = LightFM(loss='warp')
         self.bandit_actions = [
-            (0.8, 0.2), (0.6, 0.4), (0.5, 0.5), (0.4, 0.6), (0.2, 0.8)
+            (0.5, 0.3, 0.2), (0.4, 0.4, 0.2), (0.3, 0.3, 0.4), (0.6, 0.2, 0.2)
         ]
         self._load_resources()
 
     def _load_resources(self):
         """DB에서 데이터를 로드하여 FAISS 인덱스 및 LightFM 준비"""
         # 1. FAISS 인덱스 구축
-        embeddings = self.db.query(InfluencerEmbedding).all()
+        embeddings = self.db.query(
+                InfluencerEmbedding.influencer_id, 
+                InfluencerEmbedding.embedding_vector,
+                Influencer.grade
+            ).join(Influencer, Influencer.id == InfluencerEmbedding.influencer_id).all()
         if embeddings:
             vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')
             self.dim = vectors.shape[1]
             self.faiss_index = faiss.IndexFlatIP(self.dim)
             self.faiss_index.add(vectors)
+
             self.inf_ids = [e.influencer_id for e in embeddings]
+
+            self.inf_grades = {r.influencer_id: (r.grade / 5.0) for r in results}
         
         # 2. LightFM 학습 (로그 기반)
         self._train_lfm()
@@ -73,7 +80,7 @@ class RecommendationEngine:
         faiss_scores, faiss_indices = self.faiss_index.search(query_vec, 100)
 
         # [STEP 2] Bandit Weights
-        (w_faiss, w_lfm), action_idx = self.get_bandit_weights()
+        (w_faiss, w_lfm, w_grade), action_idx = self.get_bandit_weights()
 
         # [STEP 3] LightFM Re-ranking
         candidate_inf_ids = [self.inf_ids[idx] for idx in faiss_indices[0]]
@@ -91,10 +98,16 @@ class RecommendationEngine:
         # [STEP 4] 결합
         results = []
         for i, inf_id in enumerate(candidate_inf_ids):
-            combined_score = (faiss_scores[0][i] * w_faiss) + (lfm_scores[i] * w_lfm)
+            f_score = faiss_scores[0][i]
+            l_score = lfm_scores[i]
+            g_score = self.inf_grades.get(inf_id, 0.2)
+
+            combined_score = (f_score * w_faiss) + (l_score * w_lfm) + (g_score * w_grade)
+            
             results.append({
                 "influencer_id": inf_id,
                 "score": float(combined_score),
+                "grade": g_score * 5,
                 "action_idx": action_idx
             })
 
