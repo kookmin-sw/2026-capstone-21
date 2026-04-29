@@ -6,6 +6,7 @@ frontend/src/app/components/InfluencerProfileModal.tsx <<< 프론트엔드에서
 1) influencers  api 연동 끝
 2) category   api 연동 끝
 3) favorite   api 연동 끝
+4) insight    api 연동
 
 실시간 진행 상황
 1) 윤지님이 프론트 서버 실행한 결과, 실제 인플루언서 데이터가 화면에 뜨는 것을 확인함. 그러나 프로필 이미지가 뜨지 않는 문제가 발생함.
