@@ -1,16 +1,32 @@
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>인플루언서 마케팅 디자인.</title>
-      <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
-    </head>
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>인플루언서 마케팅 디자인.</title>
+    <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+  </head>
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+  <body>
+    <div id="root"></div>
+    
+    <script>
+      (function(d,t) {
+        var BASE_URL="http://localhost:3000";
+        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
+        g.src=BASE_URL+"/packs/js/sdk.js";
+        g.defer = true;
+        g.async = true;
+        g.onload=function(){
+          window.chatwootSDK.run({
+            websiteToken: 'EEawbzfkkgqkw3bxyUpkqNGW',
+            baseUrl: BASE_URL
+          })
+        }
+        s.parentNode.insertBefore(g,s);
+      })(document,"script");
+    </script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
