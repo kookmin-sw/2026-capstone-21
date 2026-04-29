@@ -1,15 +1,14 @@
 from app.utils.setting_config import settings
 import os
-from fastapi import FastAPI, Depends
-from app.schemas.chatwoot import ChatwootMessage
+from fastapi import FastAPI, Depends, APIRouter
+from app.schemas.chatwoot import ChatwootMessage, ChatbotResponse
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatbot"])
 
 # --- 1. 유저 질문 수신 (POST) ---
 # Chatwoot 위젯에서 유저가 질문을 입력하면 호출됨
 @router.post("/webhook")
-async def receive_question(data: ChatwootWebhook):
-    # ChatwootWebhook 모델에 데이터가 자동으로 파싱되어 들어옴
+async def receive_question(data: ChatwootMessage):
     print(f"질문 수신 완료: {data.content} (ID: {data.conversation_id})")
     return {"status": "success", "received": data}
 
