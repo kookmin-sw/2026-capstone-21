@@ -1,6 +1,8 @@
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import joinedload
 
+from sqlalchemy.orm import Session
+
 from app.db.database import SessionLocal
 from app.db.models import Influencer, InfluencerEmbedding, InfluencerCategory
 from app.utils.setting_config import settings

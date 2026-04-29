@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
-from sqlalchemy.orm import Session, SessionLocal
+from sqlalchemy.orm import Session
+from app.db.database import SessionLocal
 from openai import OpenAI
 import os
 
@@ -33,7 +34,7 @@ async def sync_all_data(background_tasks: BackgroundTasks, db: Session = Depends
 
             run_db_classification(db, client, example_bank_path="data/example_bank.json")
             db.flush()
-            
+
             build_embeddings(db)
             db.commit()
         except Exception as e:
