@@ -2,7 +2,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { Influencer, SelectionHistory } from '../types';
 import { mockSelectionHistory } from '../data/selectionHistory';
 import { getInfluencers } from '../../api/influencer';
-import { toggleFavorite } from '../../api/favorite';
+import { getFavorites, toggleFavorite } from '../../api/favorite';
 
 interface InfluencerContextType {
   influencers: Influencer[];
@@ -22,19 +22,27 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
   const [selectionHistory, setSelectionHistory] = useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  // 1. 인플루언서 API 연결
+  // 1. 인플루언서 데이터 로딩
   useEffect(() => {
     getInfluencers()
       .then(setInfluencers)
       .catch(console.error);
   }, []);
 
-  // 2. 관심 토글 (DB 연동 버전)
+  // 2. ⭐ 관심 목록 초기 로딩 (여기에 추가하는 게 정답)
+  useEffect(() => {
+    getFavorites()
+      .then(data => {
+        setInterestList(data.map((f: any) => String(f.influencer_id)));
+      })
+      .catch(console.error);
+  }, []);
+
+  // 3. 관심 토글 (DB 연동)
   const toggleInterest = async (influencerId: string) => {
     try {
       const result = await toggleFavorite(Number(influencerId));
 
-      // 서버 기준 상태 반영 (토글 결과 기반)
       if (result.status === 'added') {
         setInterestList(prev => [...prev, influencerId]);
       } else {
@@ -45,7 +53,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 3. 선택 카운트 로직 (기존 유지)
+  // 4. 선택 카운트
   const selectInfluencer = (influencerId: string) => {
     setInfluencers(prev =>
       prev.map(inf =>
@@ -70,7 +78,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     });
   };
 
-  // 4. 노트 저장
+  // 5. 노트 저장
   const saveNote = (influencerId: string, note: string) => {
     setNotes(prev => ({
       ...prev,
