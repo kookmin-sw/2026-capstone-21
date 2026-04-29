@@ -1,0 +1,175 @@
+import { motion, AnimatePresence } from 'motion/react';
+import { X } from 'lucide-react';
+import { useState } from 'react';
+import { useAuth } from '../context/AuthContext';
+
+interface SignupModalProps {
+  onClose: () => void;
+  onSuccess: () => void;
+  onShowLogin: () => void;
+}
+
+export function SignupModal({ onClose, onSuccess, onShowLogin }: SignupModalProps) {
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+  const [passwordTouched, setPasswordTouched] = useState(false);
+  const { signup } = useAuth();
+
+  // Email validation
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  const isEmailValid = emailRegex.test(email);
+  const showEmailError = emailTouched && !isEmailValid && email.length > 0;
+
+  // Password validation
+  const isPasswordValid =
+    password.length >= 8 &&
+    password.length <= 50 &&
+    /[a-zA-Z]/.test(password) &&
+    /[0-9]/.test(password) &&
+    /[!@#$%^&*(),.?":{}|<>]/.test(password);
+  const showPasswordError = passwordTouched && !isPasswordValid && password.length > 0;
+
+  // Button enabled only when both validations pass
+  const isFormValid = isEmailValid && isPasswordValid;
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    signup(email, password);
+    onSuccess();
+  };
+
+  return (
+    <AnimatePresence>
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        {/* Backdrop */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          onClick={onClose}
+          className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+        />
+
+        {/* Modal */}
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.95, y: 20 }}
+          transition={{ duration: 0.2 }}
+          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+        >
+          {/* Header */}
+          <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 px-8 py-12 text-white">
+            <button
+              onClick={onClose}
+              className="absolute top-4 right-4 p-2 hover:bg-white/20 rounded-lg transition-colors"
+            >
+              <X className="w-5 h-5" />
+            </button>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-xl">
+                D
+              </div>
+              <span className="text-2xl font-bold">링크디매치</span>
+            </div>
+            <h2 className="text-3xl font-bold">Join Us</h2>
+            <p className="text-white/80 mt-2">Create your account to get started</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="p-8 space-y-6">
+            <div>
+              <label htmlFor="name" className="block text-sm font-semibold text-slate-700 mb-2">
+                Full Name
+              </label>
+              <input
+                type="text"
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                placeholder="John Doe"
+                required
+              />
+            </div>
+
+            <div>
+              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+                Email
+              </label>
+              <input
+                type="email"
+                id="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setEmailTouched(true)}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  showEmailError
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-slate-300 focus:ring-purple-500 focus:border-transparent'
+                }`}
+                placeholder="Enter your email"
+                required
+              />
+              {showEmailError && (
+                <p className="text-red-500 text-sm mt-1">
+                  올바른 이메일 형식으로 입력하세요
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+                Password
+              </label>
+              <input
+                type="password"
+                id="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setPasswordTouched(true)}
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
+                  showPasswordError
+                    ? 'border-red-500 focus:ring-red-500'
+                    : 'border-slate-300 focus:ring-purple-500 focus:border-transparent'
+                }`}
+                placeholder="Create a strong password"
+                required
+              />
+              {showPasswordError && (
+                <p className="text-red-500 text-sm mt-1">
+                  패스워드는 8~50자, 영어, 숫자, 특수문자가 조합되어야 합니다.
+                </p>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={!isFormValid}
+              className={`w-full py-3.5 rounded-lg font-semibold transition-all ${
+                isFormValid
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white hover:shadow-lg hover:shadow-purple-500/50 cursor-pointer'
+                  : 'bg-slate-300 text-slate-500 cursor-not-allowed opacity-60'
+              }`}
+            >
+              Create Account
+            </button>
+
+            <div className="text-center">
+              <span className="text-slate-600 text-sm">Already have an account? </span>
+              <button
+                type="button"
+                onClick={onShowLogin}
+                className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
+              >
+                Login
+              </button>
+            </div>
+          </form>
+        </motion.div>
+      </div>
+    </AnimatePresence>
+  );
+}
