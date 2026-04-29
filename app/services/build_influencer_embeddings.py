@@ -96,4 +96,6 @@ def build_embeddings(db: Session):
 
 
 if __name__ == "__main__":
-    build_embeddings()
+    db = SessionLocal()
+    build_embeddings(db=db)
+    db.close()

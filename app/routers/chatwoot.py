@@ -15,6 +15,8 @@ async def receive_question(
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db)
 ):
+    if payload.message_type != "incoming":
+        return {"status": "ignored", "message": "Not an incoming message"}
     # 기존 DB 저장 로직
     q_type = "일반"
     if payload.additional_attributes and payload.additional_attributes.custom_attributes:
