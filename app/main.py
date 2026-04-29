@@ -11,7 +11,8 @@ from app.routers import (
     favorite,
     insight,
     admin,
-    auth
+    auth,
+    chatwoot
 )
 
 app = FastAPI(root_path="/proxy/8000")
@@ -36,6 +37,7 @@ app.include_router(user_action_log.router)
 app.include_router(favorite.router)
 app.include_router(insight.router)
 app.include_router(admin.router)
+app.include_router(chatwoot.router)
 
 
 @app.get("/")
