@@ -1,6 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Influencer, SelectionHistory } from '../types';
-import { mockInfluencers, mockSelectionHistory } from '../data/mockData';
+import { mockSelectionHistory } from '../data/mockData';
+import { getInfluencers } from '../../api/influencer';
 
 interface InfluencerContextType {
   influencers: Influencer[];
@@ -15,10 +16,16 @@ interface InfluencerContextType {
 const InfluencerContext = createContext<InfluencerContextType | undefined>(undefined);
 
 export function InfluencerProvider({ children }: { children: ReactNode }) {
-  const [influencers, setInfluencers] = useState<Influencer[]>(mockInfluencers);
+  const [influencers, setInfluencers] = useState<Influencer[]>([]);
   const [interestList, setInterestList] = useState<string[]>([]);
   const [selectionHistory, setSelectionHistory] = useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    getInfluencers()
+      .then(setInfluencers)
+      .catch(console.error);
+  }, []);
 
   const toggleInterest = (influencerId: string) => {
     setInterestList(prev =>
@@ -37,15 +44,17 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       )
     );
 
-    // Update today's selection count
     const today = new Date().toISOString().split('T')[0];
+
     setSelectionHistory(prev => {
       const existing = prev.find(h => h.date === today);
+
       if (existing) {
         return prev.map(h =>
           h.date === today ? { ...h, count: h.count + 1 } : h
         );
       }
+
       return [...prev, { date: today, count: 1 }];
     });
   };
@@ -76,8 +85,10 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
 
 export function useInfluencers() {
   const context = useContext(InfluencerContext);
+
   if (context === undefined) {
     throw new Error('useInfluencers must be used within InfluencerProvider');
   }
+
   return context;
 }
