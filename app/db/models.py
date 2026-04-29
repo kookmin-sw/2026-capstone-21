@@ -260,6 +260,8 @@ class RecommendationRun(Base):
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     input_id = Column(Integer, ForeignKey("mall_input.input_id", ondelete="CASCADE"), nullable=False)
 
+    applied_action_idx = Column(Integer, nullable=True)
+    
     # pending, completed, failed 등
     status = Column(String(50), nullable=False, default="pending")
 

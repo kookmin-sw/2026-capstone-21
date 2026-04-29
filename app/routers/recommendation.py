@@ -41,7 +41,8 @@ def get_and_save_recommendations(
     new_run = RecommendationRun(
         input_id=input_id, 
         user_id=user_id,
-        applied_action_idx=recommendations[0]['action_idx'] # Bandit의 선택 기록
+        applied_action_idx=recommendations[0]['action_idx'], # Bandit의 선택 기록
+        status="completed"
     )
     db.add(new_run)
     db.flush() # ID 생성을 위해 flush
