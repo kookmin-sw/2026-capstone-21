@@ -26,7 +26,7 @@ class RecommendationEngine:
                 InfluencerEmbedding.influencer_id, 
                 InfluencerEmbedding.embedding_vector,
                 Influencer.grade
-            ).join(Influencer, Influencer.id == InfluencerEmbedding.influencer_id).all()
+            ).join(Influencer, Influencer.influencer_id == InfluencerEmbedding.influencer_id).all()
         if embeddings:
             vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')
             self.dim = vectors.shape[1]
@@ -35,7 +35,7 @@ class RecommendationEngine:
 
             self.inf_ids = [e.influencer_id for e in embeddings]
 
-            self.inf_grades = {r.influencer_id: (r.grade / 5.0) for r in results}
+            self.inf_grades = {e.influencer_id: (e.grade / 5.0) for e in embeddings}
         
         # 2. LightFM 학습 (로그 기반)
         self._train_lfm()
