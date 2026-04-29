@@ -8,6 +8,7 @@
 3) 인플루언서와 JPG 파일명을 매핑해서 쓰는 방식 채택 -> 현재는 2026-capstone-21/data/profile_pic_HD/ 에 위치하지만 매핑하기 위해서 2026-capstone-21/frontend/public/profile_pic_HD/ 로 위치 변경하기!  (해결하면 괄호 지우기)
 4) frontend/src/api/influencer.ts 파일에 photo: `/profile_pic_HD/${item.username}.jpg`,  을   photo: `/profile_pic_HD/${item.username}.jpg`,  로 바꿔서
 다시 테스트 진행해보기!   (해결하면 괄호 지우기)
+5) 2026-capstone-21/frontend/src/app/components/InfluencerProfile.tsx 파일이 카테고리를 담당하고 있기 때문에 수정하여 api 연동하기
   
   
   
