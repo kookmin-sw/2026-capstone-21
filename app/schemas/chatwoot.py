@@ -1,7 +1,6 @@
 from pydantic import BaseModel
-from typing import Optional
 
-class ChatwootWebhook(BaseModel):
+class ChatwootMessage(BaseModel):
     content: str
     question_type: str
     conversation_id: int
