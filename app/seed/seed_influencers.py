@@ -77,7 +77,7 @@ def upsert_influencer(db: Session, item: dict):
             # profile_pic_url=item.get("profilePicUrl"),
             profile_pic_url= local_pic_url,
             account_type=item.get("account_type"),
-            grade=parse_grade(item.get("grade")),
+            grade_score=parse_grade(item.get("grade")),
             style_keywords_json=style_keywords,
             style_keywords_text=style_keywords_text,
         )
@@ -94,7 +94,7 @@ def upsert_influencer(db: Session, item: dict):
         # influencer.profile_pic_url = item.get("profilePicUrl")
         influencer.profile_pic_url = local_pic_url
         influencer.account_type = item.get("account_type")
-        influencer.grade = parse_grade(item.get("grade"))
+        influencer.grade_score = parse_grade(item.get("grade"))
         influencer.style_keywords_json = style_keywords
         influencer.style_keywords_text = style_keywords_text
 
