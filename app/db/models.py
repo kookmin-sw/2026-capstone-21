@@ -61,7 +61,7 @@ class Category(Base):
     )
 
 
-# 인플루언서 기본 정보 테이블
+# 인플루언서 테이블
 class Influencer(Base):
     __tablename__ = "influencer"
 
@@ -83,7 +83,7 @@ class Influencer(Base):
     # 스타일 키워드 원본 JSON 및 검색/임베딩용 텍스트
     style_keywords_json = Column(JSON, nullable=True)
     style_keywords_text = Column(Text, nullable=True)
-    grade = Column(Integer, nullable=True)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
