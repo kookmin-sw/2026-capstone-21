@@ -18,10 +18,11 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+
     const result = login(email, password);
 
     if (result === 'success') {
-      onSuccess();
+      onSuccess(); // 👉 이게 핵심 (로그인 성공 이벤트 전달)
     } else if (result === 'account-not-found') {
       setEmailError(true);
       setPasswordError(false);
@@ -69,12 +70,14 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
             >
               <X className="w-5 h-5" />
             </button>
+
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-lg bg-white/20 backdrop-blur-sm flex items-center justify-center font-bold text-xl">
                 D
               </div>
               <span className="text-2xl font-bold">링크디매치</span>
             </div>
+
             <h2 className="text-3xl font-bold">Welcome Back</h2>
             <p className="text-white/80 mt-2">Login to access your account</p>
           </div>
@@ -82,66 +85,60 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
           {/* Form */}
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
-              <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Email
               </label>
               <input
                 type="text"
-                id="email"
                 value={email}
                 onChange={handleEmailChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                  emailError
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-300 focus:ring-purple-500 focus:border-transparent'
+                className={`w-full px-4 py-3 border rounded-lg ${
+                  emailError ? 'border-red-500' : 'border-slate-300'
                 }`}
                 placeholder="Enter your email"
-                required
               />
               {emailError && (
                 <p className="text-red-500 text-sm mt-1">
-                  입력하신 계정이 존재하지 않습니다.
+                  계정이 존재하지 않습니다.
                 </p>
               )}
             </div>
 
             <div>
-              <label htmlFor="password" className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
                 Password
               </label>
               <input
                 type="password"
-                id="password"
                 value={password}
                 onChange={handlePasswordChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition-all ${
-                  passwordError
-                    ? 'border-red-500 focus:ring-red-500'
-                    : 'border-slate-300 focus:ring-purple-500 focus:border-transparent'
+                className={`w-full px-4 py-3 border rounded-lg ${
+                  passwordError ? 'border-red-500' : 'border-slate-300'
                 }`}
                 placeholder="Enter your password"
-                required
               />
               {passwordError && (
                 <p className="text-red-500 text-sm mt-1">
-                  비밀번호가 일치하지 않습니다. 다시 확인해주세요.
+                  비밀번호가 틀렸습니다.
                 </p>
               )}
             </div>
 
             <button
               type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg font-semibold hover:shadow-lg hover:shadow-purple-500/50 transition-all"
+              className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg"
             >
               Login
             </button>
 
             <div className="text-center">
-              <span className="text-slate-600 text-sm">Don't have an account? </span>
+              <span className="text-sm text-slate-600">
+                Don't have an account?
+              </span>{' '}
               <button
                 type="button"
                 onClick={onShowSignup}
-                className="text-purple-600 hover:text-purple-700 font-semibold text-sm"
+                className="text-purple-600 font-semibold"
               >
                 Sign up
               </button>
