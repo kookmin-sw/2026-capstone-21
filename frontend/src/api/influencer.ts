@@ -10,7 +10,7 @@ export async function getInfluencers() {
   return data.map((item: any) => ({
     id: String(item.influencer_id),
     name: item.full_name || item.username,
-    photo: item.profile_pic_url || "",
+    photo: `/profile_pic_HD/${item.username}.jpg`,
     followers: item.followers_count || 0,
     category: item.primary_category || "기타",
     mainGender: "both",
