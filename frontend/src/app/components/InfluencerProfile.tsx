@@ -3,18 +3,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Search, SlidersHorizontal } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
+import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
 
-// follower range 유지
-const followerRanges = [
-  { value: '500-1000', label: '500 - 1K' },
-  { value: '1000-2000', label: '1K - 2K' },
-  { value: '2000-3000', label: '2K - 3K' },
-  { value: '3000-5000', label: '3K - 5K' },
-  { value: '5000+', label: '5K+' },
-];
-
-// keyword function 유지
 function extractKeywords(text: string): string[] {
   if (!text) return [];
 
@@ -33,7 +24,7 @@ function extractKeywords(text: string): string[] {
   const patterns = text.match(/\d+인용/g) || [];
 
   return [...new Set([...words, ...patterns])];
-};
+}
 
 export function InfluencerProfile() {
   const { influencers, selectInfluencer } = useInfluencers();
@@ -54,22 +45,16 @@ export function InfluencerProfile() {
     mainAges: [],
   });
 
-  /* =========================
-     1. CATEGORY API FIX (수정됨)
-  ========================= */
+  /* CATEGORY API */
   useEffect(() => {
     getCategories()
       .then((data) => {
-        // ✅ 수정: map 제거 (백엔드 그대로 사용)
         setCategories(data);
       })
       .catch(console.error);
   }, []);
 
-  /* =========================
-     2. FILTER LOGIC (수정됨)
-     influencer.category → influencer.primary_category
-  ========================= */
+  /* FILTER LOGIC */
   const filteredInfluencers = useMemo(() => {
     return influencers.filter((influencer) => {
       if (filters.search) {
@@ -111,10 +96,9 @@ export function InfluencerProfile() {
         }
       }
 
-      /* ⭐ 수정 핵심 */
       if (
         filters.categories.length > 0 &&
-        !filters.categories.includes(influencer.primary_category as any)
+        !filters.categories.includes(influencer.category)
       ) {
         return false;
       }
@@ -153,7 +137,7 @@ export function InfluencerProfile() {
 
   return (
     <div>
-      {/* Header */}
+      {/* HEADER */}
       <div className="mb-8 space-y-4">
         <h1 className="text-3xl font-bold">Discover Influencers</h1>
 
@@ -176,7 +160,7 @@ export function InfluencerProfile() {
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-6 py-3 border rounded-xl"
+            className="px-6 py-3 border rounded-xl flex items-center gap-2"
           >
             <SlidersHorizontal className="w-5 h-5" />
             Filters
@@ -184,13 +168,48 @@ export function InfluencerProfile() {
         </div>
       </div>
 
-      {/* Filters */}
+      {/* FILTERS */}
       <AnimatePresence>
         {showFilters && (
           <motion.div>
             <div className="bg-white p-6 rounded-2xl border">
 
-              {/* CATEGORY (FIXED) */}
+              {/* 🔥 FOLLOWER FILTER */}
+              <div className="mb-6">
+                <label className="font-semibold block mb-3">
+                  Number of Followers
+                </label>
+
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { label: "500 - 1K", value: "500-1000" },
+                    { label: "1K - 2K", value: "1000-2000" },
+                    { label: "2K - 3K", value: "2000-3000" },
+                    { label: "3K - 5K", value: "3000-5000" },
+                    { label: "5K+", value: "5000+" },
+                  ].map((range) => (
+                    <button
+                      key={range.value}
+                      onClick={() =>
+                        setFilters((prev) => ({
+                          ...prev,
+                          followerRange:
+                            prev.followerRange === range.value ? null : range.value,
+                        }))
+                      }
+                      className={`px-4 py-2 rounded-lg ${
+                        filters.followerRange === range.value
+                          ? "bg-purple-600 text-white"
+                          : "bg-slate-100"
+                      }`}
+                    >
+                      {range.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* CATEGORY */}
               <div>
                 <label className="font-semibold block mb-3">
                   Category
@@ -218,22 +237,53 @@ export function InfluencerProfile() {
         )}
       </AnimatePresence>
 
-      {/* LIST */}
-      <div className="grid grid-cols-4 gap-6">
+      {/* CARD GRID */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
         {filteredInfluencers.map((influencer) => (
           <div
             key={influencer.id}
             onClick={() => handleCardClick(influencer.id)}
-            className="cursor-pointer"
+            className="bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
           >
-            <img src={influencer.photo} />
+            <div className="w-full h-64 overflow-hidden">
+              <img
+                src={influencer.photo}
+                alt={influencer.name}
+                onError={(e) => {
+                  (e.currentTarget as HTMLImageElement).src = "/default-profile.png";
+                }}
+                className="w-full h-full object-cover"
+              />
+            </div>
 
-            <div onClick={(e) => handleNameClick(influencer, e)}>
-              {influencer.name}
+            <div className="p-4 space-y-2">
+              <div
+                onClick={(e) => handleNameClick(influencer, e)}
+                className="font-bold text-lg hover:text-purple-600"
+              >
+                {influencer.name}
+              </div>
+
+              <div className="text-sm text-gray-500">
+                {influencer.followers.toLocaleString()} followers
+              </div>
+
+              <div className="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs">
+                {influencer.category}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {/* MODAL */}
+      {selectedInfluencer && (
+        <InfluencerProfileModal
+          influencer={selectedInfluencer.influencer}
+          rank={selectedInfluencer.rank}
+          onClose={() => setSelectedInfluencer(null)}
+        />
+      )}
     </div>
   );
 }
