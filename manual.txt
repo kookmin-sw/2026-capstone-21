@@ -1,2 +1,0 @@
-find . -name "*.py" -print -exec cat {} \; > all_code.txt
--> 폴더 내의 모든 py 파일을 합쳐서 코드로 저장

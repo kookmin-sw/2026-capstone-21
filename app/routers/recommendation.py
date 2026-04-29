@@ -14,7 +14,7 @@ from typing import Optional, List
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 
-@router.get("/search", response_model=List[RecommendationResponse])
+@router.get("/search", response_model=List[RecommendationResultResponse])
 def search_recommendations(
     # 검색어 (Mall Input의 input_text)
     q: str = Query(..., description="검색어 (브랜드 무드 또는 키워드)"),

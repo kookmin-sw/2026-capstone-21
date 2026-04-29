@@ -4,7 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 import os
 from sqlalchemy.orm import Session
-from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE, BASE_BRAND, SEED_BRAND
+from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE
 
 class CrawlerService:
     def __init__(self, db: Session):
@@ -175,7 +175,7 @@ def username_to_df(targets, client=client):
     df = preprocess_df(df)
     return df
 
-def expand_brand(existing_usernames = {}, base_brands = BASE_BRAND, client=client):
+def expand_brand(existing_usernames = {}, base_brands = [], client=client):
     extended_brands = set(base_brands)
     brand_targets = []
     for brand in base_brands:
@@ -232,7 +232,7 @@ def expand_brand(existing_usernames = {}, base_brands = BASE_BRAND, client=clien
 
     return brand_df
 
-def expand_seed(existing_usernames = {}, seed_brand = SEED_BRAND, client=client):
+def expand_seed(existing_usernames = {}, seed_brand = [], client=client):
     seed_targets = []
     for seed in seed_brand:
         run_input = {

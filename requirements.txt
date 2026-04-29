@@ -9,4 +9,9 @@ sentence-transformers
 pandas
 bcrypt==4.0.1
 faiss-cpu
-lightfm @ git+https://github.com/lyst/lightfm.git@master
+lightfm @ git+https://github.com/daviddavo/lightfm
+apify-client
+python-jose[cryptography]
+python-multipart
+passlib
+pydantic[email]
