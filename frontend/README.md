@@ -14,7 +14,7 @@ frontend/src/app/components/InfluencerProfileModal.tsx <<< 프론트엔드에서
 3)번 진행 후에 다시 테스트 진행해보기!   (해결하면 괄호 지우기)
 5) 2026-capstone-21/frontend/src/app/components/InfluencerProfile.tsx 이 카테고리를 담당하고 있기 때문에 수정함.
 2026-capstone-21/frontend/src/api/category.ts 파일도 수정함.  --> 지금 상태면 카테고리 API 연결 자체 는 끝난 상태
-이제부터는 단순 연결이 아니라 기능이 실제로 제대로 동작하는지 검증 + 다음 기능 연결  단계임. (지금 진행중...)
+이제부터는 단순 연결이 아니라 기능이 실제로 제대로 동작하는지 테스트 진행해보기!   (해결하면 괄호 지우기)
   
   
   
