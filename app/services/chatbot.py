@@ -1,6 +1,6 @@
 import os
 import requests
-import openai
+import openai 
 from sqlalchemy.orm import Session
 from app.db.models import ChatwootLog, Influencer
 from app.services.recommendation import RecommendationEngine
