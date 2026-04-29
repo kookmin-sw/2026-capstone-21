@@ -7,16 +7,13 @@ from app.services.recommendation import RecommendationEngine
 
 # 설정 정보
 CHATWOOT_BASE_URL = "https://app.chatwoot.com/api/v1/accounts/3"
-CHATWOOT_ACCESS_TOKEN = "stV9EJTFv3VDKTfFuZDmiG9a"
+CHATWOOT_ACCESS_TOKEN = "SeMTEDcy24cnh6GzsmxMMNCL"
 
 class ChatbotService:
     def __init__(self, db: Session):
         self.db = db
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.headers = {
-            "api_access_token": CHATWOOT_ACCESS_TOKEN,
-            "Content-Type": "application/json"
-        }
+        self.headers = {"api_access_token": "Bearer SeMTEDcy24cnh6GzsmxMMNCL"}
 
     def _get_chatwoot_help_center_articles(self):
         """Chatwoot의 Help Center 아티클들을 가져와 지식 베이스로 활용"""
@@ -76,8 +73,10 @@ class ChatbotService:
 
     def _send_to_chatwoot(self, conversation_id: int, content: str):
         url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/messages"
-        payload = {"content": content, "message_type": "outgoing"}
+        payload = {"content": content, "message_type": "outgoing", "private": False}
         res = requests.post(url, json=payload, headers=self.headers)
+        print(f"DEBUG: Status Code: {res.status_code}")
+        print(f"DEBUG: Response Body: {res.text}") # 401 에러의 구체적 이유가 적혀있을 수 있습니다.
         res.raise_for_status()
 
     def _update_log(self, conversation_id: int, answer: str):
