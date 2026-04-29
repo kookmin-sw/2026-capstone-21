@@ -1,5 +1,7 @@
+const BASE_URL = "http://localhost:8000/influencers/";
+
 export async function getInfluencers() {
-  const res = await fetch("http://localhost:8000/influencers/");
+  const res = await fetch(BASE_URL);
 
   if (!res.ok) {
     throw new Error("인플루언서 데이터 조회 실패");
@@ -7,7 +9,14 @@ export async function getInfluencers() {
 
   const data = await res.json();
 
-  return data.map((item: any) => ({
+  const list = Array.isArray(data) ? data : data.data;
+
+  if (!Array.isArray(list)) {
+    console.error("Unexpected influencer response format:", data);
+    return [];
+  }
+
+  return list.map((item: any) => ({
     id: String(item.influencer_id),
     name: item.full_name || item.username,
     photo: `/profile_pic_HD/${item.username}.jpg`,
