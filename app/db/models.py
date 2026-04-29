@@ -457,3 +457,19 @@ class FavoriteInfluencer(Base):
 
     user = relationship("User", back_populates="favorite_influencers")
     influencer = relationship("Influencer", back_populates="favorite_users")
+
+class ChatwootLog(Base):
+    __tablename__ = "chatwoot_logs"
+
+    # 1. 기본 키 및 식별자
+    id = Column(Integer, primary_key=True, index=True)
+    conversation_id = Column(Integer, nullable=False, index=True)
+    
+    # 2. 질문 및 답변 데이터
+    question_content = Column(Text, nullable=False)
+    question_type = Column(String(50), nullable=True)
+    answer_content = Column(Text, nullable=True)
+    
+    # 3. 시간 기록
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    answered_at = Column(DateTime(timezone=True), onupdate=func.now())
