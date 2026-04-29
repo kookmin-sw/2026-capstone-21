@@ -68,7 +68,7 @@ class RecommendationEngine:
         embeddings = self.db.query(
             InfluencerEmbedding.influencer_id, 
             InfluencerEmbedding.embedding_vector,
-            Influencer.grade
+            Influencer.grade_score
         ).join(Influencer, Influencer.influencer_id == InfluencerEmbedding.influencer_id).all()
 
         if embeddings:
@@ -77,7 +77,7 @@ class RecommendationEngine:
             self.faiss_index.add(vectors)
             
             self.inf_ids = [e.influencer_id for e in embeddings]
-            self.inf_grades = {e.influencer_id: (e.grade / 5.0 if e.grade else 0.2) for e in embeddings}
+            self.inf_grades = {e.influencer_id: (e.grade_score / 5.0 if e.grade_score else 0.2) for e in embeddings}
 
         # 2. LightFM 학습
         self._train_lfm()
