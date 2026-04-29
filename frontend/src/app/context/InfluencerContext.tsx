@@ -1,14 +1,6 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect
-} from 'react';
-
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Influencer, SelectionHistory } from '../types';
 import { mockSelectionHistory } from '../data/selectionHistory';
-
 import { getInfluencers } from '../../api/influencer';
 import { getFavorites, toggleFavorite } from '../../api/favorite';
 
@@ -17,15 +9,13 @@ interface InfluencerContextType {
   interestList: string[];
   selectionHistory: SelectionHistory[];
   notes: Record<string, string>;
-
   toggleInterest: (influencerId: string) => Promise<void>;
   selectInfluencer: (influencerId: string) => void;
   saveNote: (influencerId: string, note: string) => void;
   refreshFavorites: () => Promise<void>;
 }
 
-const InfluencerContext =
-  createContext<InfluencerContextType | undefined>(undefined);
+const InfluencerContext = createContext<InfluencerContextType | undefined>(undefined);
 
 export function InfluencerProvider({ children }: { children: ReactNode }) {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
@@ -34,41 +24,23 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  /* =========================
-     1. influencer load
-  ========================= */
+  // 1. 인플루언서 목록 불러오기
   useEffect(() => {
-    const loadInfluencers = async () => {
-      try {
-        const data = await getInfluencers();
-
-        console.log("✅ influencers loaded:", data);
-
+    getInfluencers()
+      .then((data) => {
+        console.log('🔥 FRONT DATA:', data);
         setInfluencers(data);
-      } catch (err) {
-        console.error("❌ influencer load 실패:", err);
-        setInfluencers([]); // UI 보호
-      }
-    };
-
-    loadInfluencers();
+      })
+      .catch(console.error);
   }, []);
 
-  /* =========================
-     2. favorites sync (로그인 기준)
-  ========================= */
+  // 2. 관심 목록 불러오기
   const refreshFavorites = async () => {
     try {
       const data = await getFavorites();
-
-      console.log("❤️ favorites loaded:", data);
-
-      setInterestList(
-        data.map((f: any) => String(f.influencer_id))
-      );
+      setInterestList(data.map((f: any) => String(f.influencer_id)));
     } catch (err) {
-      console.error("❌ favorite sync 실패:", err);
-      setInterestList([]);
+      console.error('favorite sync 실패:', err);
     }
   };
 
@@ -76,18 +48,16 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     refreshFavorites();
   }, []);
 
-  /* =========================
-     3. toggle favorite
-  ========================= */
+  // 3. 관심 토글
   const toggleInterest = async (influencerId: string) => {
     try {
       const result = await toggleFavorite(Number(influencerId));
 
       if (result.status === 'added') {
-        setInterestList(prev => [...prev, influencerId]);
+        setInterestList((prev) => [...prev, influencerId]);
       } else {
-        setInterestList(prev =>
-          prev.filter(id => id !== influencerId)
+        setInterestList((prev) =>
+          prev.filter((id) => id !== influencerId)
         );
       }
     } catch (err) {
@@ -95,35 +65,20 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  /* =========================
-     4. select influencer
-  ========================= */
+  // 4. 선택 증가
   const selectInfluencer = (influencerId: string) => {
-    setInfluencers(prev =>
-      prev.map(inf =>
+    setInfluencers((prev) =>
+      prev.map((inf) =>
         inf.id === influencerId
           ? { ...inf, selections: inf.selections + 1 }
           : inf
       )
     );
-
-    const today = new Date().toISOString().split('T')[0];
-
-    setSelectionHistory(prev => {
-      const existing = prev.find(h => h.date === today);
-
-      if (existing) {
-        return prev.map(h =>
-          h.date === today ? { ...h, count: h.count + 1 } : h
-        );
-      }
-
-      return [...prev, { date: today, count: 1 }];
-    });
   };
 
+  // 메모 저장 (프론트 상태)
   const saveNote = (influencerId: string, note: string) => {
-    setNotes(prev => ({
+    setNotes((prev) => ({
       ...prev,
       [influencerId]: note,
     }));
@@ -139,7 +94,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
         toggleInterest,
         selectInfluencer,
         saveNote,
-        refreshFavorites
+        refreshFavorites,
       }}
     >
       {children}
