@@ -32,11 +32,7 @@ def search_recommendations(
     # 1. 먼저 검색어(q)와 유사한 mall_input을 찾거나, 
     #    해당 검색어를 기반으로 인플루언서 테이블에서 텍스트 검색(LIKE)을 수행합니다.
     query = db.query(Influencer).join(RecommendationResult) # 추천 결과와 조인
-    
-    # 2. 검색어 필터링 (인플루언서 자기소개나 유저 인풋 텍스트 기준)
-    if q:
-        query = query.filter(Influencer.biography.contains(q))
-    
+
     # 3. 추가 조건 필터링
     if category:
         query = query.join(InfluencerCategory).filter(InfluencerCategory.category_name == category)
