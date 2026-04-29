@@ -1,9 +1,15 @@
 from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, SessionLocal
+from openai import OpenAI
+import os
+
 from app.db.database import get_db
 from app.db.models import Influencer
+
 from app.services.crawler import CrawlerService
+from app.services.classify import run_db_classification
 from app.services.build_influencer_embeddings import build_embeddings
+
 from pydantic import BaseModel
 from typing import List
 
@@ -17,11 +23,25 @@ class KeywordCrawlRequest(BaseModel):
 async def sync_all_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """기존 통합 파이프라인"""
     def integrated_task():
-        crawler = CrawlerService(db)
-        crawler.run_full_crawl_pipeline()
-        # 여기서 AI 분류(classify) 로직을 호출할 수 있습니다.
-        build_embeddings()
+        db = SessionLocal()
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
+        try:
+            crawler = CrawlerService(db)
+            crawler.run_full_crawl_pipeline()
+            db.flush()
+
+            run_db_classification(db, client, example_bank_path="data/example_bank.json")
+            db.flush()
+            
+            build_embeddings(db)
+            db.commit()
+        except Exception as e:
+            db.rollback()
+            print(f"동기화 중 에러 발생: {e}")
+        finally:
+            db.close()
+            
     background_tasks.add_task(integrated_task)
     return {"message": "전체 데이터 동기화 및 임베딩 작업이 시작되었습니다."}
 

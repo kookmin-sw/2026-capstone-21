@@ -22,14 +22,14 @@ def normalize_category_name(category_name: str | None) -> str | None:
 
 
 def parse_grade(grade_value: Any) -> float | None:
-    if not grade_value:
+    if grade_value is None or grade_value == "":
         return None
 
     if isinstance(grade_value, (int, float)):
         return float(grade_value)
 
     if isinstance(grade_value, str):
-        value = grade_value.strip()
+        value = grade_value.replace("\\", "").strip()
         if not value:
             return None
 
@@ -77,7 +77,7 @@ def upsert_influencer(db: Session, item: dict):
             # profile_pic_url=item.get("profilePicUrl"),
             profile_pic_url= local_pic_url,
             account_type=item.get("account_type"),
-            grade_score=parse_grade(item.get("grade")),
+            grade=parse_grade(item.get("grade")),
             style_keywords_json=style_keywords,
             style_keywords_text=style_keywords_text,
         )
@@ -94,7 +94,7 @@ def upsert_influencer(db: Session, item: dict):
         # influencer.profile_pic_url = item.get("profilePicUrl")
         influencer.profile_pic_url = local_pic_url
         influencer.account_type = item.get("account_type")
-        influencer.grade_score = parse_grade(item.get("grade"))
+        influencer.grade = parse_grade(item.get("grade"))
         influencer.style_keywords_json = style_keywords
         influencer.style_keywords_text = style_keywords_text
 

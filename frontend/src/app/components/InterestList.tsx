@@ -1,19 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { Star, Heart, LayoutGrid, List as ListIcon } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
 import { Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
+import { getFavorites } from '../../api/favorite';
+
+type FavoriteItem = {
+  influencer_id: number;
+  reason?: string;
+};
 
 export function InterestList() {
-  const { influencers, interestList, toggleInterest } = useInfluencers();
+  const { influencers, toggleInterest } = useInfluencers();
+
   const [organizeByCategory, setOrganizeByCategory] = useState(false);
   const [selectedInfluencer, setSelectedInfluencer] = useState<{ influencer: Influencer; rank: number } | null>(null);
 
-  const interestedInfluencers = useMemo(() => {
-    return influencers.filter((inf) => interestList.includes(inf.id));
-  }, [influencers, interestList]);
+  // ✔ DB 기반 favorite 목록
+  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
 
+  // ✔ 1. DB에서 관심 목록 불러오기
+  useEffect(() => {
+    getFavorites()
+      .then(setFavorites)
+      .catch(console.error);
+  }, []);
+
+  // ✔ 2. influencer_id → influencer 매핑
+  const interestedInfluencers = useMemo(() => {
+    return influencers.filter((inf) =>
+      favorites.some((fav) => fav.influencer_id === Number(inf.id))
+    );
+  }, [influencers, favorites]);
+
+  // ✔ 3. 카테고리 그룹핑
   const groupedByCategory = useMemo(() => {
     const grouped: Record<Category, typeof interestedInfluencers> = {
       패션: [],
@@ -79,119 +100,88 @@ export function InterestList() {
           </div>
           <h3 className="text-2xl font-bold text-slate-900 mb-2">No Influencers Yet</h3>
           <p className="text-slate-600 mb-6">
-            Save and Compare Influencers you're interested in
+            Save influencers you like
           </p>
         </div>
       ) : organizeByCategory ? (
-        /* Organized by Category */
+        /* Category View */
         <div className="space-y-10">
           {Object.entries(groupedByCategory)
-            .filter(([_, influencers]) => influencers.length > 0)
-            .map(([category, categoryInfluencers]) => (
+            .filter(([_, list]) => list.length > 0)
+            .map(([category, list]) => (
               <div key={category}>
-                <h2 className="text-2xl font-bold text-slate-900 mb-4 capitalize flex items-center gap-2">
-                  <div className="w-2 h-8 bg-gradient-to-b from-purple-500 to-pink-500 rounded-full" />
-                  {category}
-                </h2>
+                <h2 className="text-2xl font-bold mb-4">{category}</h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                  {categoryInfluencers.map((influencer) => (
-                    <motion.div
-                      key={influencer.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3 }}
-                      className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
-                    >
-                      <div className="relative aspect-[3/4] overflow-hidden">
-                        <img
-                          src={influencer.photo}
-                          alt={influencer.name}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                        />
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                  {list.map((influencer) => (
+                    <div key={influencer.id} className="bg-white rounded-xl overflow-hidden">
+                      <img src={influencer.photo} className="w-full aspect-[3/4] object-cover" />
 
-                        <button
-                          onClick={() => toggleInterest(influencer.id)}
-                          className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all"
-                        >
-                          <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                        </button>
-                      </div>
-
-                      <div className="p-4 space-y-2">
+                      <div className="p-4">
                         <button
                           onClick={(e) => handleNameClick(influencer, e)}
-                          className="font-bold text-lg text-slate-900 hover:text-purple-600 transition-colors text-left w-full"
+                          className="font-bold hover:text-purple-600"
                         >
                           {influencer.name}
                         </button>
-                        <div className="text-sm text-slate-600">
-                          {influencer.followers >= 1000
-                            ? `${(influencer.followers / 1000).toFixed(1)}K`
-                            : influencer.followers}{' '}
-                          followers
+
+                        <div className="text-sm text-gray-500">
+                          {influencer.followers} followers
                         </div>
-                        <div className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold capitalize">
+
+                        <div className="text-xs text-purple-600 mt-1">
                           {influencer.category}
                         </div>
+
+                        <button
+                          onClick={() => toggleInterest(influencer.id)}
+                          className="mt-2 text-yellow-500"
+                        >
+                          ★
+                        </button>
                       </div>
-                    </motion.div>
+                    </div>
                   ))}
                 </div>
               </div>
             ))}
         </div>
       ) : (
-        /* All Influencers */
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        /* Flat List */
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {interestedInfluencers.map((influencer) => (
-            <motion.div
-              key={influencer.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="group bg-white rounded-2xl overflow-hidden shadow-sm hover:shadow-xl transition-all"
-            >
-              <div className="relative aspect-[3/4] overflow-hidden">
-                <img
-                  src={influencer.photo}
-                  alt={influencer.name}
-                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+            <div key={influencer.id} className="bg-white rounded-xl overflow-hidden">
+              <img src={influencer.photo} className="w-full aspect-[3/4] object-cover" />
 
-                <button
-                  onClick={() => toggleInterest(influencer.id)}
-                  className="absolute top-3 right-3 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-all"
-                >
-                  <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                </button>
-              </div>
-
-              <div className="p-4 space-y-2">
+              <div className="p-4">
                 <button
                   onClick={(e) => handleNameClick(influencer, e)}
-                  className="font-bold text-lg text-slate-900 hover:text-purple-600 transition-colors text-left w-full"
+                  className="font-bold hover:text-purple-600"
                 >
                   {influencer.name}
                 </button>
-                <div className="text-sm text-slate-600">
-                  {influencer.followers >= 1000
-                    ? `${(influencer.followers / 1000).toFixed(1)}K`
-                    : influencer.followers}{' '}
-                  followers
+
+                <div className="text-sm text-gray-500">
+                  {influencer.followers} followers
                 </div>
-                <div className="inline-block px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-semibold capitalize">
+
+                <div className="text-xs text-purple-600 mt-1">
                   {influencer.category}
                 </div>
+
+                <button
+                  onClick={() => toggleInterest(influencer.id)}
+                  className="mt-2 text-yellow-500"
+                >
+                  ★
+                </button>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       )}
 
-      {/* Profile Modal */}
+      {/* Modal */}
       {selectedInfluencer && (
         <InfluencerProfileModal
           influencer={selectedInfluencer.influencer}
