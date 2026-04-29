@@ -1,5 +1,6 @@
-AuthContext.tsx 파일은 로그인 / 회원가입 / 관리자 상태 관리 을 담당
-InfluencerContext.tsx 파일은 인플루언서 목록 관리 / 관심 목록 / 선택 기록 / 메모 기능 을 담당
+AuthContext.tsx 파일은 로그인 / 회원가입 / 관리자 상태 관리 을 담당.
+
+InfluencerContext.tsx 파일은 인플루언서 목록 관리 / 관심 목록 / 선택 기록 / 메모 기능 을 담당.
 
 
 현재 실시간 진행상황 적기
