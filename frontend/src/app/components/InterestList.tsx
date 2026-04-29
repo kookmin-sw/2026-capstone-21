@@ -8,14 +8,19 @@ import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getFavorites, toggleFavorite } from '../../api/favorite';
 
 export function InterestList() {
+  // ❗ Context에서 interestList 제거 → influencers만 사용
   const { influencers } = useInfluencers();
 
+  // 🔥 DB 기반 favorite 상태 (이게 핵심)
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+
   const [organizeByCategory, setOrganizeByCategory] = useState(false);
   const [selectedInfluencer, setSelectedInfluencer] =
     useState<{ influencer: Influencer; rank: number } | null>(null);
 
+  // ==============================
   // 1. DB에서 관심 목록 가져오기
+  // ==============================
   useEffect(() => {
     getFavorites()
       .then((data) => {
@@ -25,14 +30,18 @@ export function InterestList() {
       .catch(console.error);
   }, []);
 
+  // ==============================
   // 2. 관심 목록 필터링 (DB 기준)
+  // ==============================
   const interestedInfluencers = useMemo(() => {
     return influencers.filter((inf) =>
       favoriteIds.includes(inf.id)
     );
   }, [influencers, favoriteIds]);
 
+  // ==============================
   // 3. 카테고리 그룹화
+  // ==============================
   const groupedByCategory = useMemo(() => {
     const grouped: Record<Category, Influencer[]> = {
       패션: [],
@@ -54,7 +63,9 @@ export function InterestList() {
     return grouped;
   }, [interestedInfluencers]);
 
+  // ==============================
   // 4. 전체 순위 계산
+  // ==============================
   const sortedInfluencers = useMemo(() => {
     return [...influencers].sort((a, b) => b.selections - a.selections);
   }, [influencers]);
@@ -63,12 +74,13 @@ export function InterestList() {
     return sortedInfluencers.findIndex((inf) => inf.id === influencerId) + 1;
   };
 
-  // 5. 관심 토글 (DB 반영)
+  // ==============================
+  // 5. 관심 토글 (DB 기준)
+  // ==============================
   const handleToggleFavorite = async (influencerId: string) => {
     try {
       const res = await toggleFavorite(Number(influencerId));
 
-      // 서버 응답 기준 업데이트
       if (res.status === 'added') {
         setFavoriteIds((prev) => [...prev, influencerId]);
       } else {
@@ -115,7 +127,7 @@ export function InterestList() {
         )}
       </div>
 
-      {/* Empty */}
+      {/* Empty State */}
       {interestedInfluencers.length === 0 ? (
         <div className="text-center py-20">
           <div className="w-24 h-24 mx-auto mb-6 rounded-full bg-gradient-to-br from-purple-100 to-pink-100 flex items-center justify-center">
