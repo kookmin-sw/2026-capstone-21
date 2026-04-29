@@ -3,8 +3,7 @@ from sqlalchemy.orm import joinedload
 
 from app.db.database import SessionLocal
 from app.db.models import Influencer, InfluencerEmbedding, InfluencerCategory
-
-MODEL_NAME = "BAAI/bge-m3"
+from app.utils.setting_config import settings
 
 
 # 임베딩 텍스트
@@ -36,8 +35,7 @@ def make_embedding_text(influencer):
     return f"{primary_category} 카테고리, {keywords_text} 특징의 {account_type}"
 
 
-def build_embeddings():
-    db = SessionLocal()
+def build_embeddings(db: Session):
 
     try:
         print("인플루언서 조회 중...")
@@ -58,7 +56,7 @@ def build_embeddings():
         texts = [make_embedding_text(inf) for inf in influencers]
 
         print("모델 로드 중...")
-        model = SentenceTransformer(MODEL_NAME)
+        model = SentenceTransformer(settings.EMBEDDING_MODEL)
 
         print("임베딩 생성 중...")
         vectors = model.encode(
