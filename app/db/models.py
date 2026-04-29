@@ -16,6 +16,8 @@ from sqlalchemy.sql import func
 
 from app.db.database import Base
 
+
+# 사용자 테이블
 class User(Base):
     __tablename__ = "users"
 
@@ -23,8 +25,13 @@ class User(Base):
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
     user_name = Column(String(100), nullable=False)
+
+    # user: 일반 사용자 / admin: 관리자
     role = Column(String(50), nullable=False, default="user")
+
+    # active, inactive 등 계정 상태 관리
     status = Column(String(50), nullable=False, default="active")
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
@@ -35,18 +42,11 @@ class User(Base):
 
     mall_inputs = relationship("MallInput", back_populates="user", cascade="all, delete-orphan")
     recommendation_runs = relationship("RecommendationRun", back_populates="user", cascade="all, delete-orphan")
-    action_logs = relationship(
-        "UserActionLog",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
-    favorite_influencers = relationship(
-        "FavoriteInfluencer",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
+    action_logs = relationship("UserActionLog", back_populates="user", cascade="all, delete-orphan")
+    favorite_influencers = relationship("FavoriteInfluencer", back_populates="user", cascade="all, delete-orphan")
 
 
+# 카테고리 테이블
 class Category(Base):
     __tablename__ = "category"
 
@@ -61,6 +61,7 @@ class Category(Base):
     )
 
 
+# 인플루언서 기본 정보 테이블
 class Influencer(Base):
     __tablename__ = "influencer"
 
@@ -75,9 +76,14 @@ class Influencer(Base):
     posts_count = Column(Integer, nullable=True)
     profile_pic_url = Column(Text, nullable=True)
     account_type = Column(String(50), nullable=True)
+
+    # 인플루언서 등급/품질 점수
     grade_score = Column(Float, nullable=True)
+
+    # 스타일 키워드 원본 JSON 및 검색/임베딩용 텍스트
     style_keywords_json = Column(JSON, nullable=True)
     style_keywords_text = Column(Text, nullable=True)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
@@ -131,9 +137,12 @@ class Influencer(Base):
     )
 
 
+# 인플루언서-카테고리 매핑 테이블
+# 한 인플루언서가 여러 카테고리를 가질 수 있도록 M:N 구조 사용
 class InfluencerCategory(Base):
     __tablename__ = "influencer_category"
     __table_args__ = (
+        # 한 인플루언서 안에서 1순위, 2순위 카테고리가 중복되지 않게 함
         UniqueConstraint("influencer_id", "priority", name="uq_influencer_category_priority"),
     )
 
@@ -148,6 +157,7 @@ class InfluencerCategory(Base):
         primary_key=True,
     )
 
+    # 대표 카테고리 = 1, 보조 카테고리 = 2
     priority = Column(Integer, nullable=False, default=1)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
@@ -155,6 +165,7 @@ class InfluencerCategory(Base):
     category = relationship("Category", back_populates="influencer_categories")
 
 
+# 인플루언서 임베딩 테이블
 class InfluencerEmbedding(Base):
     __tablename__ = "influencer_embedding"
 
@@ -165,8 +176,13 @@ class InfluencerEmbedding(Base):
         nullable=False,
         unique=True,
     )
+
+    # 임베딩에 사용한 텍스트
     embedding_text = Column(Text, nullable=False)
+
+    # 임베딩 벡터
     embedding_vector = Column(JSON, nullable=False)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
@@ -178,16 +194,23 @@ class InfluencerEmbedding(Base):
     influencer = relationship("Influencer", back_populates="embedding")
 
 
+# 쇼핑몰 입력 테이블
 class MallInput(Base):
     __tablename__ = "mall_input"
 
     input_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
+
     mall_name = Column(String(255), nullable=False)
     mall_url = Column(Text, nullable=True)
+
+    # 쇼핑몰 설명/무드/키워드 입력 텍스트
     input_text = Column(Text, nullable=False)
+
+    # 팔로워 필터 조건
     min_follower_count = Column(Integer, nullable=True)
     max_follower_count = Column(Integer, nullable=True)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
@@ -210,6 +233,7 @@ class MallInput(Base):
     )
 
 
+# 쇼핑몰 입력 임베딩 테이블
 class MallInputEmbedding(Base):
     __tablename__ = "mall_input_embedding"
 
@@ -220,6 +244,7 @@ class MallInputEmbedding(Base):
         nullable=False,
         unique=True,
     )
+
     embedding_text = Column(Text, nullable=False)
     embedding_vector = Column(JSON, nullable=False)
     created_at = Column(DateTime, nullable=False, server_default=func.now())
@@ -227,13 +252,17 @@ class MallInputEmbedding(Base):
     mall_input = relationship("MallInput", back_populates="embedding")
 
 
+# 추천 실행 기록 테이블
 class RecommendationRun(Base):
     __tablename__ = "recommendation_run"
 
     run_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
     input_id = Column(Integer, ForeignKey("mall_input.input_id", ondelete="CASCADE"), nullable=False)
+
+    # pending, completed, failed 등
     status = Column(String(50), nullable=False, default="pending")
+
     requested_at = Column(DateTime, nullable=False, server_default=func.now())
     completed_at = Column(DateTime, nullable=True)
     error_message = Column(Text, nullable=True)
@@ -247,6 +276,7 @@ class RecommendationRun(Base):
     )
 
 
+# 추천 결과 테이블
 class RecommendationResult(Base):
     __tablename__ = "recommendation_result"
     __table_args__ = (
@@ -267,17 +297,24 @@ class RecommendationResult(Base):
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
+
     similarity_score = Column(Float, nullable=True)
     grade_score = Column(Float, nullable=True)
     personalization_score = Column(Float, nullable=True)
+
+    # 최종 추천 점수
     final_score = Column(Float, nullable=False)
+
+    # 추천 순위
     rank_no = Column(Integer, nullable=False)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     run = relationship("RecommendationRun", back_populates="results")
     influencer = relationship("Influencer", back_populates="recommendation_results")
 
 
+# 인플루언서 게시글 테이블
 class InfluencerPost(Base):
     __tablename__ = "influencer_post"
     __table_args__ = (
@@ -290,6 +327,7 @@ class InfluencerPost(Base):
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
+
     post_type = Column(String(50), nullable=True)
     caption = Column(Text, nullable=True)
     likes_count = Column(BigInteger, nullable=True)
@@ -303,6 +341,7 @@ class InfluencerPost(Base):
     influencer = relationship("Influencer", back_populates="posts")
 
 
+# 연관 인플루언서 테이블
 class InfluencerRelated(Base):
     __tablename__ = "influencer_related"
     __table_args__ = (
@@ -339,6 +378,8 @@ class InfluencerRelated(Base):
     )
 
 
+# 사용자 행동 로그 테이블
+# 추천 개인화 및 대시보드 통계에 활용
 class UserActionLog(Base):
     __tablename__ = "user_action_log"
     __table_args__ = (
@@ -357,34 +398,55 @@ class UserActionLog(Base):
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
+
+    # favorite_add, favorite_remove, detail_view, contact 등
     action_type = Column(String(50), nullable=False)
+
+    # 행동별 reward 점수
     reward = Column(Integer, nullable=False)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="action_logs")
     influencer = relationship("Influencer", back_populates="action_logs")
 
 
+# 관심 인플루언서 테이블
+# My Picks 기능에서 사용
 class FavoriteInfluencer(Base):
     __tablename__ = "favorite_influencer"
     __table_args__ = (
+        # 한 사용자가 같은 인플루언서를 중복 관심 등록하지 못하도록 제한
         UniqueConstraint("user_id", "influencer_id", name="uq_user_influencer_favorite"),
+
+        # 사용자별 관심 목록 조회 성능 개선
         Index("idx_favorite_influencer_user_id", "user_id"),
+
+        # 인플루언서별 관심 여부 조회 성능 개선
         Index("idx_favorite_influencer_influencer_id", "influencer_id"),
+
+        # 최신순 정렬 성능 개선
+        Index("idx_favorite_created_at", "created_at"),
     )
 
     favorite_id = Column(Integer, primary_key=True, autoincrement=True)
+
     user_id = Column(
         Integer,
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
     )
+
     influencer_id = Column(
         Integer,
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
-    reason = Column(String(255), nullable=True)
+
+    # 관심 등록 이유
+    # 기존 String(255)보다 Text가 길이 제한에 덜 민감함
+    reason = Column(Text, nullable=True)
+
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
         DateTime,
