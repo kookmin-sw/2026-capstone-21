@@ -17,7 +17,9 @@ frontend/src/app/components/InfluencerProfileModal.tsx <<< 프론트엔드에서
 4) 2026-capstone-21/frontend/src/app/components/InfluencerProfile.tsx 가 카테고리를 담당하고 있기 때문에 수정함.
 2026-capstone-21/frontend/src/api/category.ts 파일도 수정함.  --> 지금 상태면 카테고리 API 연결 자체 는 끝난 상태.
 이제부터는 단순 연결이 아니라 기능이 실제로 제대로 동작하는지 테스트 진행해보기! 
-5) 2026-capstone-21/frontend/src/app/context/InfluencerContext.tsx 가 관심목록을 담당하고 있기 때문에 수정함.  --> favorite api 연결 자체  는 끝난 상태. 
+5) 2026-capstone-21/frontend/src/app/context/InfluencerContext.tsx 가 관심목록을 담당하고 있기 때문에 수정함.  --> favorite api 연결 자체  는 끝난 상태.
+6) insight api 연동 진행중 -> 2026-capstone-21/frontend/src/app/components/CompareInfluencers.tsx 에서 DB 기준 grade_score / followers, backend ranking 기반 계산
+   추가해서 수정함.
   
   
   
