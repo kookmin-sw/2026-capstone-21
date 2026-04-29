@@ -10,7 +10,7 @@ def seed_users():
                 "email": "test1@example.com",
                 "password_hash": "test_hash_1",
                 "user_name": "test_user_1",
-                "role": "user",
+                "role": "admin",
                 "status": "active",
             },
             {

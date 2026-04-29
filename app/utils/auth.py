@@ -1,9 +1,8 @@
-import jwt
-from datetime import datetime
+from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from jose import JWTError
+from jose import jwt, JWTError
 
 from app.db.database import get_db
 from app.db.models import User
@@ -51,3 +50,14 @@ def get_current_user(
         raise credentials_exception
         
     return user
+
+def create_access_token(data: dict):
+    to_encode = data.copy()
+    
+    # 토큰 만료 시간 설정 (현재 시간 + 설정된 시간)
+    expire = datetime.utcnow() + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    to_encode.update({"exp": expire})
+    
+    # JWT 토큰 생성 (보통 'sub' 키에 user_id를 넣음)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return encoded_jwt

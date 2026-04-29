@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.db.database import get_db
 from app.db.models import User
-from app.utils.auth import hash_password, verify_password
+from app.utils.auth import hash_password, verify_password, create_access_token
 from pydantic import BaseModel, EmailStr, Field, field_validator
 import re
 
@@ -47,6 +47,8 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             detail="비활성화된 계정입니다. 관리자에게 문의하세요."
         )
 
+    access_token = create_access_token(data={"sub": str(user.user_id)})
+
     # 4. 로그인 성공 시 응답 (나중에는 여기서 JWT 토큰을 생성해 넘겨줌)
     return {
         "message": "로그인이 성공했습니다.",
@@ -55,7 +57,7 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
             "user_name": user.user_name,
             "role": user.role # ERD의 role 필드 (admin/user 구분용)
         },
-        "access_token": "임시_토큰_값", # 다음 단계에서 JWT로 교체
+        "access_token": access_token, # 다음 단계에서 JWT로 교체
         "token_type": "bearer"
     }
 
