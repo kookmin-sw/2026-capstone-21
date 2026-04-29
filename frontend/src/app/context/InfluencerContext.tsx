@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Influencer, SelectionHistory } from '../types';
-import { mockSelectionHistory } from '../data/mockData';
+import { mockSelectionHistory } from '../data/selectionHistory';
 import { getInfluencers } from '../../api/influencer';
 
 interface InfluencerContextType {
