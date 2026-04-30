@@ -33,7 +33,7 @@ async def receive_question(
 
     # --- 백그라운드 태스크로 AI 답변 로직 실행 ---
     # 사용자가 대기하지 않도록 비동기로 처리합니다.
-    chatbot_service = ChatbotService(db)
+    chatbot_service = ChatbotService()
     background_tasks.add_task(
         chatbot_service.process_and_reply, 
         payload.conversation.id, 

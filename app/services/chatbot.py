@@ -7,11 +7,9 @@ from app.services.recommendation import RecommendationEngine
 
 # 설정 정보
 CHATWOOT_BASE_URL = "https://app.chatwoot.com/api/v1/accounts/3"
-CHATWOOT_ACCESS_TOKEN = "47pVqtGt3NdCLBkeyEGqV2xk"
 
 class ChatbotService:
-    def __init__(self, db: Session):
-        self.db = db
+    def __init__(self):
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
         self.headers = {"api_access_token": "47pVqtGt3NdCLBkeyEGqV2xk"}
 
@@ -30,46 +28,48 @@ class ChatbotService:
         return "이용 안내 문서가 비어있습니다."
 
     def process_and_reply(self, conversation_id: int, question_content: str, question_type: str, user_id: int = 1):
-        context_data = ""
-        system_role = "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다."
+        with SessionLocal() as db:
+            self.db = db
+            context_data = ""
+            system_role = "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다."
 
-        # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
-        if question_type == "인플루언서 추천":
-            engine = RecommendationEngine(self.db)
-            recs = engine.recommend(user_id=user_id, query_text=question_content, top_k=3)
-            
-            if recs:
-                context_data = "\n[추천된 인플루언서 정보]\n"
-                for r in recs:
-                    inf = self.db.query(Influencer).filter(Influencer.influencer_id == r['influencer_id']).first()
-                    context_data += (f"- ID: {inf.username}, 등급: {inf.grade_score}, "
-                                    f"주요스타일: {inf.style_keywords_text}, "
-                                    f"AI 매칭 점수: {r['score']:.2f}\n")
+            # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
+            if question_type == "인플루언서 추천":
+                engine = RecommendationEngine(self.db)
+                recs = engine.recommend(user_id=user_id, query_text=question_content, top_k=3)
                 
-                system_role += ("\n제공된 추천 데이터를 바탕으로 사용자에게 최적의 인플루언서를 제안하세요. "
-                               "단순히 리스트만 주지 말고, 왜 이 브랜드 무드에 적합한지 'AI 매칭 점수'와 '스타일 키워드'를 인용하여 "
-                               "자연스럽게 설명해주세요. 추천 이유를 묻는다면 데이터에 기반해 논리적으로 답하세요.")
+                if recs:
+                    context_data = "\n[추천된 인플루언서 정보]\n"
+                    for r in recs:
+                        inf = self.db.query(Influencer).filter(Influencer.influencer_id == r['influencer_id']).first()
+                        context_data += (f"- ID: {inf.username}, 등급: {inf.grade_score}, "
+                                        f"주요스타일: {inf.style_keywords_text}, "
+                                        f"AI 매칭 점수: {r['score']:.2f}\n")
+                    
+                    system_role += ("\n제공된 추천 데이터를 바탕으로 사용자에게 최적의 인플루언서를 제안하세요. "
+                                "단순히 리스트만 주지 말고, 왜 이 브랜드 무드에 적합한지 'AI 매칭 점수'와 '스타일 키워드'를 인용하여 "
+                                "자연스럽게 설명해주세요. 추천 이유를 묻는다면 데이터에 기반해 논리적으로 답하세요.")
 
-        # --- [CASE 2] 사이트 이용 관련 질문 (RAG 유사 방식) ---
-        elif question_type == "사이트 이용 관련":
-            help_docs = self._get_chatwoot_help_center_articles()
-            context_data = f"\n[서비스 이용 안내 문서]\n{help_docs}"
-            system_role += ("\n제공된 이용 안내 문서를 바탕으로 사용자의 질문에 정확하게 답변하세요. "
-                           "문서에 없는 내용은 함부로 추측하지 말고 상담원 연결을 제안하세요.")
+            # --- [CASE 2] 사이트 이용 관련 질문 (RAG 유사 방식) ---
+            elif question_type == "사이트 이용 관련":
+                help_docs = self._get_chatwoot_help_center_articles()
+                context_data = f"\n[서비스 이용 안내 문서]\n{help_docs}"
+                system_role += ("\n제공된 이용 안내 문서를 바탕으로 사용자의 질문에 정확하게 답변하세요. "
+                            "문서에 없는 내용은 함부로 추측하지 말고 상담원 연결을 제안하세요.")
 
-        # --- GPT API 호출 ---
-        response = self.client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=[
-                {"role": "system", "content": system_role},
-                {"role": "user", "content": f"질문: {question_content}\n\n참고 데이터: {context_data}"}
-            ]
-        )
-        ai_answer = response.choices[0].message.content
+            # --- GPT API 호출 ---
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": system_role},
+                    {"role": "user", "content": f"질문: {question_content}\n\n참고 데이터: {context_data}"}
+                ]
+            )
+            ai_answer = response.choices[0].message.content
 
-        # 결과 발송 및 로그 기록
-        self._send_to_chatwoot(conversation_id, ai_answer)
-        self._update_log(conversation_id, ai_answer)
+            # 결과 발송 및 로그 기록
+            self._send_to_chatwoot(conversation_id, ai_answer)
+            self._update_log(conversation_id, ai_answer)
 
     def _send_to_chatwoot(self, conversation_id: int, content: str):
         url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/messages"
