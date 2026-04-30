@@ -1,4 +1,5 @@
-frontend/src/app/components/InfluencerProfileModal.tsx <<< 프론트엔드에서 API랑 직접 관련된 파일이 아니라 UI 컴포넌트
+frontend/src/app/components/InfluencerProfileModal.tsx <<< 인플루언서 상세 모달 + 관심(즐겨찾기) + 메모 기능 처리하는 컴포넌트
+인플루언서를 클릭했을 때 뜨는 상세 팝업(모달), 즐겨찾기 추가/제거 ⭐  메모 작성 📝  모달 닫기 ❌
 
 로그인/회원가입 기능 구현 중
   
