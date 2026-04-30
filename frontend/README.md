@@ -34,8 +34,7 @@ profile	인플루언서 탐색,  interest	즐겨찾기,  statistics 통계,  sys
 - frontend/src/app/components/InfluencerProfileModal.tsx
 - 메모 저장 시 updateFavoriteMemo(...), addFavorite(...) 호출
 
-3. 전체 흐름
-<br>
+3. 전체 흐름<br>
 사용자 클릭
 → InfluencerProfileModal.tsx
 → favorite.ts의 fetch 함수 실행
