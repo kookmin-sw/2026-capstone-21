@@ -25,6 +25,23 @@ profile	인플루언서 탐색,  interest	즐겨찾기,  statistics 통계,  sys
 관심 목록에서 삭제하면 메모도 함께 삭제되는 구조
 → 이 구조를 유지할지, 메모를 독립적으로 분리할지 추가 논의 필요
 
+1. favorite API 연동 코드 위치
+- frontend/src/api/favorite.ts
+- 백엔드 /favorites API를 fetch로 호출하는 함수들이 정의되어 있음
+  예: toggleFavorite, getFavorites, addFavorite, updateFavoriteMemo
+
+2. 프론트에서 실제 호출하는 위치
+- frontend/src/app/components/InfluencerProfileModal.tsx
+- 메모 저장 시 updateFavoriteMemo(...), addFavorite(...) 호출
+
+3. 전체 흐름
+사용자 클릭
+→ InfluencerProfileModal.tsx
+→ favorite.ts의 fetch 함수 실행
+→ http://localhost:8000/favorites API 요청
+→ FastAPI router/favorite.py에서 요청 처리
+→ DB 저장
+
   
   
   
