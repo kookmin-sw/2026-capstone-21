@@ -15,7 +15,9 @@ interface InfluencerContextType {
   refreshFavorites: () => Promise<void>;
 }
 
-const InfluencerContext = createContext<InfluencerContextType | undefined>(undefined);
+const InfluencerContext = createContext<InfluencerContextType | undefined>(
+  undefined
+);
 
 export function InfluencerProvider({ children }: { children: ReactNode }) {
   const [influencers, setInfluencers] = useState<Influencer[]>([]);
@@ -54,14 +56,15 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       const result = await toggleFavorite(Number(influencerId));
 
       if (result.status === 'added') {
-        setInterestList((prev) => [...prev, influencerId]);
-      } else {
         setInterestList((prev) =>
-          prev.filter((id) => id !== influencerId)
+          prev.includes(influencerId) ? prev : [...prev, influencerId]
         );
+      } else {
+        setInterestList((prev) => prev.filter((id) => id !== influencerId));
       }
     } catch (err) {
       console.error('favorite toggle 실패:', err);
+      throw err;
     }
   };
 
@@ -76,7 +79,8 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  // 메모 저장 (프론트 상태)
+  // 5. 메모 저장: 현재는 프론트 상태 저장용
+  // 실제 DB 저장은 updateFavoriteMemo API를 사용하는 컴포넌트에서 처리
   const saveNote = (influencerId: string, note: string) => {
     setNotes((prev) => ({
       ...prev,

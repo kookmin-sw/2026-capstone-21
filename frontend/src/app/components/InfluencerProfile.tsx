@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal, Heart, Star } from 'lucide-react';
+import { Search, SlidersHorizontal, Star } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
@@ -11,16 +11,16 @@ function extractKeywords(text: string): string[] {
   if (!text) return [];
 
   const stopWords = [
-    '은', '는', '이', '가', '을', '를', '에', '에서', '과', '와',
-    '하고', '의', '도', '만', '에게', '한', '어울리는', '맞는', '좋은'
+    '은', '는', '이', '가', '을', '를', '에', '에서', '과', '와', '하고', '의',
+    '도', '만', '에게', '한', '어울리는', '맞는', '좋은',
   ];
 
   const words = text
     .toLowerCase()
     .replace(/[^\w\s가-힣]/g, ' ')
     .split(/\s+/)
-    .filter(word => word.length >= 2)
-    .filter(word => !stopWords.includes(word));
+    .filter((word) => word.length >= 2)
+    .filter((word) => !stopWords.includes(word));
 
   const patterns = text.match(/\d+인용/g) || [];
 
@@ -38,7 +38,6 @@ export function InfluencerProfile() {
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
-  const [starIds, setStarIds] = useState<string[]>([]);
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -60,7 +59,7 @@ export function InfluencerProfile() {
   useEffect(() => {
     getCategories()
       .then((data) => {
-        setCategories(data);
+        setCategories(data as Category[]);
       })
       .catch(console.error);
   }, []);
@@ -70,13 +69,14 @@ export function InfluencerProfile() {
       if (filters.search) {
         const searchKeywords = extractKeywords(filters.search);
 
-        const nameMatch =
-          influencer.name.toLowerCase().includes(filters.search.toLowerCase());
+        const nameMatch = influencer.name
+          .toLowerCase()
+          .includes(filters.search.toLowerCase());
 
         const keywordMatch =
           searchKeywords.length > 0 &&
-          searchKeywords.some(keyword =>
-            influencer.styleKeywords.some(styleKeyword =>
+          searchKeywords.some((keyword) =>
+            influencer.styleKeywords.some((styleKeyword) =>
               styleKeyword.toLowerCase().includes(keyword.toLowerCase())
             )
           );
@@ -162,32 +162,20 @@ export function InfluencerProfile() {
       );
     } catch (error) {
       console.error(error);
-      alert('관심 등록/해제에 실패했습니다.');
+      alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
     }
-  };
-
-  const handleStarClick = (
-    influencerId: string,
-    e: React.MouseEvent
-  ) => {
-    e.stopPropagation();
-
-    setStarIds((prev) =>
-      prev.includes(influencerId)
-        ? prev.filter((id) => id !== influencerId)
-        : [...prev, influencerId]
-    );
   };
 
   return (
     <div>
-      {/* HEADER */}
       <div className="mb-8 space-y-4">
-        <h1 className="text-3xl font-bold">Discover Influencers</h1>
+        <h1 className="text-4xl font-bold text-slate-900">
+          Discover Influencers
+        </h1>
 
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" />
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500" />
 
             <input
               type="text"
@@ -199,13 +187,13 @@ export function InfluencerProfile() {
                   search: e.target.value,
                 }))
               }
-              className="w-full pl-12 pr-4 py-3 border rounded-xl"
+              className="w-full pl-14 pr-4 py-4 border border-slate-300 rounded-2xl bg-white focus:outline-none focus:ring-2 focus:ring-purple-500 text-lg"
             />
           </div>
 
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="px-6 py-3 border rounded-xl flex items-center gap-2"
+            className="px-8 py-4 border border-slate-300 rounded-2xl bg-white flex items-center gap-3 font-semibold hover:bg-slate-50 transition"
           >
             <SlidersHorizontal className="w-5 h-5" />
             Filters
@@ -213,11 +201,15 @@ export function InfluencerProfile() {
         </div>
       </div>
 
-      {/* FILTERS */}
       <AnimatePresence>
         {showFilters && (
-          <motion.div>
-            <div className="bg-white p-6 rounded-2xl border">
+          <motion.div
+            initial={{ opacity: 0, y: -8 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            className="mb-8"
+          >
+            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
               <div className="mb-6">
                 <label className="font-semibold block mb-3">
                   Number of Followers
@@ -225,11 +217,11 @@ export function InfluencerProfile() {
 
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { label: '500 - 1K', value: '500-1000' },
-                    { label: '1K - 2K', value: '1000-2000' },
-                    { label: '2K - 3K', value: '2000-3000' },
-                    { label: '3K - 5K', value: '3000-5000' },
-                    { label: '5K+', value: '5000+' },
+                    { label: '500 - 1K', value: '500-1000' as const },
+                    { label: '1K - 2K', value: '1000-2000' as const },
+                    { label: '2K - 3K', value: '2000-3000' as const },
+                    { label: '3K - 5K', value: '3000-5000' as const },
+                    { label: '5K+', value: '5000+' as const },
                   ].map((range) => (
                     <button
                       key={range.value}
@@ -242,10 +234,10 @@ export function InfluencerProfile() {
                               : range.value,
                         }))
                       }
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`px-4 py-2 rounded-lg transition ${
                         filters.followerRange === range.value
                           ? 'bg-purple-600 text-white'
-                          : 'bg-slate-100'
+                          : 'bg-slate-100 hover:bg-slate-200'
                       }`}
                     >
                       {range.label}
@@ -255,22 +247,20 @@ export function InfluencerProfile() {
               </div>
 
               <div>
-                <label className="font-semibold block mb-3">
-                  Category
-                </label>
+                <label className="font-semibold block mb-3">Category</label>
 
                 <div className="flex flex-wrap gap-2">
                   {categories.map((category) => (
                     <button
-                      key={category}
+                      key={String(category)}
                       onClick={() => toggleCategory(category)}
-                      className={`px-4 py-2 rounded-lg ${
+                      className={`px-4 py-2 rounded-lg transition ${
                         filters.categories.includes(category)
                           ? 'bg-purple-600 text-white'
-                          : 'bg-slate-100'
+                          : 'bg-slate-100 hover:bg-slate-200'
                       }`}
                     >
-                      {category}
+                      {String(category)}
                     </button>
                   ))}
                 </div>
@@ -280,19 +270,17 @@ export function InfluencerProfile() {
         )}
       </AnimatePresence>
 
-      {/* CARD GRID */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
         {filteredInfluencers.map((influencer) => {
           const isFavorite = favoriteIds.includes(influencer.id);
-          const isStarred = starIds.includes(influencer.id);
 
           return (
             <div
               key={influencer.id}
               onClick={() => handleCardClick(influencer.id)}
-              className="bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100"
             >
-              <div className="w-full h-64 overflow-hidden relative">
+              <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
                 <img
                   src={influencer.photo}
                   alt={influencer.name}
@@ -303,50 +291,34 @@ export function InfluencerProfile() {
                   className="w-full h-full object-cover"
                 />
 
-                <div className="absolute top-3 right-3 flex gap-2">
-                  <button
-                    onClick={(e) => handleFavoriteClick(influencer.id, e)}
-                    className="bg-white rounded-full p-2 shadow hover:bg-red-50"
-                    title="좋아요"
-                  >
-                    <Heart
-                      className={`w-5 h-5 ${
-                        isFavorite
-                          ? 'fill-red-500 text-red-500'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  </button>
-
-                  <button
-                    onClick={(e) => handleStarClick(influencer.id, e)}
-                    className="bg-white rounded-full p-2 shadow hover:bg-yellow-50"
-                    title="별표"
-                  >
-                    <Star
-                      className={`w-5 h-5 ${
-                        isStarred
-                          ? 'fill-yellow-400 text-yellow-400'
-                          : 'text-gray-600'
-                      }`}
-                    />
-                  </button>
-                </div>
+                <button
+                  onClick={(e) => handleFavoriteClick(influencer.id, e)}
+                  className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
+                  title="My Picks"
+                >
+                  <Star
+                    className={`w-6 h-6 ${
+                      isFavorite
+                        ? 'fill-yellow-400 text-yellow-400'
+                        : 'text-slate-600'
+                    }`}
+                  />
+                </button>
               </div>
 
-              <div className="p-4 space-y-2">
+              <div className="p-6 space-y-3">
                 <div
                   onClick={(e) => handleNameClick(influencer, e)}
-                  className="font-bold text-lg hover:text-purple-600"
+                  className="font-bold text-xl text-slate-900 hover:text-purple-600 transition"
                 >
                   {influencer.name}
                 </div>
 
-                <div className="text-sm text-gray-500">
+                <div className="text-slate-600">
                   {influencer.followers.toLocaleString()} followers
                 </div>
 
-                <div className="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs">
+                <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
                   {influencer.category}
                 </div>
               </div>
@@ -355,7 +327,6 @@ export function InfluencerProfile() {
         })}
       </div>
 
-      {/* MODAL */}
       {selectedInfluencer && (
         <InfluencerProfileModal
           influencer={selectedInfluencer.influencer}

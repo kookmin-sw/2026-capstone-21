@@ -1,5 +1,11 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Heart, LayoutGrid, List as ListIcon, FileText } from 'lucide-react';
+import {
+  Heart,
+  LayoutGrid,
+  List as ListIcon,
+  FileText,
+  Star,
+} from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
 import { Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
@@ -125,53 +131,54 @@ export function InterestList() {
     return (
       <div
         key={influencer.id}
-        className="bg-white rounded-xl overflow-hidden shadow"
+        className="bg-white rounded-2xl shadow-md hover:shadow-xl transition overflow-hidden border border-slate-100"
       >
-        <img
-          src={influencer.photo}
-          alt={influencer.name}
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).src = '/default-profile.png';
-          }}
-          className="w-full aspect-[3/4] object-cover"
-        />
+        <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
+          <img
+            src={influencer.photo}
+            alt={influencer.name}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                '/default-profile.png';
+            }}
+            className="w-full h-full object-cover"
+          />
 
-        <div className="p-4">
+          <button
+            onClick={() => handleDeleteFavorite(influencer.id)}
+            className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
+            title="관심 해제"
+          >
+            <Star className="w-6 h-6 text-yellow-500 fill-yellow-500" />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-3">
           <button
             onClick={(e) => handleNameClick(influencer, e)}
-            className="font-bold hover:text-purple-600"
+            className="font-bold text-xl text-slate-900 hover:text-purple-600 transition text-left"
           >
             {influencer.name}
           </button>
 
-          <div className="text-sm text-gray-500">
+          <div className="text-slate-600">
             {influencer.followers.toLocaleString()} followers
           </div>
 
-          <div className="text-xs text-purple-600 mt-1">
+          <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
             {influencer.category}
           </div>
 
-          <div className="mt-3 flex items-center gap-3">
-            <button
-              onClick={() => handleDeleteFavorite(influencer.id)}
-              className="text-yellow-500"
-              title="관심 해제"
-            >
-              ★
-            </button>
-
-            <button
-              onClick={() => setEditingMemoId(id)}
-              className="inline-flex items-center gap-1 text-sm text-gray-600"
-            >
-              <FileText className="w-4 h-4" />
-              메모
-            </button>
-          </div>
+          <button
+            onClick={() => setEditingMemoId(id)}
+            className="flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 transition"
+          >
+            <FileText className="w-4 h-4" />
+            메모
+          </button>
 
           {editingMemoId === id && (
-            <div className="mt-2">
+            <div className="space-y-2">
               <textarea
                 value={memoTexts[id] || ''}
                 onChange={(e) =>
@@ -181,15 +188,24 @@ export function InterestList() {
                   }))
                 }
                 placeholder="메모를 입력하세요"
-                className="w-full border p-2 rounded text-sm"
+                className="w-full min-h-24 border border-slate-300 rounded-lg p-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 resize-none"
               />
 
-              <button
-                onClick={() => handleSaveMemo(influencer.id)}
-                className="mt-2 px-3 py-1 bg-purple-500 text-white rounded text-sm"
-              >
-                저장
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => handleSaveMemo(influencer.id)}
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"
+                >
+                  저장
+                </button>
+
+                <button
+                  onClick={() => setEditingMemoId(null)}
+                  className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-sm font-semibold hover:bg-slate-300"
+                >
+                  취소
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -201,9 +217,7 @@ export function InterestList() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            My Picks
-          </h1>
+          <h1 className="text-4xl font-bold text-slate-900 mb-2">My Picks</h1>
 
           <p className="text-slate-600">
             {interestedInfluencers.length} Influencers Saved
@@ -236,9 +250,7 @@ export function InterestList() {
             No Influencers Yet
           </h3>
 
-          <p className="text-slate-600 mb-6">
-            Save influencers you like
-          </p>
+          <p className="text-slate-600 mb-6">Save influencers you like</p>
         </div>
       ) : organizeByCategory ? (
         <div className="space-y-10">
@@ -246,16 +258,18 @@ export function InterestList() {
             .filter(([_, list]) => list.length > 0)
             .map(([category, list]) => (
               <div key={category}>
-                <h2 className="text-2xl font-bold mb-4">{category}</h2>
+                <h2 className="text-2xl font-bold text-slate-900 mb-4">
+                  {category}
+                </h2>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
                   {list.map((influencer) => renderInfluencerCard(influencer))}
                 </div>
               </div>
             ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
           {interestedInfluencers.map((influencer) =>
             renderInfluencerCard(influencer)
           )}
