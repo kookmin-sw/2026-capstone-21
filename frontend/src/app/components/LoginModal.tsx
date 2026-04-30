@@ -16,13 +16,13 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
   const [passwordError, setPasswordError] = useState(false);
   const { login } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const result = login(email, password);
+    const result = await login(email, password);
 
     if (result === 'success') {
-      onSuccess(); // 👉 이게 핵심 (로그인 성공 이벤트 전달)
+      onSuccess();
     } else if (result === 'account-not-found') {
       setEmailError(true);
       setPasswordError(false);
