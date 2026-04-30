@@ -2,6 +2,7 @@ import os
 import requests
 import openai 
 from sqlalchemy.orm import Session
+from app.db.database import SessionLocal
 from app.db.models import ChatwootLog, Influencer
 from app.services.recommendation import RecommendationEngine
 
@@ -35,13 +36,13 @@ class ChatbotService:
 
             # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
             if question_type == "인플루언서 추천":
-                engine = RecommendationEngine(self.db)
+                engine = RecommendationEngine(db)
                 recs = engine.recommend(user_id=user_id, query_text=question_content, top_k=3)
                 
                 if recs:
                     context_data = "\n[추천된 인플루언서 정보]\n"
                     for r in recs:
-                        inf = self.db.query(Influencer).filter(Influencer.influencer_id == r['influencer_id']).first()
+                        inf = db.query(Influencer).filter(Influencer.influencer_id == r['influencer_id']).first()
                         context_data += (f"- ID: {inf.username}, 등급: {inf.grade_score}, "
                                         f"주요스타일: {inf.style_keywords_text}, "
                                         f"AI 매칭 점수: {r['score']:.2f}\n")
