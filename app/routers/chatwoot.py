@@ -52,12 +52,12 @@ async def get_question_status(conversation_id: int, db: Session = Depends(get_db
 
     status = "completed" if log.answer_content else "pending"
 
-return {
-        "conversation_id": log.conversation_id,
-        "status": status,
-        "question": log.question_content,
-        "answer": log.answer_content,
-        "type": log.question_type,
-        "created_at": log.created_at,
-        "answered_at": log.answered_at
-    }
+    return {
+            "conversation_id": log.conversation_id,
+            "status": status,
+            "question": log.question_content,
+            "answer": log.answer_content,
+            "type": log.question_type,
+            "created_at": log.created_at,
+            "answered_at": log.answered_at
+        }

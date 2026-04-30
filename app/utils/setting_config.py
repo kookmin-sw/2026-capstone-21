@@ -20,6 +20,7 @@ class Settings(BaseSettings):
     # AI 모델 설정
     EMBEDDING_MODEL: str = "BAAI/bge-m3"
 
+    
     class Config:
         case_sensitive = True
 
