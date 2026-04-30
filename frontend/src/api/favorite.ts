@@ -1,9 +1,20 @@
 const BASE_URL = "http://localhost:8000/favorites";
 
+// 🔥 토큰 자동 붙이기
+function getAuthHeaders() {
+  const token = localStorage.getItem("access_token");
+
+  return {
+    "Content-Type": "application/json",
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  };
+}
+
+// ⭐ 관심 토글
 export async function toggleFavorite(influencerId: number) {
   const res = await fetch(`${BASE_URL}/${influencerId}/toggle`, {
     method: "POST",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -14,9 +25,11 @@ export async function toggleFavorite(influencerId: number) {
   return res.json();
 }
 
+// ⭐ 관심 목록 조회
 export async function getFavorites() {
   const res = await fetch(`${BASE_URL}/`, {
-    credentials: "include",
+    method: "GET",
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -27,10 +40,11 @@ export async function getFavorites() {
   return res.json();
 }
 
+// ⭐ 관심 삭제
 export async function deleteFavorite(influencerId: number) {
   const res = await fetch(`${BASE_URL}/${influencerId}`, {
     method: "DELETE",
-    credentials: "include",
+    headers: getAuthHeaders(),
   });
 
   if (!res.ok) {
@@ -41,16 +55,14 @@ export async function deleteFavorite(influencerId: number) {
   return res.json();
 }
 
+// ⭐ 메모 수정
 export async function updateFavoriteMemo(
   influencerId: number,
   reason: string
 ) {
   const res = await fetch(`${BASE_URL}/${influencerId}/reason`, {
     method: "PATCH",
-    credentials: "include",
-    headers: {
-      "Content-Type": "application/json",
-    },
+    headers: getAuthHeaders(),
     body: JSON.stringify({ reason }),
   });
 
