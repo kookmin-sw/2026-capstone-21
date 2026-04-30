@@ -1,6 +1,7 @@
 export interface Influencer {
   id: string;
   name: string;
+  username?: string;
   photo: string;
   followers: number;
   category: Category;

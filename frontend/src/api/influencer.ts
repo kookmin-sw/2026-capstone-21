@@ -1,6 +1,8 @@
+import { Influencer } from '../app/types';
+
 const BASE_URL = "http://localhost:8000/influencers/";
 
-export async function getInfluencers() {
+export async function getInfluencers(): Promise<Influencer[]> {
   const res = await fetch(BASE_URL);
 
   if (!res.ok) {
@@ -16,16 +18,37 @@ export async function getInfluencers() {
     return [];
   }
 
-  return list.map((item: any) => ({
+  return list.map((item: any): Influencer => ({
     id: String(item.influencer_id),
-    name: item.full_name || item.username,
-    photo: `/profile_pic_HD/${item.username}.jpg`,
+
+    // 이름
+    name: item.full_name || item.username || "이름 없음",
+
+    // 🔥 여기 추가 (핵심)
+    username: item.username || "",
+
+    // 이미지
+    photo: item.profile_pic_url
+      ? item.profile_pic_url
+      : `/profile_pic_HD/${item.username}.jpg`,
+
+    // 팔로워
     followers: item.followers_count || 0,
+
+    // 카테고리
     category: item.primary_category || "기타",
+
+    // 임시값 (나중에 개선 가능)
     mainGender: "both",
     mainAge: "25-34",
+
+    // 점수
     selections: Math.floor((item.grade_score || 0) * 100),
-    instagram: item.username,
+
+    // 기존 필드 유지 (혹시 쓰는 곳 있을까봐)
+    instagram: item.username || "",
+
+    // 키워드
     styleKeywords: item.style_keywords_json || [],
   }));
 }
