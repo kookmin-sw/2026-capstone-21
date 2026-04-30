@@ -1,5 +1,11 @@
-frontend/src/app/components/InfluencerProfileModal.tsx <<< 인플루언서 상세 모달 + 관심(즐겨찾기) + 메모 기능 처리하는 컴포넌트
+<frontend/src/app/components/InfluencerProfileModal.tsx>
+: 인플루언서 상세 모달 + 관심(즐겨찾기) + 메모 기능 처리하는 컴포넌트
 인플루언서를 클릭했을 때 뜨는 상세 팝업(모달), 즐겨찾기 추가/제거 ⭐  메모 작성 📝  모달 닫기 ❌
+
+
+:전체 앱에서 로그인/회원가입/로그아웃 상태를 관리하는 인증 시스템의 중심(Context)
+
+
 
 로그인/회원가입 기능 구현 중
   
