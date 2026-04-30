@@ -46,45 +46,20 @@ async def receive_question(
 # 백엔드에 쌓인 질문이나 상태를 Chatwoot 서버가 조회하거나 확인할 때 사용
 @router.get("/transfer/{conversation_id}")
 async def get_question_status(conversation_id: int, db: Session = Depends(get_db)):
-    log = db.query(ChatwootLog).filter(ChatwootLog.conversation_id == conversation_id).first()
+    log = db.query(ChatwootLog).filter(ChatwootLog.conversation_id == conversation_id).order_by(ChatwootLog.id.desc()).first()
     
     # 특정 대화방의 질문 데이터를 조회하여 전달
     if not log:
         return {"status": "error", "message": "해당 ID의 로그가 없습니다."}
 
-    return {
+    status = "completed" if log.answer_content else "pending"
+
+return {
         "conversation_id": log.conversation_id,
-        "question": log.question_content,
-        "type": log.question_type,
-        "time": log.created_at
-    }
-
-# GPT나 Chatwoot 서버에서 생성된 답변을 최종적으로 DB에 저장할 때 호출
-@router.get("/reply/{conversation_id}")
-async def get_chatbot_reply(conversation_id: int, db: Session = Depends(get_db)):
-    # 해당 대화 ID의 가장 최근 로그를 가져옴
-    log = db.query(ChatwootLog)\
-            .filter(ChatwootLog.conversation_id == conversation_id)\
-            .order_by(ChatwootLog.id.desc())\
-            .first()
-    
-    if not log:
-        raise HTTPException(status_code=404, detail="해당 대화의 로그를 찾을 수 없습니다.")
-
-    # 답변이 아직 생성 중인 경우
-    if not log.answer_content:
-        return {
-            "conversation_id": conversation_id,
-            "status": "pending",
-            "message": "AI가 답변을 생성 중입니다. 잠시 후 다시 시도해주세요."
-        }
-
-    # 답변이 완성된 경우
-    return {
-        "conversation_id": log.conversation_id,
-        "status": "completed",
+        "status": status,
         "question": log.question_content,
         "answer": log.answer_content,
         "type": log.question_type,
-        "created_at": log.created_at
+        "created_at": log.created_at,
+        "answered_at": log.answered_at
     }
