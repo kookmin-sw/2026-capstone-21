@@ -6,7 +6,7 @@ from app.db.models import ChatwootLog, Influencer
 from app.services.recommendation import RecommendationEngine
 
 # 설정 정보
-CHATWOOT_BASE_URL = "https://app.chatwoot.com/api/v1/accounts/3"
+CHATWOOT_BASE_URL = "https://yanking-size-triangle.ngrok-free.dev/api/v1/accounts/3"
 
 class ChatbotService:
     def __init__(self):
