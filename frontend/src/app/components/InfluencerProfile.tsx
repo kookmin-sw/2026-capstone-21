@@ -1,10 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, SlidersHorizontal } from 'lucide-react';
+import { Search, SlidersHorizontal, Heart, Star } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
+import { toggleFavorite, getFavorites } from '../../api/favorite';
 
 function extractKeywords(text: string): string[] {
   if (!text) return [];
@@ -36,6 +37,8 @@ export function InfluencerProfile() {
   } | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [starIds, setStarIds] = useState<string[]>([]);
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -45,7 +48,15 @@ export function InfluencerProfile() {
     mainAges: [],
   });
 
-  /* CATEGORY API */
+  useEffect(() => {
+    getFavorites()
+      .then((data) => {
+        const ids = data.map((fav: any) => String(fav.influencer_id));
+        setFavoriteIds(ids);
+      })
+      .catch(console.error);
+  }, []);
+
   useEffect(() => {
     getCategories()
       .then((data) => {
@@ -54,7 +65,6 @@ export function InfluencerProfile() {
       .catch(console.error);
   }, []);
 
-  /* FILTER LOGIC */
   const filteredInfluencers = useMemo(() => {
     return influencers.filter((influencer) => {
       if (filters.search) {
@@ -129,10 +139,44 @@ export function InfluencerProfile() {
 
   const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
     e.stopPropagation();
+
     setSelectedInfluencer({
       influencer,
       rank: getRank(influencer.id),
     });
+  };
+
+  const handleFavoriteClick = async (
+    influencerId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+
+    try {
+      await toggleFavorite(Number(influencerId));
+
+      setFavoriteIds((prev) =>
+        prev.includes(influencerId)
+          ? prev.filter((id) => id !== influencerId)
+          : [...prev, influencerId]
+      );
+    } catch (error) {
+      console.error(error);
+      alert('관심 등록/해제에 실패했습니다.');
+    }
+  };
+
+  const handleStarClick = (
+    influencerId: string,
+    e: React.MouseEvent
+  ) => {
+    e.stopPropagation();
+
+    setStarIds((prev) =>
+      prev.includes(influencerId)
+        ? prev.filter((id) => id !== influencerId)
+        : [...prev, influencerId]
+    );
   };
 
   return (
@@ -144,6 +188,7 @@ export function InfluencerProfile() {
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5" />
+
             <input
               type="text"
               placeholder="Search influencers..."
@@ -173,8 +218,6 @@ export function InfluencerProfile() {
         {showFilters && (
           <motion.div>
             <div className="bg-white p-6 rounded-2xl border">
-
-              {/* 🔥 FOLLOWER FILTER */}
               <div className="mb-6">
                 <label className="font-semibold block mb-3">
                   Number of Followers
@@ -182,11 +225,11 @@ export function InfluencerProfile() {
 
                 <div className="flex flex-wrap gap-2">
                   {[
-                    { label: "500 - 1K", value: "500-1000" },
-                    { label: "1K - 2K", value: "1000-2000" },
-                    { label: "2K - 3K", value: "2000-3000" },
-                    { label: "3K - 5K", value: "3000-5000" },
-                    { label: "5K+", value: "5000+" },
+                    { label: '500 - 1K', value: '500-1000' },
+                    { label: '1K - 2K', value: '1000-2000' },
+                    { label: '2K - 3K', value: '2000-3000' },
+                    { label: '3K - 5K', value: '3000-5000' },
+                    { label: '5K+', value: '5000+' },
                   ].map((range) => (
                     <button
                       key={range.value}
@@ -194,13 +237,15 @@ export function InfluencerProfile() {
                         setFilters((prev) => ({
                           ...prev,
                           followerRange:
-                            prev.followerRange === range.value ? null : range.value,
+                            prev.followerRange === range.value
+                              ? null
+                              : range.value,
                         }))
                       }
                       className={`px-4 py-2 rounded-lg ${
                         filters.followerRange === range.value
-                          ? "bg-purple-600 text-white"
-                          : "bg-slate-100"
+                          ? 'bg-purple-600 text-white'
+                          : 'bg-slate-100'
                       }`}
                     >
                       {range.label}
@@ -209,7 +254,6 @@ export function InfluencerProfile() {
                 </div>
               </div>
 
-              {/* CATEGORY */}
               <div>
                 <label className="font-semibold block mb-3">
                   Category
@@ -231,7 +275,6 @@ export function InfluencerProfile() {
                   ))}
                 </div>
               </div>
-
             </div>
           </motion.div>
         )}
@@ -239,41 +282,77 @@ export function InfluencerProfile() {
 
       {/* CARD GRID */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {filteredInfluencers.map((influencer) => (
-          <div
-            key={influencer.id}
-            onClick={() => handleCardClick(influencer.id)}
-            className="bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
-          >
-            <div className="w-full h-64 overflow-hidden">
-              <img
-                src={influencer.photo}
-                alt={influencer.name}
-                onError={(e) => {
-                  (e.currentTarget as HTMLImageElement).src = "/default-profile.png";
-                }}
-                className="w-full h-full object-cover"
-              />
+        {filteredInfluencers.map((influencer) => {
+          const isFavorite = favoriteIds.includes(influencer.id);
+          const isStarred = starIds.includes(influencer.id);
+
+          return (
+            <div
+              key={influencer.id}
+              onClick={() => handleCardClick(influencer.id)}
+              className="bg-white rounded-xl shadow hover:shadow-lg transition cursor-pointer overflow-hidden"
+            >
+              <div className="w-full h-64 overflow-hidden relative">
+                <img
+                  src={influencer.photo}
+                  alt={influencer.name}
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).src =
+                      '/default-profile.png';
+                  }}
+                  className="w-full h-full object-cover"
+                />
+
+                <div className="absolute top-3 right-3 flex gap-2">
+                  <button
+                    onClick={(e) => handleFavoriteClick(influencer.id, e)}
+                    className="bg-white rounded-full p-2 shadow hover:bg-red-50"
+                    title="좋아요"
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${
+                        isFavorite
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-gray-600'
+                      }`}
+                    />
+                  </button>
+
+                  <button
+                    onClick={(e) => handleStarClick(influencer.id, e)}
+                    className="bg-white rounded-full p-2 shadow hover:bg-yellow-50"
+                    title="별표"
+                  >
+                    <Star
+                      className={`w-5 h-5 ${
+                        isStarred
+                          ? 'fill-yellow-400 text-yellow-400'
+                          : 'text-gray-600'
+                      }`}
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div className="p-4 space-y-2">
+                <div
+                  onClick={(e) => handleNameClick(influencer, e)}
+                  className="font-bold text-lg hover:text-purple-600"
+                >
+                  {influencer.name}
+                </div>
+
+                <div className="text-sm text-gray-500">
+                  {influencer.followers.toLocaleString()} followers
+                </div>
+
+                <div className="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs">
+                  {influencer.category}
+                </div>
+              </div>
             </div>
-
-            <div className="p-4 space-y-2">
-              <div
-                onClick={(e) => handleNameClick(influencer, e)}
-                className="font-bold text-lg hover:text-purple-600"
-              >
-                {influencer.name}
-              </div>
-
-              <div className="text-sm text-gray-500">
-                {influencer.followers.toLocaleString()} followers
-              </div>
-
-              <div className="inline-block px-3 py-1 bg-purple-100 text-purple-600 rounded-full text-xs">
-                {influencer.category}
-              </div>
-            </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* MODAL */}
