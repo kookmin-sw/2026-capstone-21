@@ -21,6 +21,7 @@ class ConversationInfo(BaseModel):
 
 class ChatwootWebhookPayload(BaseModel):
     content: str
+    message_type: str
     additional_attributes: Optional[AdditionalAttributes] = None
     conversation: ConversationInfo
 
