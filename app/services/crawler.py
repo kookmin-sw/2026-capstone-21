@@ -1,7 +1,5 @@
-from apify_client import ApifyClient
 import pandas as pd
 from datetime import datetime, timedelta, timezone
-import numpy as np
 import os
 from sqlalchemy.orm import Session
 from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE
@@ -25,7 +23,7 @@ class CrawlerService:
         count = 0
         for _, row in final_df.iterrows():
             inf_item = row.to_dict()
-            db_influencer = upsert_influencer(self.db, item)
+            db_influencer = upsert_influencer(self.db, inf_item)
 
             # 2. 게시물 정보 찢어서 저장 (Original build_db 로직)
             if 'latestPosts' in row and row['latestPosts']:
@@ -48,9 +46,9 @@ class CrawlerService:
         # 1. 키워드 기반 타겟 수집 (기존 로직 재활용)
         new_df = self.expand_seed(seed_brand=keywords)
         count = 0
-        for _, row in final_df.iterrows():
+        for _, row in new_df.iterrows():
             inf_item = row.to_dict()
-            db_influencer = upsert_influencer(self.db, item)
+            db_influencer = upsert_influencer(self.db, inf_item)
 
             # 2. 게시물 정보 찢어서 저장 (Original build_db 로직)
             if 'latestPosts' in row and row['latestPosts']:
