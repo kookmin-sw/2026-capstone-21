@@ -80,7 +80,7 @@ class RecommendationEngine:
             self.inf_grades = {e.influencer_id: (e.grade_score / 5.0 if e.grade_score else 0.2) for e in embeddings}
 
         # 2. LightFM 학습
-        self._train_lfm()
+        # self._train_lfm()
 
     def _train_lfm(self):
         """사용자 액션 로그 기반 LightFM 학습"""
