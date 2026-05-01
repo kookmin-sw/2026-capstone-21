@@ -2,7 +2,12 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { Influencer, SelectionHistory } from '../types';
 import { mockSelectionHistory } from '../data/selectionHistory';
 import { getInfluencers } from '../../api/influencer';
-import { getFavorites, toggleFavorite } from '../../api/favorite';
+import {
+  getFavorites,
+  toggleFavorite,
+  updateFavoriteMemo,
+  addFavorite,
+} from '../../api/favorite';
 
 interface InfluencerContextType {
   influencers: Influencer[];
@@ -11,7 +16,7 @@ interface InfluencerContextType {
   notes: Record<string, string>;
   toggleInterest: (influencerId: string) => Promise<void>;
   selectInfluencer: (influencerId: string) => void;
-  saveNote: (influencerId: string, note: string) => void;
+  saveNote: (influencerId: string, note: string) => Promise<void>;
   refreshFavorites: () => Promise<void>;
 }
 
@@ -26,7 +31,6 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     useState<SelectionHistory[]>(mockSelectionHistory);
   const [notes, setNotes] = useState<Record<string, string>>({});
 
-  // 1. 인플루언서 목록 불러오기
   useEffect(() => {
     getInfluencers()
       .then((data) => {
@@ -36,11 +40,19 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       .catch(console.error);
   }, []);
 
-  // 2. 관심 목록 불러오기
   const refreshFavorites = async () => {
     try {
       const data = await getFavorites();
+
       setInterestList(data.map((f: any) => String(f.influencer_id)));
+
+      const nextNotes: Record<string, string> = {};
+
+      data.forEach((fav: any) => {
+        nextNotes[String(fav.influencer_id)] = fav.reason || '';
+      });
+
+      setNotes(nextNotes);
     } catch (err) {
       console.error('favorite sync 실패:', err);
     }
@@ -50,17 +62,23 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     refreshFavorites();
   }, []);
 
-  // 3. 관심 토글
   const toggleInterest = async (influencerId: string) => {
     try {
-      const result = await toggleFavorite(Number(influencerId));
+      const id = String(influencerId);
+      const result = await toggleFavorite(Number(id));
 
       if (result.status === 'added') {
         setInterestList((prev) =>
-          prev.includes(influencerId) ? prev : [...prev, influencerId]
+          prev.includes(id) ? prev : [...prev, id]
         );
       } else {
-        setInterestList((prev) => prev.filter((id) => id !== influencerId));
+        setInterestList((prev) => prev.filter((item) => item !== id));
+
+        setNotes((prev) => {
+          const next = { ...prev };
+          delete next[id];
+          return next;
+        });
       }
     } catch (err) {
       console.error('favorite toggle 실패:', err);
@@ -68,7 +86,6 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // 4. 선택 증가
   const selectInfluencer = (influencerId: string) => {
     setInfluencers((prev) =>
       prev.map((inf) =>
@@ -79,13 +96,29 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     );
   };
 
-  // 5. 메모 저장: 현재는 프론트 상태 저장용
-  // 실제 DB 저장은 updateFavoriteMemo API를 사용하는 컴포넌트에서 처리
-  const saveNote = (influencerId: string, note: string) => {
-    setNotes((prev) => ({
-      ...prev,
-      [influencerId]: note,
-    }));
+  const saveNote = async (influencerId: string, note: string) => {
+    const id = String(influencerId);
+    const numericId = Number(id);
+
+    try {
+      try {
+        await updateFavoriteMemo(numericId, note);
+      } catch {
+        await addFavorite(numericId, note);
+
+        setInterestList((prev) =>
+          prev.includes(id) ? prev : [...prev, id]
+        );
+      }
+
+      setNotes((prev) => ({
+        ...prev,
+        [id]: note,
+      }));
+    } catch (err) {
+      console.error('note save 실패:', err);
+      throw err;
+    }
   };
 
   return (
