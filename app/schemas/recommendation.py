@@ -48,3 +48,10 @@ class RecommendationResultResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class RealtimeRequest(BaseModel):
+    text: str
+    user_id: int
+    category: Optional[str] = None
+    minFollowers: Optional[int] = None
