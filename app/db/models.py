@@ -201,7 +201,7 @@ class MallInput(Base):
     input_id = Column(Integer, primary_key=True, autoincrement=True)
     user_id = Column(Integer, ForeignKey("users.user_id", ondelete="CASCADE"), nullable=False)
 
-    mall_name = Column(String(255), nullable=False)
+    mall_name = Column(String(255), nullable=True)
     mall_url = Column(Text, nullable=True)
 
     # 쇼핑몰 설명/무드/키워드 입력 텍스트
