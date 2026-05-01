@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 
 
@@ -7,12 +7,20 @@ class RecommendationRunCreate(BaseModel):
     input_id: int
 
 
+class RecommendationItemResponse(BaseModel):
+    influencer_id: int
+    username: str
+    score: float
+    rank_no: int
+
+
 class RecommendationRunResponse(BaseModel):
     run_id: int
-    user_id: int
-    input_id: int
-    status: str
+    user_id: Optional[int] = None
+    input_id: Optional[int] = None
+    status: Optional[str] = None
     error_message: Optional[str] = None
+    recommendations: List[RecommendationItemResponse] = []
 
     class Config:
         from_attributes = True
