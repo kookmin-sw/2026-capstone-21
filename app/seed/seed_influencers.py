@@ -62,7 +62,7 @@ def upsert_influencer(db: Session, item: dict):
     style_keywords_text = ", ".join([str(x) for x in style_keywords]) if style_keywords else None
     primary_category_name = normalize_category_name(item.get("primary_category"))
 
-    local_pic_url = f"/data/profile_pics/{username}.jpg"
+    local_pic_url = f"/profile_pic_HD/{username}.jpg"
 
     if influencer is None:
         influencer = Influencer(
