@@ -44,8 +44,16 @@ export async function toggleFavorite(influencerId: number) {
   return res.json();
 }
 
+
 // 관심 목록 조회
 export async function getFavorites() {
+  const token = localStorage.getItem("access_token");
+
+  // 로그인 전이면 API 호출하지 않고 빈 배열 반환
+  if (!token) {
+    return [];
+  }
+
   const res = await fetch(`${BASE_URL}/`, {
     method: "GET",
     headers: getAuthHeaders(),
