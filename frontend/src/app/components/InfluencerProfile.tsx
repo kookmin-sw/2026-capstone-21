@@ -5,14 +5,30 @@ import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
-import { toggleFavorite, getFavorites } from '../../api/favorite';
 
 function extractKeywords(text: string): string[] {
   if (!text) return [];
 
   const stopWords = [
-    '은', '는', '이', '가', '을', '를', '에', '에서', '과', '와', '하고', '의',
-    '도', '만', '에게', '한', '어울리는', '맞는', '좋은',
+    '은',
+    '는',
+    '이',
+    '가',
+    '을',
+    '를',
+    '에',
+    '에서',
+    '과',
+    '와',
+    '하고',
+    '의',
+    '도',
+    '만',
+    '에게',
+    '한',
+    '어울리는',
+    '맞는',
+    '좋은',
   ];
 
   const words = text
@@ -28,16 +44,18 @@ function extractKeywords(text: string): string[] {
 }
 
 export function InfluencerProfile() {
-  const { influencers, selectInfluencer } = useInfluencers();
+  const {
+    influencers,
+    interestList,
+    toggleInterest,
+    selectInfluencer,
+  } = useInfluencers();
 
   const [showFilters, setShowFilters] = useState(false);
-  const [selectedInfluencer, setSelectedInfluencer] = useState<{
-    influencer: Influencer;
-    rank: number;
-  } | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] =
+    useState<Influencer | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
-  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -46,15 +64,6 @@ export function InfluencerProfile() {
     mainGender: null,
     mainAges: [],
   });
-
-  useEffect(() => {
-    getFavorites()
-      .then((data) => {
-        const ids = data.map((fav: any) => String(fav.influencer_id));
-        setFavoriteIds(ids);
-      })
-      .catch(console.error);
-  }, []);
 
   useEffect(() => {
     getCategories()
@@ -126,24 +135,13 @@ export function InfluencerProfile() {
     }));
   };
 
-  const sortedInfluencers = useMemo(() => {
-    return [...influencers].sort((a, b) => b.selections - a.selections);
-  }, [influencers]);
-
-  const getRank = (id: string) =>
-    sortedInfluencers.findIndex((inf) => inf.id === id) + 1;
-
   const handleCardClick = (id: string) => {
     selectInfluencer(id);
   };
 
   const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
     e.stopPropagation();
-
-    setSelectedInfluencer({
-      influencer,
-      rank: getRank(influencer.id),
-    });
+    setSelectedInfluencer(influencer);
   };
 
   const handleFavoriteClick = async (
@@ -153,13 +151,7 @@ export function InfluencerProfile() {
     e.stopPropagation();
 
     try {
-      await toggleFavorite(Number(influencerId));
-
-      setFavoriteIds((prev) =>
-        prev.includes(influencerId)
-          ? prev.filter((id) => id !== influencerId)
-          : [...prev, influencerId]
-      );
+      await toggleInterest(String(influencerId));
     } catch (error) {
       console.error(error);
       alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
@@ -272,7 +264,8 @@ export function InfluencerProfile() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
         {filteredInfluencers.map((influencer) => {
-          const isFavorite = favoriteIds.includes(influencer.id);
+          const influencerId = String(influencer.id);
+          const isFavorite = interestList.includes(influencerId);
 
           return (
             <div
@@ -292,7 +285,7 @@ export function InfluencerProfile() {
                 />
 
                 <button
-                  onClick={(e) => handleFavoriteClick(influencer.id, e)}
+                  onClick={(e) => handleFavoriteClick(influencerId, e)}
                   className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
                   title="My Picks"
                 >
@@ -329,8 +322,7 @@ export function InfluencerProfile() {
 
       {selectedInfluencer && (
         <InfluencerProfileModal
-          influencer={selectedInfluencer.influencer}
-          rank={selectedInfluencer.rank}
+          influencer={selectedInfluencer}
           onClose={() => setSelectedInfluencer(null)}
         />
       )}
