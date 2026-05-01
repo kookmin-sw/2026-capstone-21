@@ -5,6 +5,7 @@ import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
+import { getRealtimeRecommendation } from '../../api/recommendation';
 
 function extractKeywords(text: string): string[] {
   if (!text) return [];
@@ -44,12 +45,8 @@ function extractKeywords(text: string): string[] {
 }
 
 export function InfluencerProfile() {
-  const {
-    influencers,
-    interestList,
-    toggleInterest,
-    selectInfluencer,
-  } = useInfluencers();
+  const { influencers, interestList, toggleInterest, selectInfluencer } =
+    useInfluencers();
 
   const [showFilters, setShowFilters] = useState(false);
   const [selectedInfluencer, setSelectedInfluencer] =
@@ -65,6 +62,10 @@ export function InfluencerProfile() {
     mainAges: [],
   });
 
+  const [recommendText, setRecommendText] = useState('');
+  const [recommendResults, setRecommendResults] = useState<Influencer[]>([]);
+  const [isRecommending, setIsRecommending] = useState(false);
+
   useEffect(() => {
     getCategories()
       .then((data) => {
@@ -72,6 +73,83 @@ export function InfluencerProfile() {
       })
       .catch(console.error);
   }, []);
+
+  const handleRecommend = async () => {
+    try {
+      const userId = localStorage.getItem('user_id');
+
+      if (!userId) {
+        alert('로그인이 필요합니다');
+        return;
+      }
+
+      if (!recommendText.trim()) {
+        alert('브랜드 설명을 입력해주세요.');
+        return;
+      }
+
+      setIsRecommending(true);
+
+      const res = await getRealtimeRecommendation({
+        text: recommendText,
+        user_id: Number(userId),
+      });
+
+      console.log('추천 API 응답:', res);
+
+      const sortedRecommendations = [...(res.recommendations || [])].sort(
+        (a: any, b: any) => {
+          if (a.rank_no != null && b.rank_no != null) {
+            return a.rank_no - b.rank_no;
+          }
+
+          if (a.final_score != null && b.final_score != null) {
+            return b.final_score - a.final_score;
+          }
+
+          return (
+            Number(a.influencer_id ?? a.id ?? 0) -
+            Number(b.influencer_id ?? b.id ?? 0)
+          );
+        }
+      );
+
+      const mappedResults: Influencer[] = sortedRecommendations.map(
+        (item: any) => {
+          const id = String(item.id ?? item.influencer_id);
+
+          const matchedInfluencer = influencers.find(
+            (influencer) => String(influencer.id) === id
+          );
+
+          if (matchedInfluencer) {
+            return matchedInfluencer;
+          }
+
+          return {
+            id,
+            name: item.name ?? item.full_name ?? item.username ?? '이름 없음',
+            photo: item.photo ?? `/profile_pic_HD/${item.username}.jpg`,
+            followers: item.followers ?? item.followers_count ?? 0,
+            category:
+              item.category ?? item.primary_category ?? item.category_name ?? '기타',
+            mainGender: item.mainGender ?? 'both',
+            mainAge: item.mainAge ?? '25-34',
+            selections: item.selections ?? 0,
+            instagram: item.instagram ?? item.username ?? '',
+            styleKeywords: item.styleKeywords ?? item.style_keywords ?? [],
+          };
+        }
+      );
+
+      setRecommendResults(mappedResults);
+    } catch (err) {
+      console.error(err);
+      alert('추천 실패');
+    } finally {
+      setIsRecommending(false);
+    }
+  };
 
   const filteredInfluencers = useMemo(() => {
     return influencers.filter((influencer) => {
@@ -158,12 +236,103 @@ export function InfluencerProfile() {
     }
   };
 
+  const renderInfluencerCard = (influencer: Influencer) => {
+    const influencerId = String(influencer.id);
+    const isFavorite = interestList.includes(influencerId);
+
+    return (
+      <div
+        key={influencer.id}
+        onClick={() => handleCardClick(influencer.id)}
+        className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100"
+      >
+        <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
+          <img
+            src={influencer.photo}
+            alt={influencer.name}
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).src =
+                '/default-profile.png';
+            }}
+            className="w-full h-full object-cover"
+          />
+
+          <button
+            onClick={(e) => handleFavoriteClick(influencerId, e)}
+            className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
+            title="My Picks"
+          >
+            <Star
+              className={`w-6 h-6 ${
+                isFavorite
+                  ? 'fill-yellow-400 text-yellow-400'
+                  : 'text-slate-600'
+              }`}
+            />
+          </button>
+        </div>
+
+        <div className="p-6 space-y-3">
+          <div
+            onClick={(e) => handleNameClick(influencer, e)}
+            className="font-bold text-xl text-slate-900 hover:text-purple-600 transition"
+          >
+            {influencer.name}
+          </div>
+
+          <div className="text-slate-600">
+            {Number(influencer.followers || 0).toLocaleString()} followers
+          </div>
+
+          <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
+            {influencer.category}
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div>
       <div className="mb-8 space-y-4">
         <h1 className="text-4xl font-bold text-slate-900">
           Discover Influencers
         </h1>
+
+        <div className="p-4 border border-slate-200 rounded-2xl bg-white">
+          <div className="flex gap-3">
+            <input
+              value={recommendText}
+              onChange={(e) => setRecommendText(e.target.value)}
+              placeholder="브랜드 설명을 입력하세요"
+              className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+            />
+
+            <button
+              onClick={handleRecommend}
+              disabled={isRecommending}
+              className={`px-6 py-3 rounded-xl font-semibold transition ${
+                isRecommending
+                  ? 'bg-slate-400 text-white cursor-not-allowed'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {isRecommending ? '추천중...' : '추천받기'}
+            </button>
+          </div>
+
+          {recommendResults.length > 0 && (
+            <div className="mt-6">
+              <div className="font-semibold mb-4">추천 결과</div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+                {recommendResults.map((influencer) =>
+                  renderInfluencerCard(influencer)
+                )}
+              </div>
+            </div>
+          )}
+        </div>
 
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
@@ -263,61 +432,9 @@ export function InfluencerProfile() {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-        {filteredInfluencers.map((influencer) => {
-          const influencerId = String(influencer.id);
-          const isFavorite = interestList.includes(influencerId);
-
-          return (
-            <div
-              key={influencer.id}
-              onClick={() => handleCardClick(influencer.id)}
-              className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100"
-            >
-              <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
-                <img
-                  src={influencer.photo}
-                  alt={influencer.name}
-                  onError={(e) => {
-                    (e.currentTarget as HTMLImageElement).src =
-                      '/default-profile.png';
-                  }}
-                  className="w-full h-full object-cover"
-                />
-
-                <button
-                  onClick={(e) => handleFavoriteClick(influencerId, e)}
-                  className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
-                  title="My Picks"
-                >
-                  <Star
-                    className={`w-6 h-6 ${
-                      isFavorite
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-slate-600'
-                    }`}
-                  />
-                </button>
-              </div>
-
-              <div className="p-6 space-y-3">
-                <div
-                  onClick={(e) => handleNameClick(influencer, e)}
-                  className="font-bold text-xl text-slate-900 hover:text-purple-600 transition"
-                >
-                  {influencer.name}
-                </div>
-
-                <div className="text-slate-600">
-                  {influencer.followers.toLocaleString()} followers
-                </div>
-
-                <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-                  {influencer.category}
-                </div>
-              </div>
-            </div>
-          );
-        })}
+        {filteredInfluencers.map((influencer) =>
+          renderInfluencerCard(influencer)
+        )}
       </div>
 
       {selectedInfluencer && (
