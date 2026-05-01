@@ -2,6 +2,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useInfluencers } from '../context/InfluencerContext';
 
 interface LoginModalProps {
   onClose: () => void;
@@ -9,43 +10,47 @@ interface LoginModalProps {
   onShowSignup: () => void;
 }
 
-export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps) {
+export function LoginModal({
+  onClose,
+  onSuccess,
+  onShowSignup,
+}: LoginModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState(false);
-  const [passwordError, setPasswordError] = useState(false);
+
+  const [loginError, setLoginError] = useState(false);
+
   const { login } = useAuth();
+  const { refreshFavorites } = useInfluencers();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setLoginError(false);
+
     const result = await login(email, password);
 
     if (result === 'success') {
+      await refreshFavorites();
       onSuccess();
-    } else if (result === 'account-not-found') {
-      setEmailError(true);
-      setPasswordError(false);
-    } else if (result === 'wrong-password') {
-      setEmailError(false);
-      setPasswordError(true);
+    } else {
+      setLoginError(true);
     }
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setEmail(e.target.value);
-    setEmailError(false);
+    setLoginError(false);
   };
 
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPassword(e.target.value);
-    setPasswordError(false);
+    setLoginError(false);
   };
 
   return (
     <AnimatePresence>
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        {/* Backdrop */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -54,7 +59,6 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
           className="absolute inset-0 bg-black/60 backdrop-blur-sm"
         />
 
-        {/* Modal */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -62,7 +66,6 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
           transition={{ duration: 0.2 }}
           className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
         >
-          {/* Header */}
           <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 px-8 py-12 text-white">
             <button
               onClick={onClose}
@@ -82,7 +85,6 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
             <p className="text-white/80 mt-2">Login to access your account</p>
           </div>
 
-          {/* Form */}
           <form onSubmit={handleSubmit} className="p-8 space-y-6">
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2">
@@ -93,15 +95,10 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
                 value={email}
                 onChange={handleEmailChange}
                 className={`w-full px-4 py-3 border rounded-lg ${
-                  emailError ? 'border-red-500' : 'border-slate-300'
+                  loginError ? 'border-red-500' : 'border-slate-300'
                 }`}
                 placeholder="Enter your email"
               />
-              {emailError && (
-                <p className="text-red-500 text-sm mt-1">
-                  계정이 존재하지 않습니다.
-                </p>
-              )}
             </div>
 
             <div>
@@ -113,16 +110,17 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
                 value={password}
                 onChange={handlePasswordChange}
                 className={`w-full px-4 py-3 border rounded-lg ${
-                  passwordError ? 'border-red-500' : 'border-slate-300'
+                  loginError ? 'border-red-500' : 'border-slate-300'
                 }`}
                 placeholder="Enter your password"
               />
-              {passwordError && (
-                <p className="text-red-500 text-sm mt-1">
-                  비밀번호가 틀렸습니다.
-                </p>
-              )}
             </div>
+
+            {loginError && (
+              <p className="text-red-500 text-sm text-center">
+                이메일 또는 비밀번호가 올바르지 않습니다.
+              </p>
+            )}
 
             <button
               type="submit"
@@ -133,7 +131,7 @@ export function LoginModal({ onClose, onSuccess, onShowSignup }: LoginModalProps
 
             <div className="text-center">
               <span className="text-sm text-slate-600">
-                Don't have an account?
+                Don&apos;t have an account?
               </span>{' '}
               <button
                 type="button"

@@ -1,7 +1,8 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
-import { getFavorites } from '../../api/favorite';
+import { createContext, useContext, useState, ReactNode } from "react";
+import { getFavorites } from "../../api/favorite";
+import { loginApi, signupApi } from "../../api/auth";
 
-type LoginResult = 'success' | 'account-not-found' | 'wrong-password';
+type LoginResult = "success" | "account-not-found" | "wrong-password";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -14,47 +15,37 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const API_BASE_URL = 'http://localhost:8000';
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(
-    !!localStorage.getItem('access_token')
+    !!localStorage.getItem("access_token")
   );
-  const [isAdmin, setIsAdmin] = useState(false);
+
+  const [isAdmin, setIsAdmin] = useState(
+    localStorage.getItem("role") === "admin"
+  );
 
   const login = async (
     email: string,
     password: string
   ): Promise<LoginResult> => {
     try {
-      const res = await fetch(`${API_BASE_URL}/auth/login`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-      });
+      const data = await loginApi(email, password);
 
-      if (res.status === 404) return 'account-not-found';
-      if (res.status === 401) return 'wrong-password';
-
-      if (!res.ok) {
-        return 'account-not-found';
-      }
-
-      const data = await res.json();
-
-      localStorage.setItem('access_token', data.access_token);
-      localStorage.setItem('user_id', String(data.user_info.user_id));
-      localStorage.setItem('user_name', data.user_info.user_name);
+      localStorage.setItem("access_token", data.access_token);
+      localStorage.setItem("user_id", String(data.user_info.user_id));
+      localStorage.setItem("user_name", data.user_info.user_name);
+      localStorage.setItem("role", data.user_info.role);
 
       setIsAuthenticated(true);
-      setIsAdmin(data.user_info.role === 'admin');
+      setIsAdmin(data.user_info.role === "admin");
 
-      return 'success';
-    } catch (error) {
-      console.error('로그인 실패:', error);
-      return 'account-not-found';
+      return "success";
+    } catch (error: any) {
+      if (error.message === "wrong-password") {
+        return "wrong-password";
+      }
+
+      return "account-not-found";
     }
   };
 
@@ -63,27 +54,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     password: string,
     userName: string
   ) => {
-    const res = await fetch(`${API_BASE_URL}/auth/signup`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        email,
-        password,
-        user_name: userName,
-      }),
-    });
-
-    if (!res.ok) {
-      throw new Error(await res.text());
-    }
+    await signupApi(email, password, userName);
   };
 
   const logout = () => {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('user_id');
-    localStorage.removeItem('user_name');
+    localStorage.removeItem("access_token");
+    localStorage.removeItem("user_id");
+    localStorage.removeItem("user_name");
+    localStorage.removeItem("role");
 
     setIsAuthenticated(false);
     setIsAdmin(false);
@@ -111,6 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+
+  if (!context) {
+    throw new Error("useAuth must be used within AuthProvider");
+  }
+
   return context;
 }
