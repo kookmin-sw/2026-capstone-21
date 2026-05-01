@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import {
   Heart,
   LayoutGrid,
@@ -7,117 +7,116 @@ import {
   Star,
 } from 'lucide-react';
 import { useInfluencers } from '../context/InfluencerContext';
-import { Category, Influencer } from '../types';
+import { Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
-import {
-  getFavorites,
-  deleteFavorite,
-  updateFavoriteMemo,
-} from '../../api/favorite';
 
-type FavoriteItem = {
-  influencer_id: number;
-  reason?: string;
-};
+const CATEGORY_ORDER = [
+  '패션',
+  '뷰티',
+  '인테리어',
+  '리빙',
+  '푸드·맛집',
+  '여행',
+  '헬스·웰니스',
+  '육아·가족',
+  '반려동물',
+  '라이프스타일',
+  '기타',
+];
+
+function normalizeCategory(category?: string | null): string {
+  const aliasMap: Record<string, string> = {
+    푸드맛집: '푸드·맛집',
+    헬스웰니스: '헬스·웰니스',
+    육아가족: '육아·가족',
+  };
+
+  if (!category) return '기타';
+
+  return aliasMap[category] || category;
+}
 
 export function InterestList() {
-  const { influencers } = useInfluencers();
+  const {
+    influencers,
+    interestList,
+    notes,
+    toggleInterest,
+    saveNote,
+  } = useInfluencers();
 
   const [organizeByCategory, setOrganizeByCategory] = useState(false);
-  const [selectedInfluencer, setSelectedInfluencer] = useState<{
-    influencer: Influencer;
-    rank: number;
-  } | null>(null);
+  const [selectedInfluencer, setSelectedInfluencer] =
+    useState<Influencer | null>(null);
 
-  const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
-  const [memoTexts, setMemoTexts] = useState<Record<number, string>>({});
-  const [editingMemoId, setEditingMemoId] = useState<number | null>(null);
-
-  useEffect(() => {
-    getFavorites()
-      .then((data) => {
-        setFavorites(data);
-
-        const initialMemos: Record<number, string> = {};
-        data.forEach((fav: FavoriteItem) => {
-          initialMemos[fav.influencer_id] = fav.reason || '';
-        });
-
-        setMemoTexts(initialMemos);
-      })
-      .catch(console.error);
-  }, []);
+  const [memoTexts, setMemoTexts] = useState<Record<string, string>>({});
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
 
   const interestedInfluencers = useMemo(() => {
-    return influencers.filter((inf) =>
-      favorites.some((fav) => fav.influencer_id === Number(inf.id))
-    );
-  }, [influencers, favorites]);
+    return influencers.filter((inf) => interestList.includes(String(inf.id)));
+  }, [influencers, interestList]);
 
   const groupedByCategory = useMemo(() => {
-    const grouped: Record<Category, typeof interestedInfluencers> = {
-      패션: [],
-      뷰티: [],
-      인테리어: [],
-      리빙: [],
-      '푸드·맛집': [],
-      여행: [],
-      '헬스·웰니스': [],
-      '육아·가족': [],
-      반려동물: [],
-      라이프스타일: [],
-    };
+    const grouped: Record<string, Influencer[]> = {};
+
+    CATEGORY_ORDER.forEach((category) => {
+      grouped[category] = [];
+    });
 
     interestedInfluencers.forEach((inf) => {
-      grouped[inf.category].push(inf);
+      const category = normalizeCategory(inf.category);
+
+      if (!grouped[category]) {
+        grouped[category] = [];
+      }
+
+      grouped[category].push(inf);
     });
 
     return grouped;
   }, [interestedInfluencers]);
 
-  const sortedInfluencers = useMemo(() => {
-    return [...influencers].sort((a, b) => b.selections - a.selections);
-  }, [influencers]);
-
-  const getRank = (influencerId: string) => {
-    return sortedInfluencers.findIndex((inf) => inf.id === influencerId) + 1;
-  };
-
   const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
     e.stopPropagation();
-
-    setSelectedInfluencer({
-      influencer,
-      rank: getRank(influencer.id),
-    });
+    setSelectedInfluencer(influencer);
   };
 
   const handleDeleteFavorite = async (influencerId: string) => {
     try {
-      await deleteFavorite(Number(influencerId));
+      await toggleInterest(String(influencerId));
 
-      setFavorites((prev) =>
-        prev.filter((fav) => fav.influencer_id !== Number(influencerId))
-      );
+      if (editingMemoId === String(influencerId)) {
+        setEditingMemoId(null);
+      }
+
+      setMemoTexts((prev) => {
+        const next = { ...prev };
+        delete next[String(influencerId)];
+        return next;
+      });
     } catch (error) {
       console.error(error);
       alert('관심 삭제에 실패했습니다.');
     }
   };
 
+  const handleMemoClick = (influencerId: string) => {
+    const id = String(influencerId);
+
+    setMemoTexts((prev) => ({
+      ...prev,
+      [id]: prev[id] ?? notes[id] ?? '',
+    }));
+
+    setEditingMemoId(id);
+  };
+
   const handleSaveMemo = async (influencerId: string) => {
-    const id = Number(influencerId);
-    const reason = memoTexts[id] || '';
+    const id = String(influencerId);
+    const reason = memoTexts[id] ?? '';
 
     try {
-      await updateFavoriteMemo(id, reason);
-
-      setFavorites((prev) =>
-        prev.map((fav) =>
-          fav.influencer_id === id ? { ...fav, reason } : fav
-        )
-      );
-
+      await saveNote(id, reason);
       setEditingMemoId(null);
     } catch (error) {
       console.error(error);
@@ -126,7 +125,8 @@ export function InterestList() {
   };
 
   const renderInfluencerCard = (influencer: Influencer) => {
-    const id = Number(influencer.id);
+    const id = String(influencer.id);
+    const currentMemoText = memoTexts[id] ?? notes[id] ?? '';
 
     return (
       <div
@@ -145,7 +145,7 @@ export function InterestList() {
           />
 
           <button
-            onClick={() => handleDeleteFavorite(influencer.id)}
+            onClick={() => handleDeleteFavorite(id)}
             className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition"
             title="관심 해제"
           >
@@ -166,21 +166,27 @@ export function InterestList() {
           </div>
 
           <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
-            {influencer.category}
+            {normalizeCategory(influencer.category)}
           </div>
 
           <button
-            onClick={() => setEditingMemoId(id)}
+            onClick={() => handleMemoClick(id)}
             className="flex items-center gap-2 text-sm text-slate-600 hover:text-purple-600 transition"
           >
             <FileText className="w-4 h-4" />
             메모
           </button>
 
+          {notes[id] && editingMemoId !== id && (
+            <p className="text-sm text-slate-500 bg-slate-50 rounded-lg p-3 line-clamp-3">
+              {notes[id]}
+            </p>
+          )}
+
           {editingMemoId === id && (
             <div className="space-y-2">
               <textarea
-                value={memoTexts[id] || ''}
+                value={currentMemoText}
                 onChange={(e) =>
                   setMemoTexts((prev) => ({
                     ...prev,
@@ -193,7 +199,7 @@ export function InterestList() {
 
               <div className="flex gap-2">
                 <button
-                  onClick={() => handleSaveMemo(influencer.id)}
+                  onClick={() => handleSaveMemo(id)}
                   className="px-4 py-2 bg-purple-600 text-white rounded-lg text-sm font-semibold hover:bg-purple-700"
                 >
                   저장
@@ -278,8 +284,7 @@ export function InterestList() {
 
       {selectedInfluencer && (
         <InfluencerProfileModal
-          influencer={selectedInfluencer.influencer}
-          rank={selectedInfluencer.rank}
+          influencer={selectedInfluencer}
           onClose={() => setSelectedInfluencer(null)}
         />
       )}
