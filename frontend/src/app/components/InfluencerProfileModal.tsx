@@ -3,29 +3,32 @@ import { X, Star, Instagram, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Influencer } from '../types';
 import { useInfluencers } from '../context/InfluencerContext';
-import { addFavorite, updateFavoriteMemo } from '../../api/favorite';
 
 interface InfluencerProfileModalProps {
   influencer: Influencer;
-  rank: number;
   onClose: () => void;
 }
 
 export function InfluencerProfileModal({
   influencer,
-  rank,
   onClose,
 }: InfluencerProfileModalProps) {
-  const { interestList, toggleInterest } = useInfluencers();
+  const {
+    interestList,
+    notes,
+    toggleInterest,
+    saveNote,
+  } = useInfluencers();
 
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteText, setNoteText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
 
-  const isInMyPicks = interestList.includes(influencer.id);
+  const influencerId = String(influencer.id);
+  const isInMyPicks = interestList.includes(influencerId);
 
   const handleFavorite = async () => {
-    await toggleInterest(influencer.id);
+    await toggleInterest(influencerId);
   };
 
   const handleMemoClick = async () => {
@@ -33,6 +36,7 @@ export function InfluencerProfileModal({
       await handleFavorite();
     }
 
+    setNoteText(notes[influencerId] || '');
     setShowNoteInput(true);
   };
 
@@ -40,13 +44,7 @@ export function InfluencerProfileModal({
     try {
       setIsSaving(true);
 
-      const influencerId = Number(influencer.id);
-
-      try {
-        await updateFavoriteMemo(influencerId, noteText);
-      } catch {
-        await addFavorite(influencerId, noteText);
-      }
+      await saveNote(influencerId, noteText);
 
       setShowNoteInput(false);
       alert('메모가 저장되었습니다.');
@@ -76,10 +74,6 @@ export function InfluencerProfileModal({
           transition={{ duration: 0.2 }}
           className="relative w-[300px] bg-white rounded-2xl shadow-2xl overflow-visible"
         >
-          <div className="absolute -top-5 -left-5 z-20 w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 text-white flex items-center justify-center text-2xl font-bold shadow-lg">
-            {rank}
-          </div>
-
           <button
             onClick={onClose}
             className="absolute -top-4 -right-4 z-20 w-10 h-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-slate-50 transition"
@@ -127,12 +121,28 @@ export function InfluencerProfileModal({
               </span>
             )}
 
+            {notes[influencerId] && !showNoteInput && (
+              <p className="text-xs text-slate-500 bg-slate-50 rounded-lg p-2">
+                {notes[influencerId]}
+              </p>
+            )}
+
             <div className="flex items-center gap-3 text-slate-600 text-sm pt-1">
               {influencer.username && (
-                <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => {
+                    window.open(
+                      `https://www.instagram.com/${influencer.username}`,
+                      '_blank',
+                      'noopener,noreferrer'
+                    );
+                  }}
+                  className="flex items-center gap-1 hover:text-pink-600 transition"
+                >
                   <Instagram className="w-4 h-4" />
                   <span>{influencer.username}</span>
-                </div>
+                </button>
               )}
 
               <button
