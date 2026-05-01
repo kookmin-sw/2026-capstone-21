@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.crud.user_action_log import create_user_action_log, get_logs_by_user_id
+from app.crud.user_action_log import create_user_action_log
 from app.db.database import get_db
-from app.schemas.user_action_log import UserActionLogCreate, UserActionLogRead
 from app.utils.config import ACTION_REWARD_MAP
 from app.services.recommendation import ReRankingBandit
+from app.db.models import RecommendationRun
 
 router = APIRouter(prefix="/user-action-logs", tags=["user_action_logs"])
 

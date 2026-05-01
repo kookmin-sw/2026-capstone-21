@@ -17,7 +17,6 @@ import re
 import json
 import math
 import time
-import sys
 from collections import defaultdict, Counter
 from typing import Any, Dict, List, Optional
 from sqlalchemy.orm import Session

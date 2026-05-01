@@ -1,9 +1,7 @@
-from app.utils.setting_config import settings
-import os
 from app.db.database import get_db
 from sqlalchemy.orm import Session
-from fastapi import FastAPI, Depends, APIRouter, BackgroundTasks
-from app.schemas.chatwoot import ChatwootWebhookPayload, ChatwootMessage, ChatbotResponse
+from fastapi import Depends, APIRouter, BackgroundTasks
+from app.schemas.chatwoot import ChatwootWebhookPayload
 from app.db.models import ChatwootLog
 from app.services.chatbot import ChatbotService
 
