@@ -9,6 +9,7 @@ import {
 import { useInfluencers } from '../context/InfluencerContext';
 import { Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
+import { createUserActionLog } from '../../api/userActionLog';
 
 const CATEGORY_ORDER = [
   '패션',
@@ -34,6 +35,22 @@ function normalizeCategory(category?: string | null): string {
   if (!category) return '기타';
 
   return aliasMap[category] || category;
+}
+
+function getLoginUserId(): number | null {
+  const storedUserId = localStorage.getItem('user_id');
+
+  if (!storedUserId) {
+    return null;
+  }
+
+  const userId = Number(storedUserId);
+
+  if (Number.isNaN(userId)) {
+    return null;
+  }
+
+  return userId;
 }
 
 export function InterestList() {
@@ -76,14 +93,46 @@ export function InterestList() {
     return grouped;
   }, [interestedInfluencers]);
 
-  const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
+  const handleNameClick = async (
+    influencer: Influencer,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
+
+    const userId = getLoginUserId();
+
+    if (userId) {
+      try {
+        await createUserActionLog({
+          user_id: userId,
+          influencer_id: Number(influencer.id),
+          action_type: 'detail_view',
+        });
+      } catch (error) {
+        console.error('detail_view 로그 저장 실패:', error);
+      }
+    }
+
     setSelectedInfluencer(influencer);
   };
 
   const handleDeleteFavorite = async (influencerId: string) => {
     try {
       await toggleInterest(String(influencerId));
+
+      const userId = getLoginUserId();
+
+      if (userId) {
+        try {
+          await createUserActionLog({
+            user_id: userId,
+            influencer_id: Number(influencerId),
+            action_type: 'favorite_remove',
+          });
+        } catch (logError) {
+          console.error('favorite_remove 로그 저장 실패:', logError);
+        }
+      }
 
       if (editingMemoId === String(influencerId)) {
         setEditingMemoId(null);
