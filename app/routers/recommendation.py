@@ -32,7 +32,7 @@ def get_and_save_recommendations(
 
     # 2. 추천 엔진 가동 (주의: 실제 서비스에서는 엔진 객체를 미리 생성해둬야 함)
     engine = RecommendationEngine(db)
-    recommendations = engine.recommend(user_id, mall_input.input_text, top_k=20) # 넉넉히 추출
+    recommendations = engine.recommend(user_id, mall_input.input_text, top_k=400)  # 넉넉히 추출 (기존 20 → 50)
 
     if not recommendations:
         return {"run_id": 0, "recommendations": []}
@@ -47,10 +47,34 @@ def get_and_save_recommendations(
     db.add(new_run)
     db.flush() # ID 생성을 위해 flush
 
-    # 4. 결과 저장 및 필터링 로직 통합
+    # 4. 결과 필터링 후 저장 (핵심 수정 부분)
     final_results = []
-    for idx, rec in enumerate(recommendations):
-        # DB 저장용 객체 생성
+    save_rank = 1  # 필터 이후 순위 따로 관리
+
+    for rec in recommendations:
+        # 인플루언서 조회
+        inf = db.query(Influencer).filter(
+            Influencer.influencer_id == rec['influencer_id']
+        ).first()
+
+        if not inf:
+            continue
+
+        # 카테고리 필터
+        if category:
+            cat_exists = db.query(InfluencerCategory).filter(
+                InfluencerCategory.influencer_id == inf.influencer_id,
+                InfluencerCategory.priority == 1
+            ).join(Category).filter(Category.category_name == category).first()
+
+            if not cat_exists:
+                continue
+
+        # 팔로워 수 필터
+        if minFollowers is not None and (inf.followers_count or 0) < minFollowers:
+            continue
+
+        # 👉 필터 통과한 경우만 저장
         result_entry = RecommendationResult(
             run_id=new_run.run_id,
             influencer_id=rec["influencer_id"],
@@ -58,34 +82,30 @@ def get_and_save_recommendations(
             grade_score=rec.get("grade_score"),
             personalization_score=rec.get("personalization_score"),
             final_score=rec["score"],
-            rank_no=idx + 1
+            rank_no=save_rank
         )
         db.add(result_entry)
-        
-        # 필터링 조건 체크 (메모리 내 필터링으로 성능 향상)
-        inf = db.query(Influencer).filter(Influencer.influencer_id == rec['influencer_id']).first()
-        
-        if category:
-            # 카테고리 체크 로직 (InfluencerCategory 모델 참조)
-            cat_exists = db.query(InfluencerCategory).filter(
-                InfluencerCategory.influencer_id == inf.influencer_id,
-                InfluencerCategory.priority == 1
-            ).join(Category).filter(Category.category_name == category).first()
-            if not cat_exists: continue
-            
-        if minFollowers and (inf.followers_count or 0) < minFollowers:
-            continue
-            
+
         final_results.append({
             "influencer_id": inf.influencer_id,
             "username": inf.username,
             "score": rec['score'],
-            "rank_no": idx + 1
+            "rank_no": save_rank
         })
+
+        save_rank += 1
+
+        # 👉 최대 20개까지만 저장
+        if len(final_results) == 20:
+            break
 
     db.commit()
     
     return {
         "run_id": new_run.run_id,
-        "recommendations": final_results[:5] # 최종적으로 상위 5개만 반환
+        "user_id": user_id,
+        "input_id": input_id,
+        "status": "completed",
+        "error_message": None,
+        "recommendations": final_results[:5]  # 👉 최종적으로 상위 5개만 반환
     }
