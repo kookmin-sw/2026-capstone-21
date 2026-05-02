@@ -70,7 +70,12 @@ export function InterestList() {
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
 
   const interestedInfluencers = useMemo(() => {
-    return influencers.filter((inf) => interestList.includes(String(inf.id)));
+    return [...interestList]   
+      .reverse()               
+      .map((id) =>
+        influencers.find((inf) => String(inf.id) === String(id))
+      )
+      .filter((inf): inf is Influencer => Boolean(inf));
   }, [influencers, interestList]);
 
   const groupedByCategory = useMemo(() => {
