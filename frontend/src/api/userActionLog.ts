@@ -18,8 +18,8 @@ export async function createUserActionLog(
     return res.json();
     }
 
-// 테스트용 API (run_id 없음, 로그 연동 불가)
-// 실서비스에서는 predict 사용
+// 일반 사용자 행동 로그 (run_id 없는 경우)
+// 추천과 무관한 탐색 행동 기록용
 export async function createGeneralUserActionLog(
     userId: number,
     influencerId: number,
