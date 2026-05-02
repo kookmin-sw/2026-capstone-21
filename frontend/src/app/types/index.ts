@@ -8,6 +8,7 @@ export interface Influencer {
   mainGender: 'men' | 'women' | 'both';
   mainAge: AgeGroup;
   selections: number;
+  gradeScore: number;
   instagram: string;
   styleKeywords: string[];
 }
