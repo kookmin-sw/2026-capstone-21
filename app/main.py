@@ -7,7 +7,7 @@ from app.routers import (
     influencer,
     mall_input,
     recommendation,
-    # user_action_log,
+    user_action_log,
     favorite,
     insight,
     # admin,
@@ -33,7 +33,7 @@ app.include_router(auth.router)
 app.include_router(influencer.router)
 app.include_router(mall_input.router)
 app.include_router(recommendation.router)
-# app.include_router(user_action_log.router)
+app.include_router(user_action_log.router)
 app.include_router(favorite.router)
 app.include_router(insight.router)
 # app.include_router(admin.router)

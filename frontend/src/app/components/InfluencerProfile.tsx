@@ -5,7 +5,12 @@ import { useInfluencers } from '../context/InfluencerContext';
 import { FilterState, Category, Influencer } from '../types';
 import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
-import { getRealtimeRecommendation } from '../../api/recommendation';
+import { createMallInput } from '../../api/mallInput';
+import { getPrediction } from '../../api/recommendation';
+import {
+  createUserActionLog,
+  createGeneralUserActionLog,
+} from '../../api/userActionLog';
 
 function extractKeywords(text: string): string[] {
   if (!text) return [];
@@ -53,6 +58,7 @@ export function InfluencerProfile() {
     useState<Influencer | null>(null);
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [runId, setRunId] = useState<number | null>(null);
 
   const [filters, setFilters] = useState<FilterState>({
     search: '',
@@ -74,6 +80,25 @@ export function InfluencerProfile() {
       .catch(console.error);
   }, []);
 
+  const saveActionLog = async (
+    influencerId: string,
+    actionType: 'detail_view' | 'favorite_add' | 'favorite_remove'
+  ) => {
+    const userId = localStorage.getItem('user_id');
+
+    if (!userId) return;
+
+    if (runId) {
+      await createUserActionLog(Number(influencerId), actionType, runId);
+    } else {
+      await createGeneralUserActionLog(
+        Number(userId),
+        Number(influencerId),
+        actionType
+      );
+    }
+  };
+
   const handleRecommend = async () => {
     try {
       const userId = localStorage.getItem('user_id');
@@ -90,12 +115,21 @@ export function InfluencerProfile() {
 
       setIsRecommending(true);
 
-      const res = await getRealtimeRecommendation({
-        text: recommendText,
+      const mallInput = await createMallInput({
         user_id: Number(userId),
+        input_text: recommendText,
       });
 
+      console.log('mall_input 저장 응답:', mallInput);
+
+      const res = await getPrediction(
+        Number(mallInput.input_id),
+        Number(userId)
+      );
+
       console.log('추천 API 응답:', res);
+
+      setRunId(res.run_id ?? null);
 
       const sortedRecommendations = [...(res.recommendations || [])].sort(
         (a: any, b: any) => {
@@ -213,8 +247,14 @@ export function InfluencerProfile() {
     }));
   };
 
-  const handleCardClick = (id: string) => {
+  const handleCardClick = async (id: string) => {
     selectInfluencer(id);
+
+    try {
+      await saveActionLog(id, 'detail_view');
+    } catch (error) {
+      console.error('detail_view 로그 저장 실패:', error);
+    }
   };
 
   const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
@@ -228,8 +268,12 @@ export function InfluencerProfile() {
   ) => {
     e.stopPropagation();
 
+    const isFavorite = interestList.includes(influencerId);
+    const actionType = isFavorite ? 'favorite_remove' : 'favorite_add';
+
     try {
       await toggleInterest(String(influencerId));
+      await saveActionLog(influencerId, actionType);
     } catch (error) {
       console.error(error);
       alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
@@ -243,7 +287,7 @@ export function InfluencerProfile() {
     return (
       <div
         key={influencer.id}
-        onClick={() => handleCardClick(influencer.id)}
+        onClick={() => handleCardClick(influencerId)}
         className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100"
       >
         <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
