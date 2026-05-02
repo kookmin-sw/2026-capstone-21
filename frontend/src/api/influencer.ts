@@ -24,7 +24,7 @@ export async function getInfluencers(): Promise<Influencer[]> {
     // 이름
     name: item.full_name || item.username || "이름 없음",
 
-    // 🔥 여기 추가 (핵심)
+    // 유저네임
     username: item.username || "",
 
     // 이미지
@@ -38,14 +38,18 @@ export async function getInfluencers(): Promise<Influencer[]> {
     // 카테고리
     category: item.primary_category || "기타",
 
-    // 임시값 (나중에 개선 가능)
+    // 임시값
     mainGender: "both",
     mainAge: "25-34",
 
-    // 점수
-    selections: Math.floor((item.grade_score || 0) * 100),
+    // 선택 수
+    // 실제 selection_count가 있으면 사용하고, 없으면 0
+    selections: item.selection_count || item.selections || 0,
 
-    // 기존 필드 유지 (혹시 쓰는 곳 있을까봐)
+    // Grade Score
+    gradeScore: Number(item.grade_score || 0),
+
+    // 기존 필드 유지
     instagram: item.username || "",
 
     // 키워드
