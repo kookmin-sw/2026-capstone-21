@@ -261,8 +261,7 @@ class RecommendationRun(Base):
     input_id = Column(Integer, ForeignKey("mall_input.input_id", ondelete="CASCADE"), nullable=False)
 
     applied_action_idx = Column(Integer, nullable=True)
-    
-    # pending, completed, failed 등
+
     status = Column(String(50), nullable=False, default="pending")
 
     requested_at = Column(DateTime, nullable=False, server_default=func.now())
@@ -271,10 +270,16 @@ class RecommendationRun(Base):
 
     user = relationship("User", back_populates="recommendation_runs")
     mall_input = relationship("MallInput", back_populates="recommendation_runs")
+
     results = relationship(
         "RecommendationResult",
         back_populates="run",
         cascade="all, delete-orphan",
+    )
+
+    action_logs = relationship(
+        "UserActionLog",
+        back_populates="run",
     )
 
 
@@ -387,30 +392,40 @@ class UserActionLog(Base):
     __table_args__ = (
         Index("idx_user_action_log_user_id", "user_id"),
         Index("idx_user_action_log_influencer_id", "influencer_id"),
+        Index("idx_user_action_log_run_id", "run_id"),
     )
 
     log_id = Column(Integer, primary_key=True, autoincrement=True)
+
     user_id = Column(
         Integer,
         ForeignKey("users.user_id", ondelete="CASCADE"),
         nullable=False,
     )
+
     influencer_id = Column(
         Integer,
         ForeignKey("influencer.influencer_id", ondelete="CASCADE"),
         nullable=False,
     )
 
-    # favorite_add, favorite_remove, detail_view, contact 등
+    # 추천 결과 기반 행동이면 run_id 저장
+    # 일반 탐색 행동이면 NULL
+    run_id = Column(
+        Integer,
+        ForeignKey("recommendation_run.run_id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
     action_type = Column(String(50), nullable=False)
 
-    # 행동별 reward 점수
     reward = Column(Integer, nullable=False)
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())
 
     user = relationship("User", back_populates="action_logs")
     influencer = relationship("Influencer", back_populates="action_logs")
+    run = relationship("RecommendationRun", back_populates="action_logs")
 
 
 # 관심 인플루언서 테이블

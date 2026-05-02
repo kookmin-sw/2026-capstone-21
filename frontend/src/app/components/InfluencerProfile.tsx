@@ -7,10 +7,7 @@ import { InfluencerProfileModal } from './InfluencerProfileModal';
 import { getCategories } from '../../api/category';
 import { createMallInput } from '../../api/mallInput';
 import { getPrediction } from '../../api/recommendation';
-import {
-  createUserActionLog,
-  createGeneralUserActionLog,
-} from '../../api/userActionLog';
+import { createUserActionLog } from '../../api/userActionLog';
 
 function extractKeywords(text: string): string[] {
   if (!text) return [];
@@ -88,15 +85,12 @@ export function InfluencerProfile() {
 
     if (!userId) return;
 
-    if (runId) {
-      await createUserActionLog(Number(influencerId), actionType, runId);
-    } else {
-      await createGeneralUserActionLog(
-        Number(userId),
-        Number(influencerId),
-        actionType
-      );
-    }
+    await createUserActionLog({
+      user_id: Number(userId),
+      influencer_id: Number(influencerId),
+      action_type: actionType,
+      run_id: runId,
+    });
   };
 
   const handleRecommend = async () => {
@@ -248,12 +242,19 @@ export function InfluencerProfile() {
   };
 
   const handleCardClick = async (id: string) => {
+    const influencer = influencers.find((inf) => String(inf.id) === id);
+
     selectInfluencer(id);
 
     try {
       await saveActionLog(id, 'detail_view');
     } catch (error) {
       console.error('detail_view 로그 저장 실패:', error);
+    }
+
+    // 이거 추가
+    if (influencer) {
+      setSelectedInfluencer(influencer);
     }
   };
 
@@ -270,10 +271,6 @@ export function InfluencerProfile() {
 
     try {
       await toggleInterest(String(influencerId));
-
-      // 중요:
-      // favorite_add / favorite_remove 로그는 백엔드 FavoriteService.toggle_favorite()에서 이미 저장함.
-      // 그래서 여기서 saveActionLog(influencerId, actionType)를 또 호출하면 DB에 2번 저장됨.
     } catch (error) {
       console.error(error);
       alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
