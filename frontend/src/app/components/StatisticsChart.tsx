@@ -74,6 +74,24 @@ function normalizeCategory(category?: string | null): string {
   return aliasMap[category] || category;
 }
 
+function getGradeScore(influencer: Influencer): number {
+  const gradeScore =
+    (influencer as any).gradeScore ??
+    (influencer as any).grade_score ??
+    (influencer as any).grade ??
+    0;
+
+  const parsedScore = Number(gradeScore);
+
+  return Number.isNaN(parsedScore) ? 0 : parsedScore;
+}
+
+function formatGradeScore(influencer: Influencer) {
+  const score = getGradeScore(influencer);
+
+  return score.toFixed(2);
+}
+
 export function StatisticsChart() {
   const { influencers } = useInfluencers();
 
@@ -86,21 +104,18 @@ export function StatisticsChart() {
     useState<Influencer | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // 팔로워 수가 가장 높은 인플루언서
   const topFollowerInfluencer = useMemo(() => {
     if (influencers.length === 0) return null;
 
     return [...influencers].sort((a, b) => b.followers - a.followers)[0];
   }, [influencers]);
 
-  // 선택 수 기준 리더보드
   const leaderboard = useMemo(() => {
     return [...influencers]
-      .sort((a, b) => b.selections - a.selections)
+      .sort((a, b) => getGradeScore(b) - getGradeScore(a))
       .slice(0, 10);
   }, [influencers]);
 
-  // 전체 인플루언서를 카테고리별로 집계
   const categoryData = useMemo(() => {
     const distribution: Record<string, number> = {};
 
@@ -171,7 +186,6 @@ export function StatisticsChart() {
         </div>
       ) : (
         <>
-          {/* Key Metrics */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -238,7 +252,6 @@ export function StatisticsChart() {
             </motion.div>
           </div>
 
-          {/* Charts Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
@@ -336,16 +349,21 @@ export function StatisticsChart() {
             </motion.div>
           </div>
 
-          {/* Influencer Leaderboard */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.3, delay: 0.7 }}
             className="bg-white rounded-2xl p-6 shadow-sm border border-slate-200"
           >
-            <h2 className="text-xl font-bold text-slate-900 mb-6">
+            <h2 className="text-xl font-bold text-slate-900 mb-2">
               Influencer Leaderboard
             </h2>
+
+          
+
+            <p className="text-sm text-slate-500 mb-6">
+              Grade Score는 팔로워 수와 반응도, 활동성을 종합 분석하여 인플루언서의 가치를 등급화한 지표입니다.
+            </p>
 
             {leaderboard.length === 0 ? (
               <div className="text-slate-500">No leaderboard data yet.</div>
@@ -389,9 +407,9 @@ export function StatisticsChart() {
 
                     <div className="text-right">
                       <div className="text-2xl font-bold text-purple-600">
-                        {influencer.selections}
+                        {formatGradeScore(influencer)}
                       </div>
-                      <div className="text-xs text-slate-600">selections</div>
+                      <div className="text-xs text-slate-600">Grade Score</div>
                     </div>
                   </div>
                 ))}

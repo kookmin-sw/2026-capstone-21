@@ -95,7 +95,12 @@ export function CompareInfluencers() {
   const getDisplayName = (item: CompareResult) => {
     const matchedInfluencer = findInfluencerFromContext(item);
 
-    return matchedInfluencer?.name || item.full_name || item.username || 'Unknown';
+    return (
+      matchedInfluencer?.name ||
+      item.full_name ||
+      item.username ||
+      'Unknown'
+    );
   };
 
   const getDisplayCategory = (item: CompareResult) => {
@@ -417,13 +422,6 @@ export function CompareInfluencers() {
                     <span className="text-slate-500 shrink-0">Grade Score</span>
                     <span className="font-semibold text-slate-900 text-right truncate">
                       {item.grade_score ?? '-'}
-                    </span>
-                  </div>
-
-                  <div className="flex justify-between gap-4">
-                    <span className="text-slate-500 shrink-0">Selections</span>
-                    <span className="font-semibold text-slate-900 text-right truncate">
-                      {item.selection_count ?? 0}
                     </span>
                   </div>
 
