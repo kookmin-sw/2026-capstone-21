@@ -17,5 +17,5 @@ class UserCreate(BaseModel):
         return v
 
 class LoginRequest(BaseModel):
-    email: EmailStr
+    email: str
     password: str
