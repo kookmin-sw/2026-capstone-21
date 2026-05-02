@@ -515,6 +515,7 @@ export function InfluencerProfile() {
         <InfluencerProfileModal
           influencer={selectedInfluencer}
           onClose={() => setSelectedInfluencer(null)}
+          runId={runId}
         />
       )}
     </div>

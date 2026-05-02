@@ -3,22 +3,20 @@ import { X, Star, Instagram, FileText } from 'lucide-react';
 import { useState } from 'react';
 import { Influencer } from '../types';
 import { useInfluencers } from '../context/InfluencerContext';
+import { createUserActionLog } from '../../api/userActionLog';
 
 interface InfluencerProfileModalProps {
   influencer: Influencer;
   onClose: () => void;
+  runId: number | null;
 }
 
 export function InfluencerProfileModal({
   influencer,
   onClose,
+  runId,
 }: InfluencerProfileModalProps) {
-  const {
-    interestList,
-    notes,
-    toggleInterest,
-    saveNote,
-  } = useInfluencers();
+  const { interestList, notes, toggleInterest, saveNote } = useInfluencers();
 
   const [showNoteInput, setShowNoteInput] = useState(false);
   const [noteText, setNoteText] = useState('');
@@ -27,8 +25,33 @@ export function InfluencerProfileModal({
   const influencerId = String(influencer.id);
   const isInMyPicks = interestList.includes(influencerId);
 
+  const saveActionLog = async (
+    actionType: 'favorite_add' | 'favorite_remove'
+  ) => {
+    const userId = localStorage.getItem('user_id');
+
+    if (!userId) return;
+
+    await createUserActionLog({
+      user_id: Number(userId),
+      influencer_id: Number(influencerId),
+      action_type: actionType,
+      run_id: runId,
+    });
+  };
+
   const handleFavorite = async () => {
-    await toggleInterest(influencerId);
+    try {
+      const result = await toggleInterest(influencerId);
+
+      const actionType =
+        result === 'added' ? 'favorite_add' : 'favorite_remove';
+
+      await saveActionLog(actionType);
+    } catch (error) {
+      console.error('모달 관심 등록/해제 실패:', error);
+      alert('관심 등록/해제에 실패했습니다.');
+    }
   };
 
   const handleMemoClick = async () => {
