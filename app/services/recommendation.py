@@ -128,14 +128,26 @@ class RecommendationEngine:
 
         results = []
         for i, inf_id in enumerate(candidate_inf_ids):
-            combined_score = (
-                (faiss_scores[0][i] * w_faiss) + 
-                (lfm_scores[i] * w_lfm) + 
-                (self.inf_grades.get(inf_id, 0.2) * w_grade)
+            similarity_score = float(faiss_scores[0][i])
+            personalization_score = float(lfm_scores[i])
+            grade_score = float(self.inf_grades.get(inf_id, 0.2))
+
+            final_score = (
+                similarity_score * w_faiss +
+                personalization_score * w_lfm +
+                grade_score * w_grade
             )
+
             results.append({
                 "influencer_id": inf_id,
-                "score": float(combined_score),
+                "similarity_score": similarity_score,
+                "personalization_score": personalization_score,
+                "grade_score": grade_score,
+                "final_score": float(final_score),
+
+                # 기존 router/frontend 호환용
+                "score": float(final_score),
+
                 "action_idx": action_idx # 추천 실행 시 어떤 가중치가 쓰였는지 함께 리턴
             })
 

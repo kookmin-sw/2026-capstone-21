@@ -53,8 +53,11 @@ def get_and_save_recommendations(
         # DB 저장용 객체 생성
         result_entry = RecommendationResult(
             run_id=new_run.run_id,
-            influencer_id=rec['influencer_id'],
-            final_score=rec['score'],
+            influencer_id=rec["influencer_id"],
+            similarity_score=rec.get("similarity_score"),
+            grade_score=rec.get("grade_score"),
+            personalization_score=rec.get("personalization_score"),
+            final_score=rec["score"],
             rank_no=idx + 1
         )
         db.add(result_entry)
