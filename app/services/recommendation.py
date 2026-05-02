@@ -110,7 +110,8 @@ class RecommendationEngine:
 
         # [STEP 1] FAISS 검색 (Candidate Retrieval)
         query_vec = self.model.encode([query_text], normalize_embeddings=True).astype('float32')
-        faiss_scores, faiss_indices = self.faiss_index.search(query_vec, 50)
+        search_k = min(top_k, len(self.inf_ids))
+        faiss_scores, faiss_indices = self.faiss_index.search(query_vec, search_k)
 
         # [STEP 2] Bandit 가중치 선택
         (w_faiss, w_lfm, w_grade), action_idx = self.bandit.select_action()
