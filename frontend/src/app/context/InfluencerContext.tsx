@@ -14,7 +14,7 @@ interface InfluencerContextType {
   interestList: string[];
   selectionHistory: SelectionHistory[];
   notes: Record<string, string>;
-  toggleInterest: (influencerId: string) => Promise<void>;
+  toggleInterest: (influencerId: string) => Promise<'added' | 'removed'>;
   selectInfluencer: (influencerId: string) => void;
   saveNote: (influencerId: string, note: string) => Promise<void>;
   refreshFavorites: () => Promise<void>;
@@ -62,24 +62,27 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
     refreshFavorites();
   }, []);
 
-  const toggleInterest = async (influencerId: string) => {
+  const toggleInterest = async (
+    influencerId: string
+  ): Promise<'added' | 'removed'> => {
     try {
       const id = String(influencerId);
       const result = await toggleFavorite(Number(id));
 
       if (result.status === 'added') {
-        setInterestList((prev) =>
-          prev.includes(id) ? prev : [...prev, id]
-        );
-      } else {
-        setInterestList((prev) => prev.filter((item) => item !== id));
-
-        setNotes((prev) => {
-          const next = { ...prev };
-          delete next[id];
-          return next;
-        });
+        setInterestList((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        return 'added';
       }
+
+      setInterestList((prev) => prev.filter((item) => item !== id));
+
+      setNotes((prev) => {
+        const next = { ...prev };
+        delete next[id];
+        return next;
+      });
+
+      return 'removed';
     } catch (err) {
       console.error('favorite toggle 실패:', err);
       throw err;
@@ -89,7 +92,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
   const selectInfluencer = (influencerId: string) => {
     setInfluencers((prev) =>
       prev.map((inf) =>
-        inf.id === influencerId
+        String(inf.id) === String(influencerId)
           ? { ...inf, selections: inf.selections + 1 }
           : inf
       )
@@ -106,9 +109,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       } catch {
         await addFavorite(numericId, note);
 
-        setInterestList((prev) =>
-          prev.includes(id) ? prev : [...prev, id]
-        );
+        setInterestList((prev) => (prev.includes(id) ? prev : [...prev, id]));
       }
 
       setNotes((prev) => ({

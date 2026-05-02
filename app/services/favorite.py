@@ -1,12 +1,11 @@
 from sqlalchemy.orm import Session
 
 from app.crud import favorite as crud_favorite
-from app.crud import user_action_log as crud_log
 
 
 class FavoriteService:
 
-    # 관심 등록 + 로그 기록
+    # 관심 등록만 수행
     @staticmethod
     def create_favorite_with_log(
         db: Session,
@@ -15,7 +14,6 @@ class FavoriteService:
         reason: str = None,
     ):
         try:
-            # 1. 관심 등록
             favorite = crud_favorite.create_favorite(
                 db=db,
                 user_id=user_id,
@@ -23,19 +21,9 @@ class FavoriteService:
                 reason=reason,
             )
 
-            # 이미 있으면 종료
             if favorite is None:
                 return None
 
-            # 2. 로그 기록
-            crud_log.create_user_action_log(
-                db=db,
-                user_id=user_id,
-                influencer_id=influencer_id,
-                action_type="favorite_add",
-            )
-
-            # 3. commit
             db.commit()
             db.refresh(favorite)
 
@@ -45,8 +33,7 @@ class FavoriteService:
             db.rollback()
             raise
 
-
-    # 관심 삭제 + 로그 기록
+    # 관심 삭제만 수행
     @staticmethod
     def delete_favorite_with_log(
         db: Session,
@@ -63,21 +50,12 @@ class FavoriteService:
             if not result:
                 return False
 
-            # 로그 기록
-            crud_log.create_user_action_log(
-                db=db,
-                user_id=user_id,
-                influencer_id=influencer_id,
-                action_type="favorite_remove",
-            )
-
             db.commit()
             return True
 
         except Exception:
             db.rollback()
             raise
-
 
     # toggle 기능
     @staticmethod
@@ -93,7 +71,6 @@ class FavoriteService:
             influencer_id=influencer_id,
         )
 
-        # 이미 있으면 삭제
         if favorite:
             FavoriteService.delete_favorite_with_log(
                 db=db,
@@ -107,7 +84,6 @@ class FavoriteService:
                 "favorite": None,
             }
 
-        # 없으면 추가
         created = FavoriteService.create_favorite_with_log(
             db=db,
             user_id=user_id,
@@ -120,7 +96,6 @@ class FavoriteService:
             "message": "관심 목록 추가됨",
             "favorite": created,
         }
-
 
     # 이유 수정
     @staticmethod

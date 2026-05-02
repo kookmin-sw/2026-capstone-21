@@ -85,6 +85,13 @@ export function InfluencerProfile() {
 
     if (!userId) return;
 
+    console.log('행동로그 전송:', {
+      user_id: Number(userId),
+      influencer_id: Number(influencerId),
+      action_type: actionType,
+      run_id: runId,
+    });
+
     await createUserActionLog({
       user_id: Number(userId),
       influencer_id: Number(influencerId),
@@ -122,6 +129,7 @@ export function InfluencerProfile() {
       );
 
       console.log('추천 API 응답:', res);
+      console.log('추천 run_id:', res.run_id);
 
       setRunId(res.run_id ?? null);
 
@@ -160,7 +168,10 @@ export function InfluencerProfile() {
             photo: item.photo ?? `/profile_pic_HD/${item.username}.jpg`,
             followers: item.followers ?? item.followers_count ?? 0,
             category:
-              item.category ?? item.primary_category ?? item.category_name ?? '기타',
+              item.category ??
+              item.primary_category ??
+              item.category_name ??
+              '기타',
             mainGender: item.mainGender ?? 'both',
             mainAge: item.mainAge ?? '25-34',
             selections: item.selections ?? 0,
@@ -242,24 +253,41 @@ export function InfluencerProfile() {
   };
 
   const handleCardClick = async (id: string) => {
-    const influencer = influencers.find((inf) => String(inf.id) === id);
+    console.log('카드 클릭됨:', id, '현재 runId:', runId);
+
+    const influencer =
+      influencers.find((inf) => String(inf.id) === id) ||
+      recommendResults.find((inf) => String(inf.id) === id);
 
     selectInfluencer(id);
 
     try {
       await saveActionLog(id, 'detail_view');
+      console.log('detail_view 저장 성공');
     } catch (error) {
       console.error('detail_view 로그 저장 실패:', error);
     }
 
-    // 이거 추가
     if (influencer) {
       setSelectedInfluencer(influencer);
     }
   };
 
-  const handleNameClick = (influencer: Influencer, e: React.MouseEvent) => {
+  const handleNameClick = async (
+    influencer: Influencer,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation();
+
+    console.log('이름 클릭됨:', influencer.id, '현재 runId:', runId);
+
+    try {
+      await saveActionLog(String(influencer.id), 'detail_view');
+      console.log('detail_view 저장 성공');
+    } catch (error) {
+      console.error('detail_view 로그 저장 실패:', error);
+    }
+
     setSelectedInfluencer(influencer);
   };
 
@@ -270,9 +298,14 @@ export function InfluencerProfile() {
     e.stopPropagation();
 
     try {
-      await toggleInterest(String(influencerId));
+      const result = await toggleInterest(String(influencerId));
+
+      const actionType =
+        result === 'added' ? 'favorite_add' : 'favorite_remove';
+
+      await saveActionLog(influencerId, actionType);
     } catch (error) {
-      console.error(error);
+      console.error('관심 등록/해제 로그 저장 실패:', error);
       alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
     }
   };
