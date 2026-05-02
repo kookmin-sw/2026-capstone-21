@@ -31,25 +31,3 @@ export async function getPrediction(
 
     return res.json();
 }
-
-// realtime은 삭제하지 말고 백업용으로 유지
-export async function getRealtimeRecommendation(data: {
-    text: string;
-    user_id: number;
-    category?: string;
-    min_followers?: number;
-    }) {
-    const res = await fetch(`${BASE_URL}/realtime`, {
-        method: "POST",
-        headers: {
-        "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-    });
-
-    if (!res.ok) {
-        throw new Error("realtime 추천 실패");
-    }
-
-    return res.json();
-}
