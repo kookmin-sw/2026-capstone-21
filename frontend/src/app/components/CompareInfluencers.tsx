@@ -453,6 +453,5 @@ export function CompareInfluencers() {
         </div>
       )}
     </div>
-    
   );
 }
