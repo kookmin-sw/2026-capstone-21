@@ -4,7 +4,7 @@ from typing import Optional
 
 from app.db.database import get_db
 from app.db.models import MallInput, RecommendationRun, RecommendationResult, Influencer, InfluencerCategory, Category
-from app.schemas.recommendation import RecommendationRunResponse, RealtimeRequest
+from app.schemas.recommendation import RecommendationRunResponse
 from app.services.recommendation import RecommendationEngine
 
 router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
@@ -85,68 +85,4 @@ def get_and_save_recommendations(
     return {
         "run_id": new_run.run_id,
         "recommendations": final_results[:5] # 최종적으로 상위 5개만 반환
-    }
-
-# realtime api 추가
-@router.post("/realtime")
-def realtime_recommend(
-    request: RealtimeRequest,
-    db: Session = Depends(get_db)
-):
-
-    text = request.text
-    user_id = request.user_id
-    category = request.category
-    minFollowers = request.minFollowers
-
-    engine = RecommendationEngine(db)
-
-    recommendations = engine.recommend(
-        user_id,
-        text,
-        top_k=20
-    )
-
-    if not recommendations:
-        return {"run_id": None, "recommendations": []}
-
-    final_results = []
-    rank = 1
-
-    for rec in recommendations:
-
-        inf = db.query(Influencer).filter(
-            Influencer.influencer_id == rec["influencer_id"]
-        ).first()
-
-        if not inf:
-            continue
-
-        # category filter
-        if category:
-            cat_exists = db.query(InfluencerCategory).join(Category).filter(
-                InfluencerCategory.influencer_id == inf.influencer_id,
-                InfluencerCategory.priority == 1,
-                Category.category_name == category
-            ).first()
-
-            if not cat_exists:
-                continue
-
-        # follower filter
-        if minFollowers and (inf.followers_count or 0) < minFollowers:
-            continue
-
-        final_results.append({
-            "influencer_id": inf.influencer_id,
-            "username": inf.username,
-            "score": rec["score"],
-            "rank_no": rank
-        })
-
-        rank += 1
-
-    return {
-        "run_id": None,
-        "recommendations": final_results[:5]
     }
