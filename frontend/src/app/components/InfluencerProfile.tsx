@@ -268,12 +268,12 @@ export function InfluencerProfile() {
   ) => {
     e.stopPropagation();
 
-    const isFavorite = interestList.includes(influencerId);
-    const actionType = isFavorite ? 'favorite_remove' : 'favorite_add';
-
     try {
       await toggleInterest(String(influencerId));
-      await saveActionLog(influencerId, actionType);
+
+      // 중요:
+      // favorite_add / favorite_remove 로그는 백엔드 FavoriteService.toggle_favorite()에서 이미 저장함.
+      // 그래서 여기서 saveActionLog(influencerId, actionType)를 또 호출하면 DB에 2번 저장됨.
     } catch (error) {
       console.error(error);
       alert('관심 등록/해제에 실패했습니다. 로그인 상태를 확인해주세요.');
