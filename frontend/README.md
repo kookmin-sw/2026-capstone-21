@@ -10,6 +10,9 @@
 : 로그인 이후 화면 전체 레이아웃 + 페이지 전환 컨트롤러.
 profile	인플루언서 탐색,  interest	즐겨찾기,  statistics 통계,  system-console 을 볼 수 있음.
 
+<app/components/Analytics.tsx>
+이 파일은 필요 없는 파일인 것 같아요. 혹시 모르니 일단은 남겨두는데 확실히 필요없다는걸 알게 되면 지울게요.
+
 로그인/회원가입 기능 구현 중
 
 수정해야 할 사항 <br>
