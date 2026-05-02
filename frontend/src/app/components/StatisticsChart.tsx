@@ -359,8 +359,10 @@ export function StatisticsChart() {
               Influencer Leaderboard
             </h2>
 
-            <p className="text-sm text-slate-600 mb-6">
-              Ranked by Grade Score
+          
+
+            <p className="text-sm text-slate-500 mb-6">
+              Grade Score는 팔로워 수와 반응도, 활동성을 종합 분석하여 인플루언서의 가치를 등급화한 지표입니다.
             </p>
 
             {leaderboard.length === 0 ? (
