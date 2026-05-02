@@ -8,7 +8,7 @@ import { createUserActionLog } from '../../api/userActionLog';
 interface InfluencerProfileModalProps {
   influencer: Influencer;
   onClose: () => void;
-  runId: number | null;
+  runId?: number | null;
 }
 
 export function InfluencerProfileModal({
