@@ -13,6 +13,10 @@ from app.services.build_influencer_embeddings import build_embeddings
 from pydantic import BaseModel
 from typing import List
 
+from typing import List, Optional
+from sqlalchemy import func, or_
+from app.db.models import Influencer, InfluencerCategory, Category, InfluencerPost
+
 router = APIRouter(prefix="/admin", tags=["Admin"])
 
 # 키워드 크롤링을 위한 스키마
@@ -74,3 +78,101 @@ def get_db_stats(db: Session = Depends(get_db)):
     """현재 DB 상태 요약 (관리용)"""
     count = db.query(Influencer).count()
     return {"total_influencers": count}
+
+@router.get("/search-influencers")
+def search_influencers_for_admin(
+    keywords: Optional[str] = None,
+    min_followers: Optional[int] = None,
+    last_post_date: Optional[str] = None,
+    db: Session = Depends(get_db),
+):
+    last_post_subquery = (
+        db.query(
+            InfluencerPost.influencer_id.label("influencer_id"),
+            func.max(InfluencerPost.posted_at).label("last_post_date"),
+        )
+        .group_by(InfluencerPost.influencer_id)
+        .subquery()
+    )
+
+    query = (
+        db.query(
+            Influencer,
+            Category.category_name.label("category_name"),
+            last_post_subquery.c.last_post_date,
+        )
+        .outerjoin(
+            InfluencerCategory,
+            Influencer.influencer_id == InfluencerCategory.influencer_id,
+        )
+        .outerjoin(
+            Category,
+            InfluencerCategory.category_id == Category.category_id,
+        )
+        .outerjoin(
+            last_post_subquery,
+            Influencer.influencer_id == last_post_subquery.c.influencer_id,
+        )
+    )
+
+    if keywords:
+        keyword_list = [
+            keyword.strip()
+            for keyword in keywords.split(",")
+            if keyword.strip()
+        ]
+
+        if keyword_list:
+            keyword_filters = []
+
+            for keyword in keyword_list:
+                like_keyword = f"%{keyword}%"
+
+                keyword_filters.append(Influencer.username.ilike(like_keyword))
+                keyword_filters.append(Influencer.full_name.ilike(like_keyword))
+                keyword_filters.append(
+                    Influencer.style_keywords_text.ilike(like_keyword)
+                )
+                keyword_filters.append(Category.category_name.ilike(like_keyword))
+
+            query = query.filter(or_(*keyword_filters))
+
+    if min_followers is not None:
+        query = query.filter(Influencer.followers_count >= min_followers)
+
+    if last_post_date:
+        query = query.filter(
+            func.date(last_post_subquery.c.last_post_date) >= last_post_date
+        )
+
+    rows = (
+        query
+        .order_by(Influencer.followers_count.desc())
+        .all()
+    )
+
+    results = []
+
+    seen_ids = set()
+
+    for influencer, category_name, last_post in rows:
+        if influencer.influencer_id in seen_ids:
+            continue
+
+        seen_ids.add(influencer.influencer_id)
+
+        results.append(
+            {
+                "influencer_id": influencer.influencer_id,
+                "username": influencer.username,
+                "full_name": influencer.full_name,
+                "profile_pic_url": influencer.profile_pic_url,
+                "followers_count": influencer.followers_count or 0,
+                "posts_count": influencer.posts_count or 0,
+                "category": category_name or "기타",
+                "last_post_date": last_post.isoformat() if last_post else None,
+                "style_keywords_text": influencer.style_keywords_text,
+            }
+        )
+
+    return results
