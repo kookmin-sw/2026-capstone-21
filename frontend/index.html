@@ -1,19 +1,30 @@
-
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>링크디매치</title>
-    <style>html, body { height: 100%; margin: 0; } #root { height: 100%; }</style>
+    <style>
+      html,
+      body {
+        height: 100%;
+        margin: 0;
+      }
+      #root {
+        height: 100%;
+      }
+    </style>
   </head>
 
   <body>
     <div id="root"></div>
-    
+
     <script>
       (function(d,t) {
-        var BASE_URL="http://localhost:3000";
+        // .env 파일의 VITE_CHAT_SERVER_URL을 읽어옵니다.
+        // 값이 없을 경우를 대비해 기본값으로 localhost:3000을 설정합니다.
+        var BASE_URL = import.meta.env.VITE_CHAT_SERVER_URL || "http://localhost:3000";
+
         var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
         g.src=BASE_URL+"/packs/js/sdk.js";
         g.defer = true;
