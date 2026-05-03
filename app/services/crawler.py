@@ -1,11 +1,10 @@
 import os
 import requests
 import pandas as pd
-from typing import List
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
 
-from app.db.models import Influencer, InfluencerPost, InfluencerRelated
+from app.db.models import Influencer
 from app.crud.influencer import create_influencer_posts, create_related_relations
 from app.seed.seed_influencers import upsert_influencer
 from app.utils.config import client, MIN_FOLLOWERS, MIN_POSTS, FOLLOW_RATIO, ENGAGEMENT_RATE
@@ -44,27 +43,29 @@ class CrawlerService:
         self.db.commit()
         return count
     
-    def run_full_crawl_pipeline(self, base_seeds: list[str] = None, base_brands: list[str] = None):
+    def run_targeted_crawl(self, base_seeds: list[str] = None, filters: dict = None):
         existing_users = self.db.query(Influencer.username).all()
         existing_usernames = {u.username for u in existing_users}
 
+        max_limit = filters.get('max_results', 50)
+
         if base_seeds:
-            seeds_df = expand_seed(existing_usernames = existing_usernames, base_seeds=base_seeds)
+            final_df = expand_seed(existing_usernames = existing_usernames, base_seeds=base_seeds, max_limit=max_limit)
         else:
-            seeds_df = pd.DataFrame()
+            final_df = pd.DataFrame()
 
-        if base_brands:
-            brands_df = expand_brand(existing_usernames = existing_usernames, base_brands=base_brands)
-        else:
-            brands_df = pd.DataFrame()
-
-        final_df = pd.concat([seeds_df, brands_df], ignore_index=True).drop_duplicates(subset=['username'])
+        if final_df.empty:
+            return 0
+        
+        final_df = preprocess_df(
+            final_df, 
+            min_f=filters.get('min_followers', MIN_FOLLOWERS),
+            min_p=filters.get('min_posts', MIN_POSTS),
+            f_ratio=filters.get('follow_ratio', FOLLOW_RATIO),
+            e_rate=filters.get('engagement_rate', ENGAGEMENT_RATE)
+        )
 
         return self._save_to_db(final_df)
-    
-    def run_targeted_crawl(self, keywords: List[str]):
-        new_df = expand_seed(seed_brand=keywords)
-        return self._save_to_db(new_df)
 
     def download_image_locally(self, row: dict) -> str:
         url = str(row.get('profilePicUrlHD', '')).replace(r'\/', '/')
@@ -166,64 +167,7 @@ def username_to_df(targets, client=client):
     df = preprocess_df(df)
     return df
 
-def expand_brand(existing_usernames = {}, base_brands = [], client=client):
-    extended_brands = set(base_brands)
-    brand_targets = []
-    for brand in base_brands:
-
-        # 브랜드 상세 정보 -> 연관계정 크롤링
-        brand_detail_input = {
-            "directUrls": [f"https://www.instagram.com/{brand}/"],
-            "resultsType": "details",
-            "proxyConfiguration": {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]}
-        }
-        
-        run = client.actor("shu8hvrXbJbY3Eb9W").call(run_input=brand_detail_input)
-        items = client.dataset(run["defaultDatasetId"]).list_items().items
-        related = items[0].get('relatedProfiles', [])
-        for r in related:
-            extended_brands.add(r['username'])
-
-    for brand in extended_brands:
-        # 브랜드를 '태그한 게시물' 작성자
-        tagged_run_input = {
-            "directUrls": [f"https://www.instagram.com/{brand}/tagged/"],
-            "resultsType": "posts",
-            "resultsLimit": 30, # 브랜드당 최신 태그 게시물 30개 탐색
-            "proxyConfiguration": {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]}
-        }
-
-        tagged_run = client.actor("shu8hvrXbJbY3Eb9W").call(run_input=tagged_run_input)
-        tagged_items = client.dataset(tagged_run["defaultDatasetId"]).list_items().items
-        for item in tagged_items:
-            username = item.get('ownerUsername')
-            if username:
-                brand_targets.append(username)
-
-        # 브랜드가 태그한 유저
-        tag_input = {
-            "directUrls": [f"https://www.instagram.com/{brand}/"],
-            "resultsType": "details", # 최신 게시물의 mentions를 가져오기 위함
-            "proxyConfiguration": {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]}
-        }
-        tag_run = client.actor("shu8hvrXbJbY3Eb9W").call(run_input=tag_input)
-        tag_items = client.dataset(tag_run["defaultDatasetId"]).list_items().items
-        
-        if tag_items:
-            latest_posts = tag_items[0].get('latestPosts', [])
-            for post in latest_posts:
-                mentions = post.get('mentions', [])
-                if isinstance(mentions, list):
-                    brand_targets.extend(mentions)
-        
-    new_targets = [u for u in set(brand_targets) if u not in existing_usernames]
-    print(f"최종 신규 수집 타겟: {len(new_targets)}명")
-
-    brand_df = username_to_df(new_targets)
-
-    return brand_df
-
-def expand_seed(existing_usernames = {}, seed_brand = [], client=client):
+def expand_seed(existing_usernames = {}, seed_brand = [], client=client, max_limit=50):
     seed_targets = []
     for seed in seed_brand:
         run_input = {
@@ -231,6 +175,7 @@ def expand_seed(existing_usernames = {}, seed_brand = [], client=client):
             "onlyPostsNewerThan": "2025-09-01",
             "keywordSearch": True,
             "resultsType": "posts",
+            "resultsLimit": max_limit,
             "proxyConfiguration": {"useApifyProxy": True, "apifyProxyGroups": ["RESIDENTIAL"]}
         }
 
