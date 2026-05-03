@@ -12,6 +12,7 @@ function getAuthHeaders() {
 export type AdminInfluencerSearchParams = {
   keywords?: string;
   minFollowers?: string;
+  minPosts?: string;
   lastPostDate?: string;
 };
 
@@ -27,6 +28,16 @@ export type AdminInfluencerSearchResult = {
   style_keywords_text: string | null;
 };
 
+export type KeywordCrawlParams = {
+  keywords: string[];
+  maxResults?: number;
+  minFollowers?: number;
+  minPosts?: number;
+  followRatio?: number;
+  engagementRate?: number;
+  lastPostDate?: string;
+};
+
 export async function searchInfluencersForAdmin(
   params: AdminInfluencerSearchParams
 ): Promise<AdminInfluencerSearchResult[]> {
@@ -38,6 +49,10 @@ export async function searchInfluencersForAdmin(
 
   if (params.minFollowers?.trim()) {
     searchParams.append('min_followers', params.minFollowers.trim());
+  }
+
+  if (params.minPosts?.trim()) {
+    searchParams.append('min_posts', params.minPosts.trim());
   }
 
   if (params.lastPostDate?.trim()) {
@@ -53,6 +68,43 @@ export async function searchInfluencersForAdmin(
       headers: getAuthHeaders(),
     }
   );
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+export async function crawlInfluencersByKeywords(params: KeywordCrawlParams) {
+  const res = await fetch(`${BASE_URL}/crawl-by-keywords`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      keywords: params.keywords,
+      max_results: params.maxResults ?? 50,
+      min_followers: params.minFollowers ?? 1000,
+      min_posts: params.minPosts ?? 30,
+      follow_ratio: params.followRatio ?? 0.5,
+      engagement_rate: params.engagementRate ?? 0.01,
+      last_post_date: params.lastPostDate || null,
+    }),
+  });
+
+  if (!res.ok) {
+    const error = await res.text();
+    throw new Error(error);
+  }
+
+  return res.json();
+}
+
+export async function deleteInfluencerForAdmin(influencerId: number) {
+  const res = await fetch(`${BASE_URL}/influencers/${influencerId}`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
 
   if (!res.ok) {
     const error = await res.text();
