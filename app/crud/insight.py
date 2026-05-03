@@ -10,8 +10,8 @@ from app.db.models import (
     InfluencerCategory,
 )
 
-
-SELECTION_ACTION = "favorite_add"
+# 인플루언서와 실제 매칭 완료됐을 때 카운트
+SELECTION_ACTION = "collaboration_complete"
 
 
 def get_total_selections(db: Session):
