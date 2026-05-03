@@ -22,6 +22,11 @@ router = APIRouter(prefix="/admin", tags=["Admin"])
 # 키워드 크롤링을 위한 스키마
 class KeywordCrawlRequest(BaseModel):
     keywords: List[str]
+    max_results: Optional[int] = 50
+    min_followers: Optional[int] = 1000
+    min_posts: Optional[int] = 30
+    follow_ratio: Optional[float] = 0.5
+    engagement_rate: Optional[float] = 0.01
 
 @router.post("/sync-all")
 async def sync_all_data(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
@@ -53,11 +58,26 @@ async def sync_all_data(background_tasks: BackgroundTasks, db: Session = Depends
 async def crawl_by_keywords(payload: KeywordCrawlRequest, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """특정 키워드(해시태그) 기반으로 타겟팅 크롤링"""
     def targeted_task():
-        crawler = CrawlerService(db)
-        # crawler.py의 expand_seed 로직을 활용하도록 구성
-        # 팁: CrawlerService 내부에 특정 키워드 리스트를 인자로 받는 메서드를 만드시면 좋습니다.
-        crawler.run_targeted_crawl(payload.keywords)
-        build_embeddings() # 새로운 데이터가 들어왔으니 임베딩 갱신
+        db = SessionLocal()
+        try:
+            crawler = CrawlerService(db)
+            # crawler.py의 expand_seed 로직을 활용하도록 구성
+            # 팁: CrawlerService 내부에 특정 키워드 리스트를 인자로 받는 메서드를 만드시면 좋습니다.
+            cnt = crawler.run_targeted_crawl(payload.keywords, filters={
+                "max_results": payload.max_results,
+                "min_followers": payload.min_followers,
+                "min_posts": payload.min_posts,
+                "follow_ratio": payload.follow_ratio,
+                "engagement_rate": payload.engagement_rate
+            })
+            build_embeddings() # 새로운 데이터가 들어왔으니 임베딩 갱신
+            db.commit()
+            print(f"✅ {cnt}명 크롤링 및 임베딩 갱신 완료")
+        except Exception as e:
+            db.rollback()
+            print(f"키워드 기반 크롤링 중 에러 발생: {e}")
+        finally:
+            db.close()
 
     background_tasks.add_task(targeted_task)
     return {"message": f"키워드 {payload.keywords} 기반 크롤링이 시작되었습니다."}
