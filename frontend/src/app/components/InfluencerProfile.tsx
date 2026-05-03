@@ -175,6 +175,7 @@ export function InfluencerProfile() {
             mainGender: item.mainGender ?? 'both',
             mainAge: item.mainAge ?? '25-34',
             selections: item.selections ?? 0,
+            gradeScore: item.gradeScore ?? item.grade_score ?? 0,
             instagram: item.instagram ?? item.username ?? '',
             styleKeywords: item.styleKeywords ?? item.style_keywords ?? [],
           };
