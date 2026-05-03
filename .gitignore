@@ -21,3 +21,10 @@ Thumbs.db
 # IDE 설정 (VS Code 등)
 .vscode/
 .idea/
+
+# 로그 파일
+*.log
+
+# 설치 파일
+ngrok-v3-stable-linux-amd64.tgz
+ngrok
