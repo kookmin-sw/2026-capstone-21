@@ -6,12 +6,13 @@ from app.db.models import ChatwootLog, Influencer
 from app.services.recommendation import RecommendationEngine
 
 # 설정 정보
-CHATWOOT_BASE_URL = "https://yanking-size-triangle.ngrok-free.dev/api/v1/accounts/3"
+CHATWOOT_BASE_URL = os.getenv("CHATWOOT_BASE_URL")
+API_ACCESS_TOKEN = os.getenv("API_ACCESS_TOKEN")
 
 class ChatbotService:
     def __init__(self):
         self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.headers = {"api_access_token": "47pVqtGt3NdCLBkeyEGqV2xk"}
+        self.headers = {"api_access_token": API_ACCESS_TOKEN}
 
     def _get_chatwoot_help_center_articles(self):
         """Chatwoot의 Help Center 아티클들을 가져와 지식 베이스로 활용"""
@@ -23,7 +24,9 @@ class ChatbotService:
                 if not articles:
                     return None
                 # 아티클들의 제목과 내용을 텍스트로 합침
-                return "\n".join([f"제목: {a['title']}\n내용: {a['content']}" for a in articles])
+                answer = "\n".join([f"제목: {a['title']}\n내용: {a['content']}" for a in articles])
+                print(f"✅ {len(articles)}개의 아티클: {answer}")
+                return answer
         except Exception as e:
             print(f"⚠️ 지식 베이스 로드 실패: {e}")
         return None
