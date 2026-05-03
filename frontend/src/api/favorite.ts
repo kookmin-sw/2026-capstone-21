@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/favorites";
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/favorites`;
 
 // 토큰 자동 붙이기
 function getAuthHeaders() {

@@ -1,4 +1,4 @@
-const BASE_URL = "http://localhost:8000/insights";
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/insights`;
 
 // 1. 전체 선택 수
 export async function getTotalSelections() {

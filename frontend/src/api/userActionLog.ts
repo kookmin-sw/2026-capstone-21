@@ -1,4 +1,4 @@
-const BASE_URL = "http://127.0.0.1:8000/user-action-logs";
+const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/user-action-logs`;
 
 export async function createUserActionLog(data: {
     user_id?: number;

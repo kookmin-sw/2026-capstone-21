@@ -9,7 +9,7 @@ export default function App() {
   useEffect(() => {
     // 챗봇 스크립트 로드 시작
     (function (d, t) {
-      const BASE_URL = "https://yanking-size-triangle.ngrok-free.dev";
+      const BASE_URL = import.meta.env.VITE_CHAT_SERVER_URL;
       const g = d.createElement(t) as HTMLScriptElement;
       const s = d.getElementsByTagName(t)[0];
 
