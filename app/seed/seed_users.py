@@ -1,5 +1,6 @@
 from app.db.database import SessionLocal
 from app.db.models import User
+from app.utils.auth import hash_password
 
 
 def seed_users():
@@ -8,14 +9,14 @@ def seed_users():
         users = [
             {
                 "email": "test1@example.com",
-                "password_hash": "test_hash_1",
+                "password_hash": hash_password("test_password_1"),
                 "user_name": "test_user_1",
                 "role": "admin",
                 "status": "active",
             },
             {
                 "email": "test2@example.com",
-                "password_hash": "test_hash_2",
+                "password_hash": hash_password("test_password_2"),
                 "user_name": "test_user_2",
                 "role": "user",
                 "status": "active",
