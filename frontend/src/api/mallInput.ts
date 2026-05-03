@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/mall-inputs`;
 
 
@@ -8,7 +10,7 @@ export async function createMallInput(data: {
     category?: string;
     min_followers?: number;
     }) {
-    const res = await fetch(`${BASE_URL}/`, {
+    const res = await customFetch(`${BASE_URL}/`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",

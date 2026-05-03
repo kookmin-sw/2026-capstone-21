@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/recommendations`;
 
 export async function getPrediction(
@@ -21,7 +23,7 @@ export async function getPrediction(
         params.append("minFollowers", String(options.minFollowers));
     }
 
-    const res = await fetch(`${BASE_URL}/predict?${params.toString()}`, {
+    const res = await customFetch(`${BASE_URL}/predict?${params.toString()}`, {
         method: "POST",
     });
 

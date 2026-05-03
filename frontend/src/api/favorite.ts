@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/favorites`;
 
 // 토큰 자동 붙이기
@@ -12,7 +14,7 @@ function getAuthHeaders() {
 
 // 관심 등록 + 메모 저장
 export async function addFavorite(influencerId: number, reason: string = "") {
-  const res = await fetch(`${BASE_URL}/`, {
+  const res = await customFetch(`${BASE_URL}/`, {
     method: "POST",
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -31,7 +33,7 @@ export async function addFavorite(influencerId: number, reason: string = "") {
 
 // 관심 토글
 export async function toggleFavorite(influencerId: number) {
-  const res = await fetch(`${BASE_URL}/${influencerId}/toggle`, {
+  const res = await customFetch(`${BASE_URL}/${influencerId}/toggle`, {
     method: "POST",
     headers: getAuthHeaders(),
   });
@@ -54,7 +56,7 @@ export async function getFavorites() {
     return [];
   }
 
-  const res = await fetch(`${BASE_URL}/`, {
+  const res = await customFetch(`${BASE_URL}/`, {
     method: "GET",
     headers: getAuthHeaders(),
   });
@@ -69,7 +71,7 @@ export async function getFavorites() {
 
 // 관심 삭제
 export async function deleteFavorite(influencerId: number) {
-  const res = await fetch(`${BASE_URL}/${influencerId}`, {
+  const res = await customFetch(`${BASE_URL}/${influencerId}`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
@@ -87,7 +89,7 @@ export async function updateFavoriteMemo(
   influencerId: number,
   reason: string
 ) {
-  const res = await fetch(`${BASE_URL}/${influencerId}/reason`, {
+  const res = await customFetch(`${BASE_URL}/${influencerId}/reason`, {
     method: "PATCH",
     headers: getAuthHeaders(),
     body: JSON.stringify({ reason }),
