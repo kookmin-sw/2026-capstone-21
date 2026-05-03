@@ -25,6 +25,11 @@ export default defineConfig({
     tailwindcss(),
   ],
   envDir: '../',
+  server: {
+    allowedHosts: [
+      'overfull-qualify-unlawful.ngrok-free.dev' // ngrok 주소를 허용 리스트에 추가
+    ]
+  },
   resolve: {
     alias: {
       // Alias @ to the src directory
