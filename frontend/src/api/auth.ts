@@ -1,7 +1,9 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/auth`;
 
 export async function loginApi(email: string, password: string) {
-    const res = await fetch(`${BASE_URL}/login`, {
+    const res = await customFetch(`${BASE_URL}/login`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
@@ -24,7 +26,7 @@ export async function signupApi(
     password: string,
     userName: string
     ) {
-    const res = await fetch(`${BASE_URL}/signup`, {
+    const res = await customFetch(`${BASE_URL}/signup`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",

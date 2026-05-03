@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 import { Influencer } from "../app/types";
 
 // @ts-ignore
@@ -5,7 +7,7 @@ const FETCH_URL = `${import.meta.env.VITE_API_BASE_URL}/influencers/`;
 
 export async function getInfluencers(): Promise<Influencer[]> {
   // 핵심: ngrok 경고창을 무시하는 헤더를 추가합니다.
-  const res = await fetch(FETCH_URL, {
+  const res = await customFetch(FETCH_URL, {
     method: "GET",
     headers: {
       "Content-Type": "application/json",

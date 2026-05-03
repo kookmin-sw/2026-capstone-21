@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/admin`;
 
 function getAuthHeaders() {
@@ -61,7 +63,7 @@ export async function searchInfluencersForAdmin(
 
   const queryString = searchParams.toString();
 
-  const res = await fetch(
+  const res = await customFetch(
     `${BASE_URL}/search-influencers${queryString ? `?${queryString}` : ''}`,
     {
       method: 'GET',
@@ -78,7 +80,7 @@ export async function searchInfluencersForAdmin(
 }
 
 export async function crawlInfluencersByKeywords(params: KeywordCrawlParams) {
-  const res = await fetch(`${BASE_URL}/crawl-by-keywords`, {
+  const res = await customFetch(`${BASE_URL}/crawl-by-keywords`, {
     method: 'POST',
     headers: getAuthHeaders(),
     body: JSON.stringify({
@@ -101,7 +103,7 @@ export async function crawlInfluencersByKeywords(params: KeywordCrawlParams) {
 }
 
 export async function deleteInfluencerForAdmin(influencerId: number) {
-  const res = await fetch(`${BASE_URL}/influencers/${influencerId}`, {
+  const res = await customFetch(`${BASE_URL}/influencers/${influencerId}`, {
     method: 'DELETE',
     headers: getAuthHeaders(),
   });

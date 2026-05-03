@@ -1,3 +1,5 @@
+import { customFetch } from "./client";
+
 const BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/user-action-logs`;
 
 export async function createUserActionLog(data: {
@@ -6,7 +8,7 @@ export async function createUserActionLog(data: {
     action_type: string;
     run_id?: number | null;
     }) {
-    const res = await fetch(`${BASE_URL}/`, {
+    const res = await customFetch(`${BASE_URL}/`, {
         method: "POST",
         headers: {
         "Content-Type": "application/json",
