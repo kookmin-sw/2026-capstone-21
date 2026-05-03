@@ -1,11 +1,7 @@
 import { Influencer } from "../app/types";
 
 // @ts-ignore
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-const FETCH_URL = API_BASE_URL.endsWith("/")
-  ? `${API_BASE_URL}influencers/`
-  : `${API_BASE_URL}/influencers/`;
+const FETCH_URL = `${import.meta.env.VITE_API_BASE_URL}/influencers/`;
 
 export async function getInfluencers(): Promise<Influencer[]> {
   // 핵심: ngrok 경고창을 무시하는 헤더를 추가합니다.
