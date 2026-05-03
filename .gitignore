@@ -28,3 +28,5 @@ Thumbs.db
 # 설치 파일
 ngrok-v3-stable-linux-amd64.tgz
 ngrok
+
+node_modules/
