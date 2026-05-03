@@ -2,6 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>링크디매치</title>
     <style>
@@ -9,6 +10,7 @@
       body {
         height: 100%;
         margin: 0;
+        padding: 0;
       }
       #root {
         height: 100%;
@@ -19,25 +21,6 @@
   <body>
     <div id="root"></div>
 
-    <script>
-      (function(d,t) {
-        // .env 파일의 VITE_CHAT_SERVER_URL을 읽어옵니다.
-        // 값이 없을 경우를 대비해 기본값으로 localhost:3000을 설정합니다.
-        var BASE_URL = import.meta.env.VITE_CHAT_SERVER_URL || "http://localhost:3000";
-
-        var g=d.createElement(t),s=d.getElementsByTagName(t)[0];
-        g.src=BASE_URL+"/packs/js/sdk.js";
-        g.defer = true;
-        g.async = true;
-        g.onload=function(){
-          window.chatwootSDK.run({
-            websiteToken: 'EEawbzfkkgqkw3bxyUpkqNGW',
-            baseUrl: BASE_URL
-          })
-        }
-        s.parentNode.insertBefore(g,s);
-      })(document,"script");
-    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
