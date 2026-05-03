@@ -12,18 +12,27 @@ from app.routers import (
     insight,
     admin,
     auth,
-    # chatwoot
+    chatwoot  # 1. 주석 해제
 )
 
 app = FastAPI(root_path="/proxy/8000")
 
-# CORS 설정 (ngrok / Chatwoot용)
+# 2. CORS 설정 최적화
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
+    # 1. 허용할 도메인들
+    allow_origins=[
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "https://voting-tightrope-landlady.ngrok-free.dev",
+        "https://yanking-size-triangle.ngrok-free.dev",
+        "*" # 테스트 중에는 모든 도메인 허용을 추가하는 것이 가장 안전합니다.
+    ],
+    allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    
+    allow_headers=["*", "ngrok-skip-browser-warning"],
+    expose_headers=["*"],
 )
 
 Base.metadata.create_all(bind=engine)
@@ -37,9 +46,10 @@ app.include_router(user_action_log.router)
 app.include_router(favorite.router)
 app.include_router(insight.router)
 app.include_router(admin.router)
-# app.include_router(chatwoot.router)
+app.include_router(chatwoot.router) # 3. 주석 해제
 
 
 @app.get("/")
 def root():
     return {"message": "ok"}
+
