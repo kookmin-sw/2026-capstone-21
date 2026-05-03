@@ -1,18 +1,20 @@
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+
 useEffect(() => {
   const fetchAll = () => {
-    fetch("http://localhost:8000/insights/daily-trends")
+    fetch(`${API_BASE_URL}/insights/daily-trends`)
       .then(res => res.json())
       .then(setDailyTrends);
 
-    fetch("http://localhost:8000/insights/category-distribution")
+    fetch(`${API_BASE_URL}/insights/category-distribution`)
       .then(res => res.json())
       .then(setCategoryData);
 
-    fetch("http://localhost:8000/insights/total-selections")
+    fetch(`${API_BASE_URL}/insights/total-selections`)
       .then(res => res.json())
       .then(data => setTotalSelections(data.total));
 
-    fetch("http://localhost:8000/insights/total-influencers")
+    fetch(`${API_BASE_URL}/insights/total-influencers`)
       .then(res => res.json())
       .then(data => setTotalInfluencers(data.total));
   };
