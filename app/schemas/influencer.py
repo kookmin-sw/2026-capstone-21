@@ -18,6 +18,7 @@ class InfluencerResponse(BaseModel):
     style_keywords_json: Optional[List[str]] = None
     style_keywords_text: Optional[str] = None
     grade_score: Optional[float] = None
+    is_active: Optional[bool] = True
 
     class Config:
         from_attributes = True

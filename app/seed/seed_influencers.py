@@ -60,6 +60,11 @@ def upsert_influencer(db: Session, item: dict):
         style_keywords = []
 
     style_keywords_text = ", ".join([str(x) for x in style_keywords]) if style_keywords else None
+
+    # style_keywords에 "제외"가 있으면 사용자에게 노출하지 않도록 처리
+    # "제외"는 카테고리가 아니라 노출 여부 상태로 관리한다.
+    is_excluded = "제외" in style_keywords
+
     primary_category_name = normalize_category_name(item.get("primary_category"))
 
     local_pic_url = f"/profile_pic_HD/{username}.jpg"
@@ -80,6 +85,9 @@ def upsert_influencer(db: Session, item: dict):
             grade_score=parse_grade(item.get("grade")),
             style_keywords_json=style_keywords,
             style_keywords_text=style_keywords_text,
+
+            # ✅ 제외 계정이면 False, 일반 계정이면 True
+            is_active=not is_excluded,
         )
         db.add(influencer)
         db.flush()
@@ -97,6 +105,9 @@ def upsert_influencer(db: Session, item: dict):
         influencer.grade_score = parse_grade(item.get("grade"))
         influencer.style_keywords_json = style_keywords
         influencer.style_keywords_text = style_keywords_text
+
+        # ✅ 기존 데이터 업데이트 시에도 제외 여부 갱신
+        influencer.is_active = not is_excluded
 
     if primary_category_name:
         category = get_category_by_name(db, primary_category_name)

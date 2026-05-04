@@ -213,6 +213,14 @@ def search_influencers_for_admin(
 
         seen_ids.add(influencer.influencer_id)
 
+        # ✅ 수정: 관리자용 표시 로직
+        if influencer.is_active is False:
+            display_category = "제외"
+        elif category_name:
+            display_category = category_name
+        else:
+            display_category = "미분류"
+
         results.append(
             {
                 "influencer_id": influencer.influencer_id,
@@ -221,9 +229,10 @@ def search_influencers_for_admin(
                 "profile_pic_url": influencer.profile_pic_url,
                 "followers_count": influencer.followers_count or 0,
                 "posts_count": influencer.posts_count or 0,
-                "category": category_name or "기타",
+                "category": display_category,
                 "last_post_date": last_post.isoformat() if last_post else None,
                 "style_keywords_text": influencer.style_keywords_text,
+                "is_active": influencer.is_active,
             }
         )
 

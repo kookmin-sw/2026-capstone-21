@@ -1,5 +1,6 @@
 from sqlalchemy import (
     BigInteger,
+    Boolean,
     Column,
     DateTime,
     Float,
@@ -83,6 +84,11 @@ class Influencer(Base):
     # 스타일 키워드 원본 JSON 및 검색/임베딩용 텍스트
     style_keywords_json = Column(JSON, nullable=True)
     style_keywords_text = Column(Text, nullable=True)
+
+    # ✅ 수정: 사용자 화면/추천/통계 노출 여부
+    # True  = 일반 사용자에게 노출
+    # False = 제외 계정으로 보고 관리자에게만 노출
+    is_active = Column(Boolean, nullable=False, default=True)
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
