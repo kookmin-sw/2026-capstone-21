@@ -107,5 +107,5 @@ def get_and_save_recommendations(
         "input_id": input_id,
         "status": "completed",
         "error_message": None,
-        "recommendations": final_results[:5]  # 👉 최종적으로 상위 5개만 반환
+        "recommendations": final_results
     }
