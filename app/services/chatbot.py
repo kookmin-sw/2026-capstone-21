@@ -8,6 +8,14 @@ from app.services.recommendation import RecommendationEngine
 # 설정 정보
 CHATWOOT_BASE_URL = os.getenv("CHATWOOT_BASE_URL")
 API_ACCESS_TOKEN = os.getenv("API_ACCESS_TOKEN")
+DEFAULT_QUESTION_TYPE = "일반"
+END_CONVERSATION_TEXT = "대화 종료"
+QUESTION_TYPE_SELECTION_MESSAGE = (
+    "대화가 종료되었습니다.\n\n"
+    "새로운 질문을 시작하려면 질문 유형을 다시 선택해 주세요.\n"
+    "- 인플루언서 추천\n"
+    "- 사이트 이용 관련"
+)
 
 class ChatbotService:
     def __init__(self):
@@ -35,6 +43,15 @@ class ChatbotService:
         with SessionLocal() as db:
             self.db = db
             context_data = ""
+            normalized_question = (question_content or "").strip()
+            
+            if normalized_question == END_CONVERSATION_TEXT:
+                self._reset_conversation(conversation_id)
+                return
+            
+            if not question_type or question_type == DEFAULT_QUESTION_TYPE:
+                self._complete_process(conversation_id, QUESTION_TYPE_SELECTION_MESSAGE)
+                return
             
             # 1. 환각 방지를 위한 매우 엄격한 시스템 프롬프트 설정
             system_role = (
@@ -101,6 +118,30 @@ class ChatbotService:
         """결과 발송 및 로그 기록 공통 로직"""
         self._send_to_chatwoot(conversation_id, ai_answer)
         self._update_log(conversation_id, ai_answer)
+
+    def _reset_conversation(self, conversation_id: int):
+        """대화 종료 시 질문 유형을 초기 상태로 되돌리고 시작 안내를 보냄"""
+        self._update_conversation_question_type(conversation_id, DEFAULT_QUESTION_TYPE)
+        self._complete_process(conversation_id, QUESTION_TYPE_SELECTION_MESSAGE)
+        self._resolve_conversation(conversation_id)
+
+    def _update_conversation_question_type(self, conversation_id: int, question_type: str):
+        url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/custom_attributes"
+        payload = {"custom_attributes": {"question_type": question_type}}
+        try:
+            res = requests.post(url, json=payload, headers=self.headers)
+            res.raise_for_status()
+        except Exception as e:
+            print(f"❌ Chatwoot 질문 유형 초기화 실패: {e}")
+
+    def _resolve_conversation(self, conversation_id: int):
+        url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/toggle_status"
+        payload = {"status": "resolved"}
+        try:
+            res = requests.post(url, json=payload, headers=self.headers)
+            res.raise_for_status()
+        except Exception as e:
+            print(f"❌ Chatwoot 대화 종료 처리 실패: {e}")
 
     def _send_to_chatwoot(self, conversation_id: int, content: str):
         url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/messages"
