@@ -65,11 +65,17 @@ class RecommendationEngine:
     def _load_resources(self):
         """FAISS 인덱스 구축 및 LightFM 사전 학습"""
         # 1. 인플루언서 임베딩 로드
-        embeddings = self.db.query(
-            InfluencerEmbedding.influencer_id, 
-            InfluencerEmbedding.embedding_vector,
-            Influencer.grade_score
-        ).join(Influencer, Influencer.influencer_id == InfluencerEmbedding.influencer_id).all()
+        # ✅ is_active=True인 인플루언서만 로딩
+        embeddings = (
+            self.db.query(
+                InfluencerEmbedding.influencer_id,
+                InfluencerEmbedding.embedding_vector,
+                Influencer.grade_score
+            )
+            .join(Influencer, Influencer.influencer_id == InfluencerEmbedding.influencer_id)
+            .filter(Influencer.is_active.is_(True))
+            .all()
+        )
 
         if embeddings:
             vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')

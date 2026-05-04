@@ -40,6 +40,7 @@ def get_top_performer(db: Session):
     influencer = (
         db.query(Influencer)
         .filter(Influencer.influencer_id == result.influencer_id)
+        .filter(Influencer.is_active.is_(True))
         .first()
     )
 
@@ -56,7 +57,12 @@ def get_top_performer(db: Session):
 
 
 def get_total_influencers(db: Session):
-    return db.query(func.count(Influencer.influencer_id)).scalar()
+    # ✅ active만 카운트
+    return (
+        db.query(func.count(Influencer.influencer_id))
+        .filter(Influencer.is_active.is_(True))
+        .scalar()
+    )
 
 
 def get_daily_trends(db: Session):
@@ -104,6 +110,8 @@ def get_category_distribution(db: Session):
             UserActionLog,
             UserActionLog.influencer_id == Influencer.influencer_id,
         )
+
+        .filter(Influencer.is_active.is_(True))
         .filter(UserActionLog.action_type == SELECTION_ACTION)
         .filter(InfluencerCategory.priority == 1)
         .group_by(Category.category_name)
