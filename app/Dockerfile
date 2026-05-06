@@ -3,6 +3,7 @@ FROM python:3.9-slim
 
 # 2. 필수 시스템 패키지 설치 (LightFM 빌드용 GCC 등)
 RUN apt-get update && apt-get install -y \
+    git \
     gcc \
     build-essential \
     python3-dev \
