@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Session
 from app.db.models import UserActionLog
-
+from typing import Optional
 
 # 행동별 기본 reward 값 정의
 # (개인화 점수 계산용이 아니라, 로그 저장 시 기본 점수)
@@ -19,7 +19,7 @@ def create_user_action_log(
     user_id: int,
     influencer_id: int,
     action_type: str,
-    reward: int | None = None,  # ← 외부에서 reward를 직접 넘길 수도 있게 optional 처리
+    reward: Optional[int] = None,
 ):
     # 지원하지 않는 action_type이면 에러
     if action_type not in ACTION_REWARD_MAP:
