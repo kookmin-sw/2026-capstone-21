@@ -9,7 +9,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Capstone Influencer Recommendation"
     
     # DB 설정 
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
+    DATABASE_URL: str = os.getenv("PICKPLE_DATABASE_URL")
     
     # JWT 보안 설정
     # openssl rand -hex 32 명령어로 생성한 문자열을 넣는 것이 좋습니다.
