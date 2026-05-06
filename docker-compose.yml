@@ -1,13 +1,20 @@
 version: '3.8'
 
 services:
+  # 백엔드 서버 (FastAPI)
   backend:
-    build: .
+    build: ./backend
     container_name: picple-api
     ports:
       - "8000:8000"
     env_file:
       - .env
-    volumes:
-      - .:/app
+    restart: always
+
+  # 프론트엔드 서버 (React)
+  frontend:
+    build: ./frontend
+    container_name: picple-web
+    ports:
+      - "80:80"  # 외부에서 80포트로 접속하면 도커 안의 80(Nginx)으로 연결
     restart: always
