@@ -28,6 +28,9 @@ def influencer_to_response(influencer: Influencer):
         "style_keywords_json": influencer.style_keywords_json,
         "style_keywords_text": influencer.style_keywords_text,
         "primary_category": primary_cat,
+
+        # ✅ 필요 시 프론트/관리자에서 상태 확인 가능
+        "is_active": influencer.is_active,
     }
 
 
@@ -39,6 +42,10 @@ def get_influencers(db: Session):
                 InfluencerCategory.category
             )
         )
+
+        # ✅ 일반 사용자 조회에서는 제외 계정 숨김
+        .filter(Influencer.is_active.is_(True))
+
         .order_by(Influencer.influencer_id.asc())
         .all()
     )
@@ -55,6 +62,10 @@ def get_influencer_by_id(db: Session, influencer_id: int):
             )
         )
         .filter(Influencer.influencer_id == influencer_id)
+
+        # ✅ 일반 사용자 상세 조회에서도 제외 계정 숨김
+        .filter(Influencer.is_active.is_(True))
+
         .first()
     )
 
