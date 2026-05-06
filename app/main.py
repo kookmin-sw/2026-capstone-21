@@ -23,7 +23,7 @@ app.add_middleware(
     allow_credentials=True,
     allow_methods=["*"],
     
-    allow_headers=["*", "ngrok-skip-browser-warning"],
+    allow_headers=["*"],
     expose_headers=["*"],
 )
 
