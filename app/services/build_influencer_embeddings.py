@@ -42,6 +42,7 @@ def build_embeddings(db: Session):
     try:
         print("인플루언서 조회 중...")
 
+        # is_active=True만 임베딩 생성
         influencers = (
             db.query(Influencer)
             .options(
@@ -50,6 +51,7 @@ def build_embeddings(db: Session):
                 ),
                 joinedload(Influencer.embedding),
             )
+            .filter(Influencer.is_active.is_(True))
             .all()
         )
 
@@ -63,7 +65,7 @@ def build_embeddings(db: Session):
         print("임베딩 생성 중...")
         vectors = model.encode(
             texts,
-            batch_size=32,
+            batch_size=64,
             show_progress_bar=True,
             normalize_embeddings=True,
         )
