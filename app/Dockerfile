@@ -3,21 +3,23 @@ FROM python:3.9-slim
 
 # 2. 필수 시스템 패키지 설치 (LightFM 빌드용 GCC 등)
 RUN apt-get update && apt-get install -y \
+    gcc \
     build-essential \
     python3-dev \
-    libssl-dev \
-    libffi-dev \
+    libopenblas-dev \
+    liblapack-dev \
+    gfortran \
     && rm -rf /var/lib/apt/lists/*
+
 RUN pip install --no-cache-dir -U pip
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir numpy
 
 # 3. 작업 디렉토리 생성
 WORKDIR /app
 
 # 4. 의존성 설치 (캐시 활용을 위해 먼저 복사)
 COPY requirements.txt .
-RUN pip install --no-cache-dir -U pip && \
-    pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 5. 전체 소스 코드 및 인증서 복사
 COPY . .
