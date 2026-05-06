@@ -8,6 +8,8 @@ RUN apt-get update && apt-get install -y \
     libssl-dev \
     libffi-dev \
     && rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir -U pip
+RUN pip install --no-cache-dir -r requirements.txt
 
 # 3. 작업 디렉토리 생성
 WORKDIR /app
