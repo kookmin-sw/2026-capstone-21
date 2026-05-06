@@ -42,7 +42,7 @@ services:
       dockerfile: ./docker/dockerfiles/rails.Dockerfile
     image: chatwoot-rails:development
     volumes:
-      - ./:/app:delegated
+      - ./chatwoot:/app:delegated
       - node_modules:/app/node_modules
       - packs:/app/public/packs
       - cache:/app/tmp/cache
@@ -67,7 +67,7 @@ services:
     <<: *base
     image: chatwoot-rails:development
     volumes:
-      - ./:/app:delegated
+      - ./chatwoot:/app:delegated
       - node_modules:/app/node_modules
       - packs:/app/public/packs
       - cache:/app/tmp/cache
@@ -88,7 +88,7 @@ services:
       dockerfile: ./docker/dockerfiles/vite.Dockerfile
     image: chatwoot-vite:development
     volumes:
-      - ./:/app:delegated
+      - ./chatwoot:/app:delegated
       - node_modules:/app/node_modules
       - packs:/app/public/packs
       - cache:/app/tmp/cache
