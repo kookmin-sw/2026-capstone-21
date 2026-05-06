@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, Optional, List, Union
 
 from sqlalchemy.orm import Session
 
@@ -15,13 +15,13 @@ CATEGORY_ALIAS_MAP = {
 }
 
 
-def normalize_category_name(category_name: str | None) -> str | None:
+def normalize_category_name(category_name: Optional[str]) -> Optional[str]:
     if not category_name:
         return None
     return CATEGORY_ALIAS_MAP.get(category_name, category_name)
 
 
-def parse_grade(grade_value: Any) -> float | None:
+def parse_grade(grade_value: Any) -> Optional[float]:
     if grade_value is None or grade_value == "":
         return None
 
@@ -44,11 +44,11 @@ def parse_grade(grade_value: Any) -> float | None:
     return None
 
 
-def get_category_by_name(db: Session, category_name: str) -> Category | None:
+def get_category_by_name(db: Session, category_name: str) -> Optional[Category]:
     return db.query(Category).filter(Category.category_name == category_name).first()
 
 
-def upsert_influencer(db: Session, item: dict):
+def upsert_influencer(db: Session, item: dict) -> Optional[Influencer]:
     username = item.get("username")
     if not username:
         return None
@@ -62,7 +62,6 @@ def upsert_influencer(db: Session, item: dict):
     style_keywords_text = ", ".join([str(x) for x in style_keywords]) if style_keywords else None
 
     # style_keywords에 "제외"가 있으면 사용자에게 노출하지 않도록 처리
-    # "제외"는 카테고리가 아니라 노출 여부 상태로 관리한다.
     is_excluded = "제외" in style_keywords
 
     primary_category_name = normalize_category_name(item.get("primary_category"))
@@ -79,14 +78,11 @@ def upsert_influencer(db: Session, item: dict):
             followers_count=item.get("followersCount"),
             follows_count=item.get("followsCount"),
             posts_count=item.get("postsCount"),
-            # profile_pic_url=item.get("profilePicUrl"),
-            profile_pic_url= local_pic_url,
+            profile_pic_url=local_pic_url,
             account_type=item.get("account_type"),
             grade_score=parse_grade(item.get("grade")),
             style_keywords_json=style_keywords,
             style_keywords_text=style_keywords_text,
-
-            # ✅ 제외 계정이면 False, 일반 계정이면 True
             is_active=not is_excluded,
         )
         db.add(influencer)
@@ -99,14 +95,11 @@ def upsert_influencer(db: Session, item: dict):
         influencer.followers_count = item.get("followersCount")
         influencer.follows_count = item.get("followsCount")
         influencer.posts_count = item.get("postsCount")
-        # influencer.profile_pic_url = item.get("profilePicUrl")
         influencer.profile_pic_url = local_pic_url
         influencer.account_type = item.get("account_type")
         influencer.grade_score = parse_grade(item.get("grade"))
         influencer.style_keywords_json = style_keywords
         influencer.style_keywords_text = style_keywords_text
-
-        # ✅ 기존 데이터 업데이트 시에도 제외 여부 갱신
         influencer.is_active = not is_excluded
 
     if primary_category_name:
@@ -114,7 +107,7 @@ def upsert_influencer(db: Session, item: dict):
 
         if category is None:
             print(f"[경고] category 테이블에 없는 카테고리: {primary_category_name}")
-            return
+            return influencer
 
         if category:
             db.query(InfluencerCategory).filter(
