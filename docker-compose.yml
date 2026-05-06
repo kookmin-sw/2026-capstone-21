@@ -3,7 +3,7 @@ version: '3.8'
 services:
   # 백엔드 서버 (FastAPI)
   backend:
-    build: ./backend
+    build: ./app
     container_name: picple-api
     ports:
       - "8000:8000"
