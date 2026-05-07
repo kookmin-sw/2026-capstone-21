@@ -32,31 +32,51 @@
 
 주요 기능
 
+## 🎬 소개 영상
+
+소개 영상
+
 ## 🙋‍♂️ 팀원 소개
 
-### Team Pick-Ple
+| 고주희 | 이은진 | 최윤지 | 백송훈 | 오형석 |
+|:----------------:|:------:|:------:|:------:|:------:|
+| 20220000 | 20230000 | 20220000 | 20220000 | 20233065 |
+| AI & Data Processing, Leader | Back-end | Back-end | Front-end | Front-end |
 
 팀원정보 및 담당이나 사진 및 SNS를 이용하여 소개하세요.
 
 ## 🛠️ 기술 스택
 
-### Back-end
-| Category | Stack |
-|----------|-------|
-| Framework |  |
-| Database |  |
-
-### Front-end
+### 🔍 AI & Data Processing
 | Category | Stack |
 |----------|-------|
 | Framework |  |
 
+### 💾 Back-end
+| Category | Stack |
+|----------|-------|
+| Framework |  |
+
+### 🖥️ Front-end
+| Category | Stack |
+|----------|-------|
+| Framework |  |
+
+### ☁️ DevOps
+| Category | Stack |
+|----------|-------|
+| Framework |  |
+
+### 📚 Tools
+| Category | Stack |
+|----------|-------|
+| Framework |  |
 
 ### 4. 사용법
 
 소스코드제출시 설치법이나 사용법을 작성하세요.
 
-## 📝 Documents
+## 📝 자료
 
 발표 자료나 포스터 이런거
 
