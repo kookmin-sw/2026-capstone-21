@@ -52,6 +52,7 @@
 |----------|-------|
 | Crawling | ![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white) |
 | Classification | ![GPT-5.4 mini](https://img.shields.io/badge/GPT--5.4%20mini-412991?style=for-the-badge&logo=openai&logoColor=white) |
+| Matching | ![BGE-M3](https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black) ![FAISS](https://img.shields.io/badge/FAISS-0467DF?style=for-the-badge&logo=meta&logoColor=white) ![LightFM](https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white) |
 
 ### 💾 Back-end
 | Category | Stack |
