@@ -51,6 +51,7 @@
 | Category | Stack |
 |----------|-------|
 | Crawling | ![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white) |
+| Classification | ![GPT-5.4 mini](https://img.shields.io/badge/GPT--5.4%20mini-412991?style=for-the-badge&logo=openai&logoColor=white) |
 
 ### 💾 Back-end
 | Category | Stack |
