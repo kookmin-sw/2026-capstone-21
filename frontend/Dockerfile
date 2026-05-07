@@ -3,12 +3,11 @@ FROM node:18 AS build
 WORKDIR /app
 
 # 현재 컨텍스트(frontend 폴더)의 파일을 /app으로 복사
-COPY frontend/package.json ./
-COPY frontend/package-lock.json ./ 
-
+COPY frontend/package*.json ./
 RUN npm install
 
-COPY . .
+COPY frontend/ ./
+RUN ls -al
 
 # 빌드 시점에 환경변수 주입
 ARG VITE_API_BASE_URL
