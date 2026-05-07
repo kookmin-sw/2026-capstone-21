@@ -1,3 +1,5 @@
+version: "3"
+
 services:
   # 백엔드 서버 (FastAPI)
   backend:
@@ -11,6 +13,7 @@ services:
       - ./global-bundle.pem:/app/global-bundle.pem
     environment:
       - PYTHONPATH=/
+      - PYTHONUNBUFFERED=1
     working_dir: /app
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     restart: always
@@ -28,119 +31,52 @@ services:
       - "80:80"
     restart: always
     
-  base: &base
-    build:
-      context: ./chatwoot
-      dockerfile: ./docker/Dockerfile
-      args:
-        BUNDLE_WITHOUT: ''
-        EXECJS_RUNTIME: 'Node'
-        RAILS_ENV: 'development'
-        RAILS_SERVE_STATIC_FILES: 'false'
-    tty: true
-    stdin_open: true
-    image: chatwoot:development
+  chatwoot:
+    image: chatwoot/chatwoot:v4.2.0
+    restart: always
     env_file: .env
-
-  rails:
-    <<: *base
-    build:
-      context: ./chatwoot
-      dockerfile: ./docker/dockerfiles/rails.Dockerfile
-    image: chatwoot-rails:development
-    volumes:
-      - ./chatwoot:/app:delegated
-      - node_modules:/app/node_modules
-      - packs:/app/public/packs
-      - cache:/app/tmp/cache
-      - bundle:/usr/local/bundle
     depends_on:
       - postgres
       - redis
-      - vite
-      - mailhog
-      - sidekiq
     ports:
-      - 3000:3000
-    env_file: .env
+      - "3000:3000"
     environment:
-      - VITE_DEV_SERVER_HOST=vite
-      - NODE_ENV=development
-      - RAILS_ENV=development
-    entrypoint: docker/entrypoints/rails.sh
-    command: ["bundle", "exec", "rails", "s", "-p", "3000", "-b", "0.0.0.0"]
+      RAILS_ENV: production
+      NODE_ENV: production
+      INSTALLATION_ENV: docker
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
 
   sidekiq:
-    <<: *base
-    image: chatwoot-rails:development
-    volumes:
-      - ./chatwoot:/app:delegated
-      - node_modules:/app/node_modules
-      - packs:/app/public/packs
-      - cache:/app/tmp/cache
-      - bundle:/usr/local/bundle
+    image: chatwoot/chatwoot:v4.2.0
+    restart: always
+    env_file: .env
     depends_on:
       - postgres
       - redis
-      - mailhog
     environment:
-      - NODE_ENV=development
-      - RAILS_ENV=development
-    command: ["bundle", "exec", "sidekiq", "-C", "config/sidekiq.yml"]
-
-  vite:
-    <<: *base
-    build:
-      context: ./chatwoot
-      dockerfile: ./docker/dockerfiles/vite.Dockerfile
-    image: chatwoot-vite:development
-    volumes:
-      - ./chatwoot:/app:delegated
-      - node_modules:/app/node_modules
-      - packs:/app/public/packs
-      - cache:/app/tmp/cache
-      - bundle:/usr/local/bundle
-    ports:
-      - "3036:3036" # Vite dev server
-    environment:
-      - VITE_DEV_SERVER_HOST=0.0.0.0
-      - NODE_ENV=development
-      - RAILS_ENV=development
-    entrypoint: docker/entrypoints/vite.sh
-    command: bin/vite dev
+      RAILS_ENV: production
+      NODE_ENV: production
+      INSTALLATION_ENV: docker
+      SIDEKIQ_CONCURRENCY: 2
+    command: bundle exec sidekiq -C config/sidekiq.yml
 
   postgres:
     image: pgvector/pgvector:pg16
     restart: always
-    ports:
-      - '5432:5432'
-    volumes:
-      - postgres:/data/postgres
     environment:
-      - POSTGRES_DB=chatwoot
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
+      POSTGRES_DB: chatwoot
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres:/var/lib/postgresql/data
 
   redis:
     image: redis:alpine
     restart: always
-    command: ["sh", "-c", "redis-server --requirepass \"$REDIS_PASSWORD\""]
-    env_file: .env
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     volumes:
-      - redis:/data/redis
-    ports:
-      - '6379:6379'
-
-  mailhog:
-    image: mailhog/mailhog
-    ports:
-      - 1025:1025
-      - 8025:8025
+      - redis:/data
 
 volumes:
   postgres:
   redis:
-  packs:
-  node_modules:
-  cache:
-  bundle:
