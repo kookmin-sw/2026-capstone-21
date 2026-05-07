@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from sqlalchemy.orm import Session
 from app.db.models import UserActionLog
 from typing import Optional
