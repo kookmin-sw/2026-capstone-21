@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from sqlalchemy.orm import Session, joinedload
 import pandas as pd
 from app.db.models import Influencer, InfluencerCategory, InfluencerPost, InfluencerRelated

@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 # 필터 조건
 MIN_FOLLOWERS = 1000
 MIN_POSTS = 40

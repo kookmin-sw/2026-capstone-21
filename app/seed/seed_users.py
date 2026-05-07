@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from app.db.database import SessionLocal
 from app.db.models import User
 from app.utils.auth import hash_password

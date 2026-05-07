@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from datetime import datetime, timedelta
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer

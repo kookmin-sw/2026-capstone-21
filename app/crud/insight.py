@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from datetime import date, timedelta
 
 from sqlalchemy import func, desc

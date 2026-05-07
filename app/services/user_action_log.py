@@ -1,3 +1,5 @@
+from __future__ import annotations
+from typing import Optional, Union, List, Dict
 from app.crud.user_action_log import create_user_action_log
 from app.db.models import RecommendationRun
 from app.services.recommendation import ReRankingBandit
