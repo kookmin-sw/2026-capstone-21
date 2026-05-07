@@ -1,3 +1,5 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
+
 fastapi
 uvicorn
 sqlalchemy
@@ -16,3 +18,5 @@ python-multipart
 passlib
 pydantic[email]
 openai
+
+torch==2.7.0+cpu
