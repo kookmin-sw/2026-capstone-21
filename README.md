@@ -40,7 +40,7 @@
 
 | 고주희 | 이은진 | 최윤지 | 백송훈 | 오형석 |
 |:------:|:------:|:------:|:------:|:------:|
-| 20220000 | 20230000 | 20220000 | 20220000 | 20233065 |
+| 학번 | 학번 | 학번 | 학번 | 학번 |
 | AI & Data Processing, Leader | Back-end | Back-end | Front-end | Front-end |
 
 팀원정보 및 담당이나 사진 및 SNS를 이용하여 소개하세요.
@@ -60,7 +60,7 @@
 ### 🖥️ Front-end
 | Category | Stack |
 |----------|-------|
-| Framework |  |
+| Framework | ![React](https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=react&logoColor=black) |
 
 ### ☁️ DevOps
 | Category | Stack |
