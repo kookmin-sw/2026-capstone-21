@@ -4,6 +4,15 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm install
 COPY . .
+
+# 빌드 시점에 환경변수 받기
+ARG VITE_API_BASE_URL
+ARG VITE_CHAT_SERVER_URL
+
+# 받은 값을 실제 환경변수로 설정
+ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
+ENV VITE_CHAT_SERVER_URL=$VITE_CHAT_SERVER_URL
+
 RUN npm run build
 
 # 2단계: 실행 (Nginx 환경)
