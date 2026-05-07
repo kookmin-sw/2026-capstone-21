@@ -50,7 +50,7 @@
 ### 🔍 AI & Data Processing
 | Category | Stack |
 |----------|-------|
-| Framework |  |
+| Crawling | ![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white) |
 
 ### 💾 Back-end
 | Category | Stack |
