@@ -3,8 +3,8 @@ FROM node:18 AS build
 WORKDIR /app
 
 # 현재 컨텍스트(frontend 폴더)의 파일을 /app으로 복사
-COPY package.json ./
-COPY package-lock.json ./ 
+COPY frontend/package.json ./
+COPY frontend/package-lock.json ./ 
 
 RUN npm install
 
