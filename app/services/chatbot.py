@@ -44,16 +44,14 @@ class ChatbotService:
     def process_and_reply(self, conversation_id: int, question_content: str, question_type: str, user_id: int = 1):
         with SessionLocal() as db:
             self.db = db
-            context_data = ""
-            normalized_question = (question_content or "").strip()
-            
-            if normalized_question == END_CONVERSATION_TEXT:
-                self._reset_conversation(conversation_id)
-                return
-            
-            if not question_type or question_type == DEFAULT_QUESTION_TYPE:
-                self._complete_process(conversation_id, QUESTION_TYPE_SELECTION_MESSAGE)
-                return
+            if not question_type or question_type == "일반":
+                last_log = db.query(ChatwootLog).filter(
+                    ChatwootLog.conversation_id == conversation_id,
+                    ChatwootLog.question_type != "일반"
+                ).order_by(ChatwootLog.id.desc()).first()
+                
+                if last_log:
+                    question_type = last_log.question_type
             
             # 1. 환각 방지를 위한 매우 엄격한 시스템 프롬프트 설정
             system_role = (
@@ -63,6 +61,7 @@ class ChatbotService:
                 "대신 반드시 다음과 같이 답변하세요: '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. "
                 "추가적인 도움이 필요하시면 상담원 연결을 요청해 주세요.'"
             )
+            context_data=""
 
             # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
             if question_type == "인플루언서 추천":
@@ -97,6 +96,10 @@ class ChatbotService:
 
                 context_data = f"\n[서비스 이용 안내 문서]\n{help_docs}"
                 system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
+
+            else:
+            # 💡 [핵심] 일반 질문일 때의 가이드 추가
+                system_role += "\n현재 특정 카테고리가 선택되지 않은 일반 문의 상태입니다. 서비스 전반에 대해 아는 대로 친절히 답해주세요."
 
             # --- GPT API 호출 (검증된 설정 적용) ---
             try:
