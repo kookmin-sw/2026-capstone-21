@@ -15,13 +15,29 @@ async def receive_question(
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db)
 ):
-    if payload.message_type != "incoming":
-        return {"status": "ignored", "message": "Not an incoming message"}
-    # 기존 DB 저장 로직
-    q_type = "일반"
-    if payload.additional_attributes and payload.additional_attributes.custom_attributes:
-        q_type = payload.additional_attributes.custom_attributes.question_type
+# 1. '메시지 생성' 이벤트가 아니면 아예 무시 (핵심!)
+    # Chatwoot이 보내는 온갖 알림(읽음 확인, 타이핑 등)을 여기서 다 걸러냅니다.
+    if payload.event != "message_created":
+        return {"status": "ignored", "reason": f"Event '{payload.event}' is not handled"}
 
+    # 2. '유저가 보낸(incoming)' 메시지가 아니면 무시
+    # 내가(봇이) 보낸 답장 웹훅이 다시 나에게 돌아오는 '무한 루프' 방지
+    if payload.message_type != "incoming":
+        return {"status": "ignored", "reason": "Not an incoming message"}
+
+    # 3. 내용이 비어있으면 처리 안 함
+    if not payload.content or not payload.content.strip():
+        return {"status": "ignored", "reason": "Empty content"}
+
+    # 안전하게 question_type 추출
+    q_type = "일반"
+    try:
+        if payload.additional_attributes and payload.additional_attributes.custom_attributes:
+            q_type = payload.additional_attributes.custom_attributes.question_type or "일반"
+    except Exception:
+        q_type = "일반"
+
+    # DB 저장
     new_log = ChatwootLog(
         conversation_id=payload.conversation.id,
         question_content=payload.content,
@@ -31,6 +47,7 @@ async def receive_question(
     db.commit()
     db.refresh(new_log)
 
+    # 4. 챗봇 응답 프로세스 실행
     chatbot_service = ChatbotService()
     background_tasks.add_task(
         chatbot_service.process_and_reply, 
