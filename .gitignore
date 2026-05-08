@@ -3,17 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# 가상환경 (Virtual Environments)
-venv/
-.venv/
-env/
-
 # 환경변수 파일 (API 키 보안)
 .env
-
-# 운영체제 생성 파일
-.DS_Store
-Thumbs.db
 
 # DB
 *.db
@@ -22,15 +13,7 @@ Thumbs.db
 .vscode/
 .idea/
 
-# 로그 파일
-*.log
-
-# 설치 파일
-ngrok-v3-stable-linux-amd64.tgz
-ngrok
 
 node_modules/
 
-*.out
-
-*.sql
+chatwoot
