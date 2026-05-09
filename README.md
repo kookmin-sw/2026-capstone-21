@@ -1,6 +1,6 @@
 ## 🚀 프로젝트 소개
 
-프로젝트
+![Project Background](./docs/images/project_background.png)
 
 ## 📌 주요 기능
 
