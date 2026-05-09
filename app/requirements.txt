@@ -18,5 +18,6 @@ python-multipart
 passlib
 pydantic[email]
 openai
+boto3
 
 torch==2.7.0+cpu
