@@ -50,6 +50,9 @@ export function InfluencerProfile() {
   const { influencers, interestList, toggleInterest, selectInfluencer } =
     useInfluencers();
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 30;
+
   const [showFilters, setShowFilters] = useState(false);
   const [selectedInfluencer, setSelectedInfluencer] =
     useState<Influencer | null>(null);
@@ -69,6 +72,11 @@ export function InfluencerProfile() {
   const [recommendResults, setRecommendResults] = useState<Influencer[]>([]);
   const [isRecommending, setIsRecommending] = useState(false);
 
+  // 필터가 바뀔 때마다 페이지를 1로 리셋하기 위한 로직
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filters, recommendResults]);
+  
   useEffect(() => {
     getCategories()
       .then((data) => {
@@ -165,7 +173,7 @@ export function InfluencerProfile() {
           return {
             id,
             name: item.name ?? item.full_name ?? item.username ?? '이름 없음',
-            photo: item.photo ?? `/profile_pic_HD/${item.username}.jpg`,
+            photo: item.profile_pic_url || item.photo || `/profile_pic_HD/${item.username}.jpg`,
             followers: item.followers ?? item.followers_count ?? 0,
             category:
               item.category ??
@@ -243,6 +251,11 @@ export function InfluencerProfile() {
       return true;
     });
   }, [influencers, filters]);
+
+  const displayedInfluencers = useMemo(() => {
+    const lastIndex = currentPage * itemsPerPage;
+    return filteredInfluencers.slice(0, lastIndex);
+  }, [filteredInfluencers, currentPage]);
 
   const toggleCategory = (category: Category) => {
     setFilters((prev) => ({
@@ -405,6 +418,16 @@ export function InfluencerProfile() {
                   renderInfluencerCard(influencer)
                 )}
               </div>
+              {filteredInfluencers.length > displayedInfluencers.length && (
+                <div className="mt-12 flex justify-center">
+                  <button
+                    onClick={() => setCurrentPage((prev) => prev + 1)}
+                    className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm"
+                  >
+                    Load More Influencers ({displayedInfluencers.length} / {filteredInfluencers.length})
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -511,6 +534,17 @@ export function InfluencerProfile() {
           renderInfluencerCard(influencer)
         )}
       </div>
+
+      {filteredInfluencers.length > displayedInfluencers.length && (
+        <div className="mt-12 flex justify-center">
+          <button
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+            className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm"
+          >
+            Load More Influencers ({displayedInfluencers.length} / {filteredInfluencers.length})
+          </button>
+        </div>
+      )}
 
       {selectedInfluencer && (
         <InfluencerProfileModal
