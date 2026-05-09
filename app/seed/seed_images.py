@@ -5,19 +5,13 @@ from app.db.database import SessionLocal
 from app.db.models import Influencer
 from app.utils.setting_config import settings
 
-# AWS 설정 (환경변수나 ~/.aws/credentials에 설정되어 있어야 함)
-AWS_ACCESS_KEY = '당신의_액세스_키'
-AWS_SECRET_KEY = '당신의_시크릿_키'
-BUCKET_NAME = 'your-bucket-name' # S3 버킷 이름
-REGION_NAME = 'ap-northeast-2' # 서울 리전
-
 def seed_images_to_s3(local_folder):
     db: Session = SessionLocal()
     s3 = boto3.client(
         's3',
         aws_access_key_id=settings.AWS_ACCESS_KEY,
         aws_secret_access_key=settings.AWS_SECRET_KEY,
-        region_name=settings.REGION_NAME
+        region_name=settings.AWS_REGION
     )
     
     local_folder = "app/data/profile_pic_HD" # 로컬 이미지 경로
@@ -65,6 +59,6 @@ def seed_images_to_s3(local_folder):
 
 if __name__ == "__main__":
     LOCAL_IMG_DIR = "app/data/profile_pic_HD"
-    result_urls = upload_images_to_s3(LOCAL_IMG_DIR)
+    result_urls = seed_images_to_s3(LOCAL_IMG_DIR)
     
     print(f"\n총 {len(result_urls)}개의 이미지가 업로드되었습니다.")

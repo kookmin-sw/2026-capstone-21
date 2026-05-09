@@ -1,17 +1,20 @@
 #!/bin/bash
 set -e
 
-echo "🏗️ [2/7] DB 테이블 생성..."
+echo "🏗️ [1/7] DB 테이블 생성..."
 python -c "from app.db.database import engine; from app.db import models; models.Base.metadata.create_all(bind=engine)"
 
-echo "📂 [3/7] 카테고리 데이터 시딩..."
+echo "📂 [2/7] 카테고리 데이터 시딩..."
 python -m app.seed.seed_categories
 
-echo "📸 [4/7] 인플루언서 데이터 시딩..."
+echo "📸 [3/7] 인플루언서 데이터 시딩..."
 python -m app.seed.seed_influencers
 
-echo "🤷‍♀️ [5/7] 초기 유저 데이터 시딩..."
+echo "🤷‍♀️ [4/7] 초기 유저 데이터 시딩..."
 python -m app.seed.seed_users
+
+echo "🤷 [5/7] 초기 인플루언서 이미지 데이터 시딩..."
+python -m app.seed.seed_images
 
 echo "📝 [6/7] 초기 액션 로그 데이터 시딩..."
 python -m app.seed.seed_logs
