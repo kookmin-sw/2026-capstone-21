@@ -530,7 +530,7 @@ export function InfluencerProfile() {
       </AnimatePresence>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-        {filteredInfluencers.map((influencer) =>
+        {displayedInfluencers.map((influencer) =>
           renderInfluencerCard(influencer)
         )}
       </div>
