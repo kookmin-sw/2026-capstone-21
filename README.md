@@ -12,12 +12,14 @@
 
 ## 🙋‍♂️ 팀원 소개
 
-| 고주희 | 이은진 | 최윤지 | 백송훈 | 오형석 |
-|:------:|:------:|:------:|:------:|:------:|
-| 학번 | 학번 | 학번 | 학번 | 학번 |
-| AI & Data Processing, Leader | Back-end | Back-end | Front-end | Front-end |
+| 사진 | 이름 | 역할 | GitHub | 이메일 |
+|---|---|---|---|---|
+|  | 고주희 (팀장) | AI & Data Processing | <a href="https://github.com/jooheeko"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @jooheeko</a> |  |
+|  | 이은진 | Back-end |  |  |
+|  | 최윤지  | Back-end |  |  |
+|  | 백송훈 | Front-end |  |  |
+|  | 오형석 | Front-end |  |  |
 
-팀원정보 및 담당이나 사진 및 SNS를 이용하여 소개하세요.
 
 ## 🛠️ 기술 스택
 
