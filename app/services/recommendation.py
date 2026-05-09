@@ -8,15 +8,52 @@ from scipy.sparse import coo_matrix
 from lightfm import LightFM
 from sentence_transformers import SentenceTransformer
 
-from app.db.models import Influencer, InfluencerEmbedding, UserActionLog, RecommendationRun
+from app.db.models import Influencer, InfluencerEmbedding, UserActionLog, BanditStatus, RecommendationRun
 from app.utils.setting_config import settings
 
 # 파일 상단 import 아래에 추가
 GLOBAL_MODEL = None
-GLOBAL_FAISS_INDEX = None
-GLOBAL_INF_IDS = None
-GLOBAL_INF_GRADES = None
-GLOBAL_LFM_MODEL = None
+LATEST_LFM_MODEL = None
+LATEST_USER_MAP = None
+LATEST_INF_MAP = None
+
+def update_global_lfm_model(db: Session):
+    # 이 함수를 10분마다 혹은 특정 주기로 실행=
+    global LATEST_LFM_MODEL, LATEST_USER_MAP, LATEST_INF_MAP
+    
+    # 사용자 액션 로그 기반 LightFM 학습
+    # 1. 로그 데이터 가져오기
+    logs = db.query(UserActionLog).all()
+    active_infs = db.query(Influencer.influencer_id).filter(Influencer.is_active == True).all()
+    inf_ids = [row.influencer_id for row in active_infs]
+
+    if not logs or not inf_ids:
+        return
+
+    user_list = list(set(l.user_id for l in logs))
+    user_map = {uid: i for i, uid in enumerate(user_list)}
+    inf_map = {iid: i for i, iid in enumerate(inf_ids)}
+
+    u_indices = [user_map[l.user_id] for l in logs if l.influencer_id in inf_map]
+    i_indices = [inf_map[l.influencer_id] for l in logs if l.influencer_id in inf_map]
+    rewards = [l.reward for l in logs if l.influencer_id in inf_map]
+
+    if not u_indices:
+        return
+    interaction_matrix = coo_matrix(
+        (rewards, (u_indices, i_indices)),
+        shape=(len(user_list), len(inf_ids))
+    )
+
+    # 2. 모델 학습
+    new_model = LightFM(loss="warp")
+    new_model.fit(interaction_matrix, epochs=10)
+    
+    # 3. 전역 변수 교체 (Atomic하게 교체됨)
+    LATEST_LFM_MODEL = new_model
+    LATEST_USER_MAP = user_map
+    LATEST_INF_MAP = inf_map
+
 
 # --- 1. Bandit 로직 클래스 (독립적인 의사결정 담당) ---
 class ReRankingBandit:
@@ -30,17 +67,25 @@ class ReRankingBandit:
             (0.6, 0.2, 0.2)
         ]
         self.n_actions = len(self.actions)
-        
         # Alpha, Beta 파라미터 초기화 (AttributeError 방지)
         self.alphas, self.betas = self._load_bandit_stats()
 
     def _load_bandit_stats(self):
-        """
-        DB 로그 등을 분석해 현재 Bandit의 학습 상태(Alpha, Beta)를 로드합니다.
-        현 단계에서는 단순화를 위해 기본값(1, 1)에서 시작하거나 
-        추후 DB 테이블에서 값을 읽어오도록 확장 가능합니다.
-        """
-        return np.ones(self.n_actions), np.ones(self.n_actions)
+        #현재 Bandit의 학습 상태(Alpha, Beta)를 로드합니다.
+        stats = self.db.query(BanditStatus).order_by(BanditStatus.action_idx).all()
+        
+        if not stats: # 데이터 없을 때
+            alphas = np.ones(self.n_actions)
+            betas = np.ones(self.n_actions)
+            for i in range(self.n_actions):
+                self.db.add(BanditStatus(action_idx=i, alpha=1.0, beta=1.0))
+            self.db.commit()
+            return alphas, betas
+    
+        # 3. DB에 저장된 값 리턴
+        alphas = np.array([s.alpha for s in stats])
+        betas = np.array([s.beta for s in stats])
+        return alphas, betas
 
     def select_action(self):
         """Thompson Sampling을 통해 최적의 가중치 조합 선택"""
@@ -49,11 +94,13 @@ class ReRankingBandit:
         return self.actions[action_idx], action_idx
 
     def update(self, action_idx, reward):
-        """피드백(Reward)에 따라 파라미터 업데이트"""
-        if reward > 0:
-            self.alphas[action_idx] += reward
-        else:
-            self.betas[action_idx] += abs(reward)
+        status = self.db.query(BanditStatus).filter(BanditStatus.action_idx == action_idx).first()
+        if status:
+            if reward > 0:
+                status.alphas[action_idx] += reward
+            else:
+                status.betas[action_idx] += abs(reward)
+            self.db.commit()
 
 # --- 2. 추천 엔진 클래스 (메인 로직 담당) ---
 class RecommendationEngine:
@@ -81,95 +128,38 @@ class RecommendationEngine:
 
         self._load_resources()
 
-    def _load_resources(self):
-        """FAISS 인덱스 구축 및 캐싱"""
-
-        # FAISS/임베딩 리소스 캐시 재사용
-        global GLOBAL_FAISS_INDEX, GLOBAL_INF_IDS, GLOBAL_INF_GRADES
-
-        if GLOBAL_FAISS_INDEX is not None:
-            self.faiss_index = GLOBAL_FAISS_INDEX
-            self.inf_ids = GLOBAL_INF_IDS
-            self.inf_grades = GLOBAL_INF_GRADES
-            return
-
-        # 1. 인플루언서 임베딩 로드
-        # is_active=True인 인플루언서만 로딩
-        embeddings = (
-            self.db.query(
-                InfluencerEmbedding.influencer_id,
-                InfluencerEmbedding.embedding_vector,
-                Influencer.grade_score
-            )
-            .join(Influencer, Influencer.influencer_id == InfluencerEmbedding.influencer_id)
-            .filter(Influencer.is_active.is_(True))
-            .all()
-        )
-
-        if not embeddings:
-            return
-
-        vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')
-        
-        faiss_index = faiss.IndexFlatIP(vectors.shape[1])
-        faiss_index.add(vectors)
-            
-        inf_ids = [e.influencer_id for e in embeddings]
-        inf_grades = {e.influencer_id: (e.grade_score / 5.0 if e.grade_score else 0.2) for e in embeddings}
-
-        # 전역 캐시에 저장
-        GLOBAL_FAISS_INDEX = faiss_index
-        GLOBAL_INF_IDS = inf_ids
-        GLOBAL_INF_GRADES = inf_grades
-
-        # 현재 객체에도 연결
-        self.faiss_index = GLOBAL_FAISS_INDEX
-        self.inf_ids = GLOBAL_INF_IDS
-        self.inf_grades = GLOBAL_INF_GRADES
-
-        # 2. LightFM 학습
-        # self._train_lfm()
-
-    def _train_lfm(self):
-        """사용자 액션 로그 기반 LightFM 학습"""
-        logs = self.db.query(UserActionLog).all()
-        if not logs or not self.inf_ids:
-            return
-
-        user_list = list(set(l.user_id for l in logs))
-        self.user_map = {uid: i for i, uid in enumerate(user_list)}
-        inf_map = {iid: i for i, iid in enumerate(self.inf_ids)}
-
-        u_indices = [self.user_map[l.user_id] for l in logs if l.influencer_id in inf_map]
-        i_indices = [inf_map[l.influencer_id] for l in logs if l.influencer_id in inf_map]
-        rewards = [l.reward for l in logs if l.influencer_id in inf_map]
-
-        if u_indices:
-            interaction_matrix = coo_matrix(
-                (rewards, (u_indices, i_indices)),
-                shape=(len(user_list), len(self.inf_ids))
-            )
-            self.lfm_model.fit(interaction_matrix, epochs=10)
-
     def recommend(self, user_id: int, query_text: str, top_k=5):
         """최종 추천 수행"""
         if not self.faiss_index:
             return []
 
-        # [STEP 1] FAISS 검색 (Candidate Retrieval)
+        # [STEP 1] 벡터 유사도 기반 검색
         query_vec = self.model.encode([query_text], normalize_embeddings=True).astype('float32')
-        search_k = min(top_k, len(self.inf_ids))
-        faiss_scores, faiss_indices = self.faiss_index.search(query_vec, search_k)
+        sql = """
+            SELECT 
+                e.influencer_id, 
+                1 - VECTOR_DISTANCE(e.embedding_vector, :q_vec, 'COSINE') AS similarity,
+                i.grade_score
+            FROM influencer_embedding e
+            JOIN influencer i ON e.influencer_id = i.influencer_id
+            WHERE i.is_active = TRUE
+            ORDER BY similarity DESC
+            LIMIT :limit
+        """
+        results = self.db.execute(text(sql), {"q_vec": str(query_vec), "limit": top_k * 10}).fetchall()
 
         # [STEP 2] Bandit 가중치 선택
         (w_faiss, w_lfm, w_grade), action_idx = self.bandit.select_action()
 
         # [STEP 3] 점수 결합 (Hybrid Scoring)
-        candidate_inf_ids = [self.inf_ids[idx] for idx in faiss_indices[0]]
-        
+        candidate_inf_ids = [row.influencer_id for row in results]
+        query_similarity_map = {row.influencer_id: float(row.similarity) for row in results}
+        query_grade_map = {row.influencer_id: (float(row.grade_score) / 5.0 if row.grade_score else 0.2) for row in results}
+
         # LightFM 개인화 점수 계산
-        if user_id in self.user_map:
-            u_idx = self.user_map[user_id]
+        global LATEST_LFM_MODEL, LATEST_USER_MAP
+        if LATEST_LFM_MODEL and LATEST_USER_MAP and user_id in LATEST_USER_MAP:
+            u_idx = LATEST_USER_MAP[user_id]
             inf_matrix_indices = [self.inf_ids.index(iid) for iid in candidate_inf_ids]
             lfm_scores = expit(self.lfm_model.predict(u_idx, np.array(inf_matrix_indices)))
         else:
@@ -193,8 +183,6 @@ class RecommendationEngine:
                 "personalization_score": personalization_score,
                 "grade_score": grade_score,
                 "final_score": float(final_score),
-
-                # 기존 router/frontend 호환용
                 "score": float(final_score),
 
                 "action_idx": action_idx # 추천 실행 시 어떤 가중치가 쓰였는지 함께 리턴

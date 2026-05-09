@@ -14,6 +14,7 @@ from sqlalchemy import (
     Index,
     JSON,
 )
+from sqlalchemy.types import UserDefinedType
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -172,7 +173,13 @@ class InfluencerCategory(Base):
     influencer = relationship("Influencer", back_populates="influencer_categories")
     category = relationship("Category", back_populates="influencer_categories")
 
+class Vector(UserDefinedType):
+    def __init__(self, dim):
+        self.dim = dim
 
+    def get_col_spec(self, **kw):
+        return f"VECTOR({self.dim})"
+        
 # 인플루언서 임베딩 테이블
 class InfluencerEmbedding(Base):
     __tablename__ = "influencer_embedding"
@@ -189,7 +196,7 @@ class InfluencerEmbedding(Base):
     embedding_text = Column(Text, nullable=False)
 
     # 임베딩 벡터
-    embedding_vector = Column(JSON, nullable=False)
+    embedding_vector = Column(Vector(1024))
 
     created_at = Column(DateTime, nullable=False, server_default=func.now())
     updated_at = Column(
@@ -435,6 +442,13 @@ class UserActionLog(Base):
     influencer = relationship("Influencer", back_populates="action_logs")
     run = relationship("RecommendationRun", back_populates="action_logs")
 
+class BanditStatus(Base):
+    __tablename__ = "bandit_status"
+
+    action_idx = Column(Integer, primary_key=True) # 가중치 조합 번호 (0, 1, 2, 3)
+    alpha = Column(Float, nullable=False, default=1.0)
+    beta = Column(Float, nullable=False, default=1.0)
+    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())
 
 # 관심 인플루언서 테이블
 # My Picks 기능에서 사용
