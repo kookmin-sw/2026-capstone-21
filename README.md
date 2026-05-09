@@ -77,7 +77,7 @@ asdasd
 
 ## 🙋‍♂️ 팀원 소개
 
-| 사진 | 이름 | 역할 | GitHub | 이메일 |
+| 사진 | 이름 | 역할 | GitHub | Email |
 |---|---|---|---|---|
 |  | 고주희 (팀장) | AI & Data Processing | <a href="https://github.com/jooheeko"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @jooheeko</a> |  |
 |  | 이은진 | Back-end | <a href="https://github.com/molba2see"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @molba2see</a> |  |
