@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "jsx": "react-jsx",          // 반드시 react-jsx여야 함
+    "moduleResolution": "Node",  // 혹은 최신 버전은 "Bundler"
+    "skipLibCheck": true,        // 타입 라이브러리의 내부 에러 무시
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true
+  }
+}
