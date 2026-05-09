@@ -1,0 +1,3 @@
+[submodule "chatwoot"]
+    path = chatwoot
+    url = https://github.com/chatwoot/chatwoot.git
