@@ -22,6 +22,10 @@ class Settings(BaseSettings):
     # AI 모델 설정
     EMBEDDING_MODEL: str = "BAAI/bge-m3"
 
+    AWS_ACCESS_KEY: str = os.getenv("AWS_ACCESS_KEY")
+    AWS_SECRET_KEY: str = os.getenv("AWS_SECRET_KEY")
+    AWS_REGION: str = os.getenv("AWS_REGION", "ap-northeast-2") # 기본값 서울 리전
+    BUCKET_NAME: str = os.getenv("BUCKET_NAME")
     
     class Config:
         case_sensitive = True

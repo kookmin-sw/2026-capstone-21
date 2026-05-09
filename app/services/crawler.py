@@ -5,6 +5,8 @@ import requests
 import pandas as pd
 from datetime import datetime, timezone, timedelta
 from sqlalchemy.orm import Session
+import boto3
+from io import BytesIO
 
 from app.db.models import Influencer
 from app.crud.influencer import create_influencer_posts, create_related_relations
@@ -22,9 +24,13 @@ class CrawlerService:
     def __init__(self, db: Session, save_folder: str = "static/profile_pics"):
         self.db = db
         self.save_folder = save_folder
-
-        if not os.path.exists(self.save_folder):
-            os.makedirs(self.save_folder)
+        self.s3 = boto3.client(
+            's3',
+            aws_access_key_id=settings.AWS_ACCESS_KEY,
+            aws_secret_access_key=settings.AWS_SECRET_KEY,
+            region_name=settings.AWS_REGION
+        )
+        self.bucket_name = settings.BUCKET_NAME
 
     def _save_to_db(self, final_df):
         count = 0
@@ -37,8 +43,8 @@ class CrawlerService:
             )
             inf_item.update(metrics)
 
-            profile_pic_path = self.download_image_locally(inf_item)
-            inf_item["profilePicUrl"] = profile_pic_path
+            s3_url = self.upload_image_to_s3(inf_item)
+            inf_item["profilePicUrl"] = s3_url
 
             db_influencer = upsert_influencer(self.db, inf_item)
 
@@ -110,29 +116,28 @@ class CrawlerService:
 
         return self._save_to_db(final_df)
 
-    def download_image_locally(self, row: dict) -> str:
+    def upload_image_to_s3(self, row: dict) -> str:
         url = str(row.get("profilePicUrlHD", "")).replace(r"\/", "/")
         username = row.get("username")
 
         if not url or pd.isna(url) or not username:
             return ""
 
-        file_name = f"{username}.jpg"
-        file_path = os.path.join(self.save_folder, file_name)
-
-        if os.path.exists(file_path):
-            return file_path
-
-        headers = {"User-Agent": "Mozilla/5.0"}
-
         try:
+            headers = {"User-Agent": "Mozilla/5.0"}
             response = requests.get(url, headers=headers, timeout=10)
 
             if response.status_code == 200:
-                with open(file_path, "wb") as f:
-                    f.write(response.content)
+                file_name = f"profile_pics/{username}.jpg"
+                image_data = BytesIO(response.content)
 
-                return file_path
+                self.s3.upload_fileobj(
+                    image_data,
+                    self.bucket_name,
+                    file_name,
+                    ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'}
+                )
+                return f"https://{self.bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{file_name}"
 
         except Exception as e:
             print(f"⚠️ 이미지 다운로드 실패({username}): {e}")
