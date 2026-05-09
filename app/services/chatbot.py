@@ -33,13 +33,52 @@ class ChatbotService:
                 articles = res.json().get('payload', [])
                 if not articles:
                     return None
-                # 아티클들의 제목과 내용을 텍스트로 합침
-                answer = "\n".join([f"제목: {a['title']}\n내용: {a['content']}" for a in articles])
-                print(f"✅ {len(articles)}개의 아티클: {answer}")
-                return answer
+                return articles
         except Exception as e:
             print(f"⚠️ 지식 베이스 로드 실패: {e}")
         return None
+
+    def _format_help_center_articles(self, articles: list[dict]) -> str:
+        return "\n".join([f"제목: {a.get('title', '').strip()}\n내용: {a.get('content', '').strip()}" for a in articles])
+
+    def _find_help_center_matches(self, question_content: str, articles: list[dict]) -> list[dict]:
+        normalized_question = question_content.strip().lower()
+        if not normalized_question:
+            return []
+
+        matches: list[dict] = []
+        for article in articles:
+            title = str(article.get('title', '')).lower()
+            content = str(article.get('content', '')).lower()
+            if self._is_help_doc_relevant(title) or self._is_help_doc_relevant(content):
+                matches.append(article)
+
+        return matches
+
+    def _is_help_doc_relevant(self, target: str) -> bool:
+        keywords = [
+            "로그인",
+            "회원가입",
+            "비밀번호",
+            "아이디",
+            "접속",
+            "가입",
+            "필터",
+            
+            "별표",
+            "찜",
+            "my picks",
+            "마이픽",
+            "메모",
+            "저장",
+            "data insights",
+            "grade score",
+            "인플루언서 비교",
+            "카테고리별 분포도",
+            "인플루언서 카드",
+            "find influencers"
+        ]
+        return any(keyword in target for keyword in keywords if keyword)
 
     def process_and_reply(self, conversation_id: int, question_content: str, question_type: str, user_id: int = 1):
         with SessionLocal() as db:
@@ -52,14 +91,23 @@ class ChatbotService:
                 
                 if last_log:
                     question_type = last_log.question_type
-            
+
+            # 질문 내용에 따라 question_type 재분류 (이미 설정된 타입이라도)
+            if self._is_influencer_recommendation_question(question_content):
+                question_type = "인플루언서 추천"
+            elif self._is_site_use_question(question_content):
+                question_type = "사이트 이용 관련"
+            elif question_type == "일반":
+                # 일반 질문으로 유지
+                pass
+
             # 1. 환각 방지를 위한 매우 엄격한 시스템 프롬프트 설정
             system_role = (
                 "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다.\n"
                 "가장 중요한 규칙: 반드시 제공된 [참고 데이터] 내의 정보만을 사용하여 답변하세요.\n"
-                "만약 질문에 대한 답이 데이터에 없다면, 절대 지어내지 마세요. "
-                "대신 반드시 다음과 같이 답변하세요: '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. "
-                "추가적인 도움이 필요하시면 상담원 연결을 요청해 주세요.'"
+                "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내'.\n"
+                "질문에 답이 이 문서들에 있다면, 반드시 그 문서의 내용을 그대로 사용하여 구체적으로 답변하세요.\n"
+                "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.'라고만 답하세요."
             )
             context_data=""
 
@@ -82,24 +130,27 @@ class ChatbotService:
                         "왜 이 브랜드 무드에 적합한지 'AI 매칭 점수'와 '스타일 키워드'를 인용하여 논리적으로 설명하세요."
                     )
                 else:
-                    self._complete_process(conversation_id, "현재 조건에 맞는 인플루언서 추천 결과가 없습니다. 조금 더 구체적인 스타일을 입력해 주시겠어요?")
+                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
                     return
 
             # --- [CASE 2] 사이트 이용 관련 질문 (RAG 방식) ---
             elif question_type == "사이트 이용 관련":
-                help_docs = self._get_chatwoot_help_center_articles()
-                
-                # 문서가 없으면 GPT 호출 없이 즉시 답변 (환각 원천 차단)
-                if not help_docs:
-                    self._complete_process(conversation_id, "죄송합니다. 현재 이용 안내 문서를 불러올 수 없습니다. 상담원 연결을 통해 도와드리겠습니다.")
+                help_articles = self._get_chatwoot_help_center_articles()
+                if not help_articles:
+                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
                     return
 
-                context_data = f"\n[서비스 이용 안내 문서]\n{help_docs}"
+                relevant_articles = self._select_relevant_help_center_articles(question_content, help_articles)
+                if not relevant_articles:
+                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                    return
+
+                context_data = f"\n[서비스 이용 안내 문서]\n{self._format_help_center_articles(relevant_articles)}"
                 system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
 
             else:
-            # 💡 [핵심] 일반 질문일 때의 가이드 추가
-                system_role += "\n현재 특정 카테고리가 선택되지 않은 일반 문의 상태입니다. 서비스 전반에 대해 아는 대로 친절히 답해주세요."
+                self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                return
 
             # --- GPT API 호출 (검증된 설정 적용) ---
             try:
@@ -129,6 +180,258 @@ class ChatbotService:
         self._update_conversation_question_type(conversation_id, DEFAULT_QUESTION_TYPE)
         self._complete_process(conversation_id, QUESTION_TYPE_SELECTION_MESSAGE)
         self._resolve_conversation(conversation_id)
+
+    def _is_site_use_question(self, question_content: str) -> bool:
+        """일반 질문 중 사이트 이용 관련 키워드가 포함된 경우 자동으로 분류합니다."""
+        if not question_content:
+            return False
+        normalized = question_content.strip().lower()
+        keywords = [
+            "로그인",
+            "회원가입",
+            "회원",
+            "비밀번호",
+            "아이디",
+            "접속",
+            "사이트 이용",
+            "이용 방법",
+            "사용 방법",
+            "가입",
+            "인증",
+            "find influencers",
+            "search influencers",
+            "필터",
+            "추천받기 검색창",
+            "추천받기",
+            "추천",
+            "별표 기능",
+            "별표",
+            "찜",
+            "my picks",
+            "마이 픽",
+            "마이픽",
+            "마이픽스",
+            "메모",
+            "저장",
+            "데이터 인사이트",
+            "data insights",
+            "grade score",
+            "인플루언서 비교",
+            "카테고리별 분포도",
+            "추천받기 검색창",
+            "인플루언서 카드",
+            "인플루언서 메모",
+        ]
+        return any(keyword in normalized for keyword in keywords)
+
+    def _is_influencer_recommendation_question(self, question_content: str) -> bool:
+        """질문이 인플루언서 추천 관련인지 확인합니다."""
+        if not question_content:
+            return False
+        normalized = question_content.strip().lower()
+        keywords = [
+            "인플루언서 추천",
+            "추천해줘",
+            "추천해주세요",
+            "맞는 인플루언서",
+            "어떤 인플루언서",
+            "인플루언서 찾아줘",
+            "인플루언서 추천해줘",
+            "인플루언서 추천해주세요",
+            "인플루언서 추천받기",
+            "추천받기",
+            "ai 추천",
+            "ai 매칭",
+            "맞춤 추천",
+            "추천 방식",
+            "추천 결과",
+            "추천 목록",
+            "인플루언서 리스트",
+            "인플루언서 목록",
+            "인플루언서 검색",
+            "인플루언서 찾기",
+            "인플루언서 분석",
+            "인플루언서 등급",
+            "grade score",
+            "매칭 점수",
+            "스타일 키워드",
+        ]
+        return any(keyword in normalized for keyword in keywords)
+
+    def _select_relevant_help_center_articles(self, question_content: str, articles: list[dict]) -> list[dict]:
+        normalized_question = question_content.strip().lower()
+        if not normalized_question:
+            return []
+
+        mapped_titles = self._map_question_to_document_titles(normalized_question)
+        if mapped_titles:
+            matched_articles: list[dict] = []
+            for article in articles:
+                title = str(article.get('title', '')).lower()
+                if any(mapped_title in title for mapped_title in mapped_titles):
+                    matched_articles.append(article)
+            if matched_articles:
+                return matched_articles
+
+        matches: list[dict] = []
+        keyword_list = self._site_use_keywords()
+        for article in articles:
+            title = str(article.get('title', '')).lower()
+            content = str(article.get('content', '')).lower()
+            if any(keyword in title or keyword in content for keyword in keyword_list):
+                matches.append(article)
+
+        return matches
+
+    def _map_question_to_document_titles(self, normalized_question: str) -> list[str]:
+        mapping = {
+            "회원가입 및 로그인 안내": [
+                "로그인",
+                "회원가입",
+                "비밀번호",
+                "아이디",
+                "계정",
+                "가입",
+                "인증",
+                "잘 안돼",
+                "로그인 안",
+                "로그인 안돼",
+                "로그인 안돼요",
+                "로그인 실패",
+                "로그인 오류",
+                "로그인 안 됨",
+                "회원가입 안돼",
+                "회원가입 실패",
+                "회원가입 오류",
+                "계정 생성",
+                "sign up",
+                "login",
+            ],
+            "My Picks의 기능 안내": [
+                "my picks",
+                "마이 픽",
+                "마이픽",
+                "마이픽스",
+                "별표",
+                "찜",
+                "저장",
+                "저장한",
+                "저장된",
+                "메모",
+                "메모 기능",
+                "메모 어디",
+                "메모가 어디",
+                "메모 확인",
+                "마이픽스에",
+                "My Picks에",
+                "My Picks는",
+                "My Picks 뭐",
+                "북마크"
+            ],
+            "Find Influencers의 기능 안내": [
+                "find influencers",
+                "search influencers",
+                "필터",
+                "검색",
+                "검색창",
+                "검색창에",
+                "무드",
+                "카테고리",
+                "추천받기 검색창",
+                "인플루언서 카드",
+                "인플루언서 검색",
+                "기능",
+                "어떻게 검색",
+                "검색 어떻게",
+                "필터 누르면",
+                "인플루언서 찾기",
+                "인플루언서 찾는 방법",
+                "인플루언서 검색 방법",
+                "인플루언서 목록",
+                "인플루언서 리스트",
+                "인플루언서 확인",
+                "인플루언서 계정",
+                "인플루언서 이름",
+                "인플루언서 팔로워",
+                "인플루언서 카테고리",
+                "인플루언서 스타일",
+            ],
+            "인플루언서 추천 기능 안내": [
+                "추천받기",
+                "추천",
+                "ai",
+                "매칭",
+                "무드",
+                "카테고리",
+                "맞춤 추천",
+                "추천 방식",
+            ],
+            "Data Insights의 기능 안내": [
+                "data insights",
+                "grade score",
+                "인플루언서 비교",
+                "카테고리별 분포도",
+                "분석",
+                "통계",
+                "랭킹",
+                "점수",
+                "보고서",
+            ],
+        }
+
+        matched_titles: list[str] = []
+        for title, keywords in mapping.items():
+            if any(keyword in normalized_question for keyword in keywords):
+                matched_titles.append(title.lower())
+        return matched_titles
+
+    def _site_use_keywords(self) -> list[str]:
+        return [
+            "로그인",
+            "회원가입",
+            "회원",
+            "비밀번호",
+            "아이디",
+            "접속",
+            "사이트 이용",
+            "이용 방법",
+            "사용 방법",
+            "가입",
+            "인증",
+            "로그인 안돼",
+            "로그인 실패",
+            "로그인 오류",
+            "회원가입 안돼",
+            "회원가입 실패",
+            "필터",
+            "추천받기",
+            "추천",
+            "별표",
+            "찜",
+            "my picks",
+            "마이 픽",
+            "마이픽",
+            "마이픽스",
+            "메모",
+            "메모 기능",
+            "메모 어디",
+            "저장",
+            "저장한",
+            "저장된",
+            "데이터 인사이트",
+            "data insights",
+            "grade score",
+            "인플루언서 비교",
+            "카테고리별 분포도",
+            "인플루언서 카드",
+            "인플루언서 메모",
+            "검색",
+            "검색창",
+            "무드",
+            "카테고리",
+            "분석",
+            "통계",
+        ]
 
     def _update_conversation_question_type(self, conversation_id: int, question_type: str):
         url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/custom_attributes"
