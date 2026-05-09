@@ -3,8 +3,7 @@ from typing import Optional, Union, List, Dict
 import requests
 import openai  
 from app.db.database import SessionLocal
-from app.db.models import ChatwootLog, Influencer
-from app.services.recommendation import RecommendationEngine
+from app.db.models import ChatwootLog
 from app.utils.setting_config import settings
 
 # 설정 정보
@@ -15,6 +14,11 @@ QUESTION_TYPE_SELECTION_MESSAGE = (
     "새로운 질문을 시작하려면 질문 유형을 다시 선택해 주세요.\n"
     "- 인플루언서 추천\n"
     "- 사이트 이용 관련"
+)
+RECOMMENDATION_UNAVAILABLE_MESSAGE = (
+    "현재 인플루언서 추천 기능은 추천 시스템 고도화 작업 중이라 챗봇에서 바로 제공하기 어렵습니다.\n\n"
+    "대신 Find Influencers 화면에서 카테고리, 스타일 키워드, Grade Score를 기준으로 "
+    "인플루언서를 먼저 탐색해 보실 수 있습니다."
 )
 
 class ChatbotService:
@@ -155,92 +159,80 @@ class ChatbotService:
     def process_and_reply(self, conversation_id: int, question_content: str, question_type: str, user_id: int = 1):
         with SessionLocal() as db:
             self.db = db
-            if not question_type or question_type == "일반":
-                last_log = db.query(ChatwootLog).filter(
-                    ChatwootLog.conversation_id == conversation_id,
-                    ChatwootLog.question_type != "일반"
-                ).order_by(ChatwootLog.id.desc()).first()
-                
-                if last_log:
-                    question_type = last_log.question_type
-
-            # 질문 내용에 따라 question_type 재분류 (이미 설정된 타입이라도)
-            if self._is_influencer_recommendation_question(question_content):
-                question_type = "인플루언서 추천"
-            elif self._is_site_use_question(question_content):
-                question_type = "사이트 이용 관련"
-            elif question_type == "일반":
-                # 일반 질문으로 유지
-                pass
-
-            # 1. 환각 방지를 위한 매우 엄격한 시스템 프롬프트 설정
-            system_role = (
-                "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다.\n"
-                "가장 중요한 규칙: 반드시 제공된 [참고 데이터] 내의 정보만을 사용하여 답변하세요.\n"
-                "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내'.\n"
-                "질문에 답이 이 문서들에 있다면, 반드시 그 문서의 내용을 그대로 사용하여 구체적으로 답변하세요.\n"
-                "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.'라고만 답하세요."
-            )
-            context_data=""
-
-            # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
-            if question_type == "인플루언서 추천":
-                engine = RecommendationEngine(db)
-                recs = engine.recommend(user_id=user_id, query_text=question_content, top_k=3)
-                
-                if recs:
-                    context_data = "\n[추천된 인플루언서 정보]\n"
-                    for r in recs:
-                        inf = db.query(Influencer).filter(Influencer.influencer_id == r['influencer_id']).first()
-                        if inf:
-                            context_data += (f"- ID: {inf.username}, 등급: {inf.grade_score}, "
-                                            f"주요스타일: {inf.style_keywords_text}, "
-                                            f"AI 매칭 점수: {r['score']:.2f}\n")
+            try:
+                if not question_type or question_type == "일반":
+                    last_log = db.query(ChatwootLog).filter(
+                        ChatwootLog.conversation_id == conversation_id,
+                        ChatwootLog.question_type != "일반"
+                    ).order_by(ChatwootLog.id.desc()).first()
                     
-                    system_role += (
-                        "\n제공된 추천 데이터를 바탕으로 사용자에게 최적의 인플루언서를 제안하세요. "
-                        "왜 이 브랜드 무드에 적합한지 'AI 매칭 점수'와 '스타일 키워드'를 인용하여 논리적으로 설명하세요."
-                    )
+                    if last_log:
+                        question_type = last_log.question_type
+
+                # 질문 내용에 따라 question_type 재분류 (이미 설정된 타입이라도)
+                if self._is_influencer_recommendation_question(question_content):
+                    question_type = "인플루언서 추천"
+                elif self._is_site_use_question(question_content):
+                    question_type = "사이트 이용 관련"
+                elif question_type == "일반":
+                    # 일반 질문으로 유지
+                    pass
+
+                # 1. 환각 방지를 위한 매우 엄격한 시스템 프롬프트 설정
+                system_role = (
+                    "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다.\n"
+                    "가장 중요한 규칙: 반드시 제공된 [참고 데이터] 내의 정보만을 사용하여 답변하세요.\n"
+                    "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내'.\n"
+                    "질문에 답이 이 문서들에 있다면, 반드시 그 문서의 내용을 그대로 사용하여 구체적으로 답변하세요.\n"
+                    "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.'라고만 답하세요."
+                )
+                context_data=""
+
+                # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
+                if question_type == "인플루언서 추천":
+                    self._complete_process(conversation_id, RECOMMENDATION_UNAVAILABLE_MESSAGE)
+                    return
+
+                # --- [CASE 2] 사이트 이용 관련 질문 (RAG 방식) ---
+                elif question_type == "사이트 이용 관련":
+                    help_articles = self._get_chatwoot_help_center_articles()
+                    if not help_articles:
+                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                        return
+
+                    relevant_articles = self._select_relevant_help_center_articles(question_content, help_articles)
+                    if not relevant_articles:
+                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                        return
+
+                    context_data = f"\n[서비스 이용 안내 문서]\n{self._format_help_center_articles(relevant_articles)}"
+                    system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
+
                 else:
                     self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
                     return
 
-            # --- [CASE 2] 사이트 이용 관련 질문 (RAG 방식) ---
-            elif question_type == "사이트 이용 관련":
-                help_articles = self._get_chatwoot_help_center_articles()
-                if not help_articles:
-                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
-                    return
+                # --- GPT API 호출 (검증된 설정 적용) ---
+                try:
+                    response = self.client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[
+                            {"role": "system", "content": system_role},
+                            {"role": "user", "content": f"질문: {question_content}\n\n참고 데이터: {context_data}"}
+                        ],
+                        temperature=0.0,  # 사실 기반 답변을 위한 설정
+                        max_tokens=800
+                    )
+                    ai_answer = response.choices[0].message.content
+                except Exception as e:
+                    print(f"❌ GPT API 호출 실패: {e}")
+                    ai_answer = "시스템 오류로 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요."
 
-                relevant_articles = self._select_relevant_help_center_articles(question_content, help_articles)
-                if not relevant_articles:
-                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
-                    return
-
-                context_data = f"\n[서비스 이용 안내 문서]\n{self._format_help_center_articles(relevant_articles)}"
-                system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
-
-            else:
-                self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
-                return
-
-            # --- GPT API 호출 (검증된 설정 적용) ---
-            try:
-                response = self.client.chat.completions.create(
-                    model="gpt-4o-mini",
-                    messages=[
-                        {"role": "system", "content": system_role},
-                        {"role": "user", "content": f"질문: {question_content}\n\n참고 데이터: {context_data}"}
-                    ],
-                    temperature=0.0,  # 사실 기반 답변을 위한 설정
-                    max_tokens=800
-                )
-                ai_answer = response.choices[0].message.content
+                self._complete_process(conversation_id, ai_answer)
             except Exception as e:
-                print(f"❌ GPT API 호출 실패: {e}")
-                ai_answer = "시스템 오류로 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요."
-
-            self._complete_process(conversation_id, ai_answer)
+                db.rollback()
+                print(f"❌ 챗봇 처리 실패: {e}")
+                self._complete_process(conversation_id, "시스템 오류로 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.")
 
     def _complete_process(self, conversation_id: int, ai_answer: str):
         """결과 발송 및 로그 기록 공통 로직"""
