@@ -11,6 +11,13 @@ from sentence_transformers import SentenceTransformer
 from app.db.models import Influencer, InfluencerEmbedding, UserActionLog, RecommendationRun
 from app.utils.setting_config import settings
 
+# 파일 상단 import 아래에 추가
+GLOBAL_MODEL = None
+GLOBAL_FAISS_INDEX = None
+GLOBAL_INF_IDS = None
+GLOBAL_INF_GRADES = None
+GLOBAL_LFM_MODEL = None
+
 # --- 1. Bandit 로직 클래스 (독립적인 의사결정 담당) ---
 class ReRankingBandit:
     def __init__(self, db: Session):
@@ -52,22 +59,42 @@ class ReRankingBandit:
 class RecommendationEngine:
     def __init__(self, db: Session):
         self.db = db
-        self.model = SentenceTransformer(settings.EMBEDDING_MODEL)
-        self.lfm_model = LightFM(loss='warp')
-        self.bandit = ReRankingBandit(db) # Bandit 클래스 주입
-        
-        # 리소스 초기화
+
+        # SentenceTransformer는 한 번만 로딩
+        global GLOBAL_MODEL
+        if GLOBAL_MODEL is None:
+            GLOBAL_MODEL = SentenceTransformer(settings.EMBEDDING_MODEL)
+        self.model = GLOBAL_MODEL
+
+        # LightFM도 한 번만 생성
+        global GLOBAL_LFM_MODEL
+        if GLOBAL_LFM_MODEL is None:
+            GLOBAL_LFM_MODEL = LightFM(loss="warp")
+        self.lfm_model = GLOBAL_LFM_MODEL
+
+        self.bandit = ReRankingBandit(db)
+
         self.inf_ids = []
         self.inf_grades = {}
         self.faiss_index = None
         self.user_map = {}
-        
+
         self._load_resources()
 
     def _load_resources(self):
-        """FAISS 인덱스 구축 및 LightFM 사전 학습"""
+        """FAISS 인덱스 구축 및 캐싱"""
+
+        # FAISS/임베딩 리소스 캐시 재사용
+        global GLOBAL_FAISS_INDEX, GLOBAL_INF_IDS, GLOBAL_INF_GRADES
+
+        if GLOBAL_FAISS_INDEX is not None:
+            self.faiss_index = GLOBAL_FAISS_INDEX
+            self.inf_ids = GLOBAL_INF_IDS
+            self.inf_grades = GLOBAL_INF_GRADES
+            return
+
         # 1. 인플루언서 임베딩 로드
-        # ✅ is_active=True인 인플루언서만 로딩
+        # is_active=True인 인플루언서만 로딩
         embeddings = (
             self.db.query(
                 InfluencerEmbedding.influencer_id,
@@ -79,13 +106,26 @@ class RecommendationEngine:
             .all()
         )
 
-        if embeddings:
-            vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')
-            self.faiss_index = faiss.IndexFlatIP(vectors.shape[1])
-            self.faiss_index.add(vectors)
+        if not embeddings:
+            return
+
+        vectors = np.array([e.embedding_vector for e in embeddings]).astype('float32')
+        
+        faiss_index = faiss.IndexFlatIP(vectors.shape[1])
+        faiss_index.add(vectors)
             
-            self.inf_ids = [e.influencer_id for e in embeddings]
-            self.inf_grades = {e.influencer_id: (e.grade_score / 5.0 if e.grade_score else 0.2) for e in embeddings}
+        inf_ids = [e.influencer_id for e in embeddings]
+        inf_grades = {e.influencer_id: (e.grade_score / 5.0 if e.grade_score else 0.2) for e in embeddings}
+
+        # 전역 캐시에 저장
+        GLOBAL_FAISS_INDEX = faiss_index
+        GLOBAL_INF_IDS = inf_ids
+        GLOBAL_INF_GRADES = inf_grades
+
+        # 현재 객체에도 연결
+        self.faiss_index = GLOBAL_FAISS_INDEX
+        self.inf_ids = GLOBAL_INF_IDS
+        self.inf_grades = GLOBAL_INF_GRADES
 
         # 2. LightFM 학습
         # self._train_lfm()
