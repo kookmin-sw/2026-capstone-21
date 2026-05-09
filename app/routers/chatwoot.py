@@ -1,5 +1,6 @@
 from __future__ import annotations
-from typing import Optional, Union, List, Dict
+from datetime import datetime, timedelta
+from typing import Optional, Union, List, Dict, Any
 from app.db.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends, APIRouter, BackgroundTasks
@@ -9,38 +10,87 @@ from app.services.chatbot import ChatbotService
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatbot"])
 
+def _is_incoming_message(message_type: Optional[Union[str, int]]) -> bool:
+    if message_type == 0:
+        return True
+    if isinstance(message_type, str):
+        return message_type.lower() == "incoming"
+    return False
+
+def _extract_conversation_id(payload: ChatwootWebhookPayload) -> Optional[int]:
+    if payload.conversation and payload.conversation.id is not None:
+        return payload.conversation.id
+    return payload.conversation_id
+
+def _extract_question_type(payload: ChatwootWebhookPayload) -> str:
+    custom_attribute_sources: list[Dict[str, Any]] = []
+
+    if payload.custom_attributes:
+        custom_attribute_sources.append(payload.custom_attributes)
+
+    if payload.conversation and payload.conversation.custom_attributes:
+        custom_attribute_sources.append(payload.conversation.custom_attributes)
+
+    for attrs in custom_attribute_sources:
+        question_type = attrs.get("question_type")
+        if question_type:
+            return str(question_type)
+
+    try:
+        if payload.additional_attributes and payload.additional_attributes.custom_attributes:
+            return payload.additional_attributes.custom_attributes.question_type or "일반"
+    except Exception:
+        pass
+
+    return "일반"
+
 @router.post("/webhook")
 async def receive_question(
     payload: ChatwootWebhookPayload, 
     background_tasks: BackgroundTasks, 
     db: Session = Depends(get_db)
 ):
-# 1. '메시지 생성' 이벤트가 아니면 아예 무시 (핵심!)
+    # 1. '메시지 생성' 이벤트가 아니면 아예 무시 (핵심!)
     # Chatwoot이 보내는 온갖 알림(읽음 확인, 타이핑 등)을 여기서 다 걸러냅니다.
     if payload.event != "message_created":
         return {"status": "ignored", "reason": f"Event '{payload.event}' is not handled"}
 
     # 2. '유저가 보낸(incoming)' 메시지가 아니면 무시
     # 내가(봇이) 보낸 답장 웹훅이 다시 나에게 돌아오는 '무한 루프' 방지
-    if payload.message_type != "incoming":
+    if not _is_incoming_message(payload.message_type):
         return {"status": "ignored", "reason": "Not an incoming message"}
 
     # 3. 내용이 비어있으면 처리 안 함
-    if not payload.content or not payload.content.strip():
+    content = str(payload.content or "").strip()
+    if not content:
         return {"status": "ignored", "reason": "Empty content"}
 
+    conversation_id = _extract_conversation_id(payload)
+    if conversation_id is None:
+        return {"status": "ignored", "reason": "Missing conversation id"}
+
     # 안전하게 question_type 추출
-    q_type = "일반"
-    try:
-        if payload.additional_attributes and payload.additional_attributes.custom_attributes:
-            q_type = payload.additional_attributes.custom_attributes.question_type or "일반"
-    except Exception:
-        q_type = "일반"
+    q_type = _extract_question_type(payload)
+
+    duplicate_cutoff = datetime.now() - timedelta(seconds=5)
+    existing_log = (
+        db.query(ChatwootLog)
+        .filter(
+            ChatwootLog.conversation_id == conversation_id,
+            ChatwootLog.question_content == content,
+            ChatwootLog.question_type == q_type,
+            ChatwootLog.created_at >= duplicate_cutoff,
+        )
+        .order_by(ChatwootLog.id.desc())
+        .first()
+    )
+    if existing_log:
+        return {"status": "duplicate_ignored", "saved_id": existing_log.id}
 
     # DB 저장
     new_log = ChatwootLog(
-        conversation_id=payload.conversation.id,
-        question_content=payload.content,
+        conversation_id=conversation_id,
+        question_content=content,
         question_type=q_type
     )
     db.add(new_log)
@@ -51,8 +101,8 @@ async def receive_question(
     chatbot_service = ChatbotService()
     background_tasks.add_task(
         chatbot_service.process_and_reply, 
-        payload.conversation.id, 
-        payload.content, 
+        conversation_id, 
+        content, 
         q_type
     )
 
