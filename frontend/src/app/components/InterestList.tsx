@@ -70,8 +70,7 @@ export function InterestList() {
   const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
 
   const interestedInfluencers = useMemo(() => {
-    return [...interestList]   
-      .reverse()               
+    return [...interestList]                 
       .map((id) =>
         influencers.find((inf) => String(inf.id) === String(id))
       )

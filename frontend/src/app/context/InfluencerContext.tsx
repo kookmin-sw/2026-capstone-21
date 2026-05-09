@@ -70,7 +70,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       const result = await toggleFavorite(Number(id));
 
       if (result.status === 'added') {
-        setInterestList((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        setInterestList((prev) => (prev.includes(id) ? prev : [id, ...prev]));
         return 'added';
       }
 
@@ -109,7 +109,7 @@ export function InfluencerProvider({ children }: { children: ReactNode }) {
       } catch {
         await addFavorite(numericId, note);
 
-        setInterestList((prev) => (prev.includes(id) ? prev : [...prev, id]));
+        setInterestList((prev) => (prev.includes(id) ? prev : [id, ...prev]));
       }
 
       setNotes((prev) => ({
