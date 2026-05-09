@@ -1,15 +1,13 @@
 from __future__ import annotations
 from typing import Optional, Union, List, Dict
-import os
 import requests
 import openai  
 from app.db.database import SessionLocal
 from app.db.models import ChatwootLog, Influencer
 from app.services.recommendation import RecommendationEngine
+from app.utils.setting_config import settings
 
 # 설정 정보
-CHATWOOT_BASE_URL = os.getenv("CHATWOOT_BASE_URL")
-API_ACCESS_TOKEN = os.getenv("API_ACCESS_TOKEN")
 DEFAULT_QUESTION_TYPE = "일반"
 END_CONVERSATION_TEXT = "대화 종료"
 QUESTION_TYPE_SELECTION_MESSAGE = (
@@ -21,22 +19,96 @@ QUESTION_TYPE_SELECTION_MESSAGE = (
 
 class ChatbotService:
     def __init__(self):
-        self.client = openai.OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-        self.headers = {"api_access_token": API_ACCESS_TOKEN}
+        self.client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+        self.headers = {"api_access_token": settings.API_ACCESS_TOKEN}
 
     def _get_chatwoot_help_center_articles(self):
         """Chatwoot의 Help Center 아티클들을 가져와 지식 베이스로 활용"""
-        url = f"{CHATWOOT_BASE_URL}/articles"
+        urls = []
+        if settings.CHATWOOT_HELP_CENTER_ARTICLES_URL:
+            urls.append(settings.CHATWOOT_HELP_CENTER_ARTICLES_URL)
+        if settings.CHATWOOT_BASE_URL and settings.CHATWOOT_PORTAL_ID:
+            urls.append(f"{settings.CHATWOOT_BASE_URL}/portals/{settings.CHATWOOT_PORTAL_ID}/articles")
+        if settings.CHATWOOT_BASE_URL:
+            urls.append(f"{settings.CHATWOOT_BASE_URL}/articles")
+
         try:
-            res = requests.get(url, headers=self.headers)
-            if res.status_code == 200:
-                articles = res.json().get('payload', [])
-                if not articles:
-                    return None
-                return articles
+            for url in urls:
+                res = requests.get(url, headers=self.headers, timeout=5)
+                if res.status_code != 200:
+                    print(f"⚠️ Help Center 문서 로드 실패: {res.status_code} {url}")
+                    continue
+
+                articles = self._extract_articles_from_response(res.json())
+                if articles:
+                    return articles
         except Exception as e:
             print(f"⚠️ 지식 베이스 로드 실패: {e}")
-        return None
+        return self._fallback_help_center_articles()
+
+    def _extract_articles_from_response(self, data):
+        if isinstance(data, list):
+            return data
+
+        if not isinstance(data, dict):
+            return []
+
+        payload = data.get("payload", data)
+        if isinstance(payload, list):
+            return payload
+
+        if isinstance(payload, dict):
+            for key in ("articles", "items", "data"):
+                articles = payload.get(key)
+                if isinstance(articles, list):
+                    return articles
+
+        return []
+
+    def _fallback_help_center_articles(self) -> list[dict]:
+        return [
+            {
+                "title": "회원가입 및 로그인 안내",
+                "content": (
+                    "로그인은 화면의 로그인 창에서 가입한 이메일과 비밀번호를 입력해 진행합니다. "
+                    "계정이 없다면 회원가입을 먼저 완료한 뒤 로그인할 수 있습니다. "
+                    "로그인이 되지 않으면 이메일 주소와 비밀번호 입력값을 다시 확인하고, "
+                    "이미 가입된 계정인지 확인해 주세요."
+                ),
+            },
+            {
+                "title": "My Picks의 기능 안내",
+                "content": (
+                    "My Picks는 관심 있는 인플루언서를 저장해 두는 목록입니다. "
+                    "인플루언서 카드나 상세 화면에서 별표 또는 찜 기능을 사용하면 My Picks에 저장됩니다. "
+                    "저장한 인플루언서는 My Picks 화면에서 다시 확인할 수 있고, 메모를 남겨 관리할 수 있습니다."
+                ),
+            },
+            {
+                "title": "인플루언서 추천 기능 안내",
+                "content": (
+                    "인플루언서 추천 기능은 쇼핑몰이나 브랜드의 분위기, 카테고리, 원하는 스타일을 바탕으로 "
+                    "적합한 인플루언서를 찾아주는 기능입니다. 추천받기 검색창에 원하는 조건을 자연어로 입력하면 "
+                    "AI 매칭 점수와 스타일 키워드를 참고해 추천 결과를 제공합니다."
+                ),
+            },
+            {
+                "title": "Find Influencers의 기능 안내",
+                "content": (
+                    "Find Influencers는 등록된 인플루언서 목록을 탐색하는 화면입니다. "
+                    "검색창과 필터를 사용해 이름, 카테고리, 스타일 키워드 등으로 인플루언서를 찾을 수 있습니다. "
+                    "인플루언서 카드에서는 프로필, 팔로워 수, 게시물 수, Grade Score, 스타일 정보를 확인할 수 있습니다."
+                ),
+            },
+            {
+                "title": "Data Insights의 기능 안내",
+                "content": (
+                    "Data Insights는 서비스 내 인플루언서와 사용자 선택 데이터를 시각적으로 확인하는 화면입니다. "
+                    "전체 인플루언서 수, 협업 완료 수, 일자별 추이, 카테고리별 분포도 같은 지표를 확인할 수 있습니다. "
+                    "Grade Score와 비교 지표를 통해 인플루언서 성과를 분석하는 데 활용합니다."
+                ),
+            },
+        ]
 
     def _format_help_center_articles(self, articles: list[dict]) -> str:
         return "\n".join([f"제목: {a.get('title', '').strip()}\n내용: {a.get('content', '').strip()}" for a in articles])
@@ -434,7 +506,7 @@ class ChatbotService:
         ]
 
     def _update_conversation_question_type(self, conversation_id: int, question_type: str):
-        url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/custom_attributes"
+        url = f"{settings.CHATWOOT_BASE_URL}/conversations/{conversation_id}/custom_attributes"
         payload = {"custom_attributes": {"question_type": question_type}}
         try:
             res = requests.post(url, json=payload, headers=self.headers)
@@ -443,7 +515,7 @@ class ChatbotService:
             print(f"❌ Chatwoot 질문 유형 초기화 실패: {e}")
 
     def _resolve_conversation(self, conversation_id: int):
-        url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/toggle_status"
+        url = f"{settings.CHATWOOT_BASE_URL}/conversations/{conversation_id}/toggle_status"
         payload = {"status": "resolved"}
         try:
             res = requests.post(url, json=payload, headers=self.headers)
@@ -452,7 +524,7 @@ class ChatbotService:
             print(f"❌ Chatwoot 대화 종료 처리 실패: {e}")
 
     def _send_to_chatwoot(self, conversation_id: int, content: str):
-        url = f"{CHATWOOT_BASE_URL}/conversations/{conversation_id}/messages"
+        url = f"{settings.CHATWOOT_BASE_URL}/conversations/{conversation_id}/messages"
         payload = {"content": content, "message_type": "outgoing", "private": False}
         try:
             res = requests.post(url, json=payload, headers=self.headers)

@@ -1,5 +1,7 @@
 from __future__ import annotations
 from typing import Optional, Union, List, Dict
+from app.utils.setting_config import settings
+
 # 필터 조건
 MIN_FOLLOWERS = 1000
 MIN_POSTS = 40
@@ -9,9 +11,8 @@ FOLLOW_RATIO = 1.3
 ENGAGEMENT_RATE = 0.03
 
 from apify_client import ApifyClient
-import os
 
-API_TOKEN = os.getenv("API_TOKEN")
+API_TOKEN = settings.API_TOKEN
 
 client = ApifyClient(API_TOKEN)
 

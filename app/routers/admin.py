@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends, BackgroundTasks, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func, or_
 from openai import OpenAI
-import os
 
 from app.db.database import get_db, SessionLocal
 from app.db.models import (
@@ -16,6 +15,7 @@ from app.db.models import (
 from app.services.crawler import CrawlerService
 from app.services.classify import run_db_classification
 from app.services.build_influencer_embeddings import build_embeddings
+from app.utils.setting_config import settings
 
 from pydantic import BaseModel
 from typing import List, Optional
@@ -38,7 +38,7 @@ class KeywordCrawlRequest(BaseModel):
 async def sync_all_data(background_tasks: BackgroundTasks):
     def integrated_task():
         db = SessionLocal()
-        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        client = OpenAI(api_key=settings.OPENAI_API_KEY)
 
         try:
             crawler = CrawlerService(db)
