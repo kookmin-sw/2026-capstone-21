@@ -14,7 +14,6 @@ def seed_images_to_s3(local_folder):
         region_name=settings.AWS_REGION
     )
     
-    local_folder = "app/data/profile_pic_HD" # 로컬 이미지 경로
     bucket_name = settings.BUCKET_NAME
 
     files = [f for f in os.listdir(local_folder) if f.endswith(('.jpg', '.jpeg', '.png'))]
@@ -28,16 +27,15 @@ def seed_images_to_s3(local_folder):
         s3_key = f"profile_pics/{filename}"
 
         try:
-            with open(local_path, "rb") as data:
-                s3.upload_file(
-                    data, 
-                    BUCKET_NAME, 
+            s3.upload_file(
+                    local_path, 
+                    bucket_name, 
                     s3_key,
                     ExtraArgs={'ACL': 'public-read', 'ContentType': 'image/jpeg'}
                 )
             
             # 업로드된 URL 생성
-            s3_url = f"https://{BUCKET_NAME}.s3.{REGION_NAME}.amazonaws.com/{s3_path}"
+            s3_url = f"https://{bucket_name}.s3.{settings.AWS_REGION}.amazonaws.com/{s3_key}"
             
             influencer = db.query(Influencer).filter(Influencer.username == username).first()
             if influencer:
@@ -48,14 +46,12 @@ def seed_images_to_s3(local_folder):
             
         except FileNotFoundError:
             print(f"❌ 파일을 찾을 수 없음: {local_path}")
-        except NoCredentialsError:
-            print("❌ AWS 자격 증명이 없습니다.")
             return None
 
     db.commit()
     db.close()
 
-    return uploaded_urls
+    return "완료되었습니다"
 
 if __name__ == "__main__":
     LOCAL_IMG_DIR = "data/profile_pic_HD"
