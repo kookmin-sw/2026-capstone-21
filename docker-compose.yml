@@ -34,8 +34,9 @@ services:
     restart: always
     env_file: .env
     depends_on:
-      - postgres
       - redis
+    volumes:
+      - ./global-bundle.pem:/app/global-bundle.pem
     ports:
       - "3000:3000"
     environment:
@@ -49,8 +50,9 @@ services:
     restart: always
     env_file: .env
     depends_on:
-      - postgres
       - redis
+    volumes:
+      - ./global-bundle.pem:/app/global-bundle.pem
     environment:
       RAILS_ENV: production
       NODE_ENV: production
@@ -65,6 +67,5 @@ services:
     volumes:
       - redis:/data
 
-volumes: 
-  postgres:
+volumes:
   redis:

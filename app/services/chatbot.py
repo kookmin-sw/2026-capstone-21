@@ -112,6 +112,15 @@ class ChatbotService:
                     "Grade Score와 비교 지표를 통해 인플루언서 성과를 분석하는 데 활용합니다."
                 ),
             },
+            {
+                "title": "상담원 안내",
+                "content": (
+                    "- 평일 10시 ~ 11시\n"
+                    "- 평일 13시 30분 ~ 16시\n\n"
+                    "운영 시간에 답변 드리겠습니다.\n\n"
+                    "문의는 support@linkd.kr 메일로 보내주세요. 감사합니다."
+                ),
+            },
         ]
 
     def _format_help_center_articles(self, articles: list[dict]) -> str:
@@ -182,7 +191,7 @@ class ChatbotService:
                 system_role = (
                     "당신은 쇼핑몰 브랜드와 인플루언서를 매칭해주는 서비스 '링크디매치'의 전문 상담원입니다.\n"
                     "가장 중요한 규칙: 반드시 제공된 [참고 데이터] 내의 정보만을 사용하여 답변하세요.\n"
-                    "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내'.\n"
+                    "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내', '상담원 안내'.\n"
                     "질문에 답이 이 문서들에 있다면, 반드시 그 문서의 내용을 그대로 사용하여 구체적으로 답변하세요.\n"
                     "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.'라고만 답하세요."
                 )
@@ -441,6 +450,16 @@ class ChatbotService:
                 "점수",
                 "보고서",
             ],
+            "상담원 안내": [
+                "상담원",
+                "상담",
+                "연결",
+                "문의",
+                "운영 시간",
+                "상담시간",
+                "지원",
+                "help",
+            ],
         }
 
         matched_titles: list[str] = []
@@ -495,6 +514,9 @@ class ChatbotService:
             "카테고리",
             "분석",
             "통계",
+            "상담원",
+            "상담",
+            "연결",
         ]
 
     def _update_conversation_question_type(self, conversation_id: int, question_type: str):

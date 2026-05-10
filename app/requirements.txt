@@ -19,5 +19,7 @@ passlib
 pydantic[email]
 openai
 boto3
+psycopg2-binary
+pgvector
 
 torch==2.7.0+cpu
