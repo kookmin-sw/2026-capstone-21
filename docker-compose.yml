@@ -65,6 +65,6 @@ services:
     volumes:
       - redis:/data
 
-volumes:
+volumes: 
   postgres:
   redis:
