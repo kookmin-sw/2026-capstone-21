@@ -50,7 +50,7 @@ def update_global_lfm_model(db: Session):
     )
 
     # 2. 모델 학습
-    new_model = LightFM(loss="warp")
+    new_model = LightFM(loss="warp", no_components=30)
     new_model.fit(interaction_matrix, epochs=10)
     
     # 3. 전역 변수 교체 (Atomic하게 교체됨)
@@ -139,15 +139,12 @@ class RecommendationEngine:
             .tolist()
         )
 
-        # MySQL / MariaDB VECTOR_DISTANCE에 넘기기 위해
-        # numpy array가 아니라 JSON 배열 문자열로 변환
-        query_vec_str = json.dumps(query_vec)
-
-        # [STEP 2] 벡터 유사도 기반 검색
+        # [STEP 2] pgvector 기반 코사인 유사도 검색 (PostgreSQL 문법으로 수정)
+        # pgvector의 <=> 연산자는 코사인 거리를 의미하므로, 1에서 빼주면 유사도가 됩니다.
         sql = text("""
             SELECT 
                 e.influencer_id, 
-                1 - VECTOR_DISTANCE(e.embedding_vector, :q_vec, 'COSINE') AS similarity,
+                1 - (e.embedding_vector <=> :q_vec) AS similarity,
                 i.grade_score
             FROM influencer_embedding e
             JOIN influencer i ON e.influencer_id = i.influencer_id
@@ -159,7 +156,7 @@ class RecommendationEngine:
         rows = self.db.execute(
             sql,
             {
-                "q_vec": query_vec_str,
+                "q_vec": str(query_vec),
                 "limit": top_k * 10
             }
         ).fetchall()
@@ -178,21 +175,11 @@ class RecommendationEngine:
 
         # LightFM 개인화 점수 계산
         global LATEST_LFM_MODEL, LATEST_USER_MAP, LATEST_INF_MAP
+        lfm_score_map = {}
         
-        if (
-            LATEST_LFM_MODEL is not None
-            and LATEST_USER_MAP is not None
-            and LATEST_INF_MAP is not None
-            and user_id in LATEST_USER_MAP
-        ):
+        if (LATEST_LFM_MODEL and LATEST_USER_MAP and LATEST_INF_MAP and user_id in LATEST_USER_MAP):
             u_idx = LATEST_USER_MAP[user_id]
-
-            # 기존 self.inf_ids.index(iid) 대신
-            # LightFM 학습 시 생성한 LATEST_INF_MAP 사용
-            valid_candidate_ids = [
-                iid for iid in candidate_inf_ids
-                if iid in LATEST_INF_MAP
-            ]
+            valid_candidate_ids = [iid for iid in candidate_inf_ids if iid in LATEST_INF_MAP]
 
             if valid_candidate_ids:
                 inf_matrix_indices = np.array([
@@ -212,11 +199,6 @@ class RecommendationEngine:
                         expit(raw_scores)
                     )
                 }
-            else:
-                lfm_score_map = {}
-        else:
-            # 기존처럼 LightFM 모델/사용자 정보가 없으면 기본값 0.5 사용
-            lfm_score_map = {}
 
         # [STEP 6] Hybrid Scoring
         results: List[Dict] = []

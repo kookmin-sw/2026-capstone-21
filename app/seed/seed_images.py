@@ -55,6 +55,6 @@ def seed_images_to_s3(local_folder):
 
 if __name__ == "__main__":
     LOCAL_IMG_DIR = "data/profile_pic_HD"
-    result_urls = seed_images_to_s3(LOCAL_IMG_DIR)
+    result = seed_images_to_s3(LOCAL_IMG_DIR)
     
-    print(f"\n총 {len(result_urls)}개의 이미지가 업로드되었습니다.")
+    print(result)

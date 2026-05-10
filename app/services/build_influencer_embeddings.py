@@ -1,9 +1,7 @@
 from __future__ import annotations
-from typing import Optional, Union, List, Dict
+from typing import List
 from sentence_transformers import SentenceTransformer
-from sqlalchemy.orm import joinedload
-
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload, Session
 
 from app.db.database import SessionLocal
 from app.db.models import Influencer, InfluencerEmbedding, InfluencerCategory
@@ -48,9 +46,7 @@ def build_embeddings(db: Session):
         influencers = (
             db.query(Influencer)
             .options(
-                joinedload(Influencer.influencer_categories).joinedload(
-                    InfluencerCategory.category
-                ),
+                joinedload(Influencer.influencer_categories).joinedload(InfluencerCategory.category),
                 joinedload(Influencer.embedding),
             )
             .filter(Influencer.is_active.is_(True))
@@ -67,7 +63,7 @@ def build_embeddings(db: Session):
         print("임베딩 생성 중...")
         vectors = model.encode(
             texts,
-            batch_size=64,
+            batch_size=32,
             show_progress_bar=True,
             normalize_embeddings=True,
         )

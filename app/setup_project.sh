@@ -1,9 +1,6 @@
 #!/bin/bash
 set -e
 
-echo "🏗️ [1/7] DB 테이블 생성..."
-python -c "from app.db.database import engine; from app.db import models; models.Base.metadata.create_all(bind=engine)"
-
 echo "📂 [2/7] 카테고리 데이터 시딩..."
 python -m app.seed.seed_categories
 
