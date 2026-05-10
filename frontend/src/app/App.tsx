@@ -20,7 +20,7 @@ export default function App() {
       g.onload = function () {
         if ((window as any).chatwootSDK) {
           (window as any).chatwootSDK.run({
-            websiteToken: "efbAha32dxQC1CSeYbWGxXac",
+            websiteToken: "jiCv8RLjjRupHCDz7zsKy8Hi",
             baseUrl: BASE_URL,
           });
         }
