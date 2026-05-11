@@ -1,9 +1,11 @@
 from __future__ import annotations
-from typing import Optional, Union, List, Dict
+from typing import Optional, Union, List, Dict, Any
 import requests
 import openai  
+from sqlalchemy.orm import joinedload
 from app.db.database import SessionLocal
-from app.db.models import ChatwootLog
+from app.db.models import ChatwootLog, Influencer, InfluencerCategory
+from app.services.recommendation import RecommendationEngine
 from app.utils.setting_config import settings
 
 # 설정 정보
@@ -15,10 +17,10 @@ QUESTION_TYPE_SELECTION_MESSAGE = (
     "- 인플루언서 추천\n"
     "- 사이트 이용 관련"
 )
-RECOMMENDATION_UNAVAILABLE_MESSAGE = (
-    "현재 인플루언서 추천 기능은 추천 시스템 고도화 작업 중이라 챗봇에서 바로 제공하기 어렵습니다.\n\n"
-    "대신 Find Influencers 화면에서 카테고리, 스타일 키워드, Grade Score를 기준으로 "
-    "인플루언서를 먼저 탐색해 보실 수 있습니다."
+RECOMMENDATION_EMPTY_MESSAGE = (
+    "입력해 주신 조건에 맞는 인플루언서를 아직 찾지 못했습니다.\n\n"
+    "브랜드/쇼핑몰 카테고리, 원하는 콘텐츠 분위기, 타깃 고객, 제품 특징을 조금 더 구체적으로 적어주시면 "
+    "더 정확하게 추천해 드릴게요."
 )
 
 class ChatbotService:
@@ -201,7 +203,11 @@ class ChatbotService:
 
                 # --- [CASE 1] 인플루언서 추천/분석 관련 질문 ---
                 if question_type == "인플루언서 추천":
-                    self._complete_process(conversation_id, RECOMMENDATION_UNAVAILABLE_MESSAGE)
+                    ai_answer = self._build_influencer_recommendation_answer(
+                        user_id=user_id,
+                        question_content=question_content,
+                    )
+                    self._complete_process(conversation_id, ai_answer)
                     return
 
                 # --- [CASE 2] 사이트 이용 관련 질문 (RAG 방식) ---
@@ -254,6 +260,118 @@ class ChatbotService:
         """결과 발송 및 로그 기록 공통 로직"""
         self._send_to_chatwoot(conversation_id, ai_answer)
         self._update_log(conversation_id, ai_answer)
+
+    def _build_influencer_recommendation_answer(self, user_id: int, question_content: str) -> str:
+        """추천 엔진 결과를 Chatwoot에서 읽기 좋은 텍스트 답변으로 변환합니다."""
+        try:
+            engine = RecommendationEngine(self.db)
+            recommendations = engine.recommend(user_id=user_id, query_text=question_content, top_k=5)
+        except Exception as e:
+            print(f"❌ 인플루언서 추천 생성 실패: {e}")
+            return "시스템 오류로 추천 결과를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요."
+
+        if not recommendations:
+            return RECOMMENDATION_EMPTY_MESSAGE
+
+        rec_by_id = {rec["influencer_id"]: rec for rec in recommendations}
+        influencers = (
+            self.db.query(Influencer)
+            .options(
+                joinedload(Influencer.influencer_categories).joinedload(
+                    InfluencerCategory.category
+                )
+            )
+            .filter(Influencer.influencer_id.in_(list(rec_by_id.keys())))
+            .filter(Influencer.is_active.is_(True))
+            .all()
+        )
+        influencer_by_id = {inf.influencer_id: inf for inf in influencers}
+
+        lines = [
+            "입력해 주신 조건을 기준으로 적합도가 높은 인플루언서를 추천해 드릴게요.",
+            "",
+        ]
+
+        rank_no = 1
+        for rec in recommendations:
+            influencer = influencer_by_id.get(rec["influencer_id"])
+            if not influencer:
+                continue
+
+            profile_name = self._format_influencer_name(influencer)
+            category = self._primary_category_name(influencer) or "카테고리 미지정"
+            followers = self._format_count(influencer.followers_count)
+            grade = self._format_grade_score(influencer.grade_score)
+            keywords = self._format_style_keywords(influencer)
+            score = round(float(rec.get("score", 0.0)) * 100, 1)
+
+            lines.append(f"{rank_no}. {profile_name}")
+            lines.append(f"- 추천 점수: {score}점")
+            lines.append(f"- 카테고리: {category} / 팔로워: {followers} / Grade Score: {grade}")
+            if keywords:
+                lines.append(f"- 스타일 키워드: {keywords}")
+            if influencer.profile_url:
+                lines.append(f"- 프로필: {influencer.profile_url}")
+            lines.append("")
+            rank_no += 1
+
+        if rank_no == 1:
+            return RECOMMENDATION_EMPTY_MESSAGE
+
+        lines.append(
+            "더 정확한 추천이 필요하면 제품명, 브랜드 분위기, 원하는 카테고리나 콘텐츠 스타일을 함께 알려주세요."
+        )
+        return "\n".join(lines).strip()
+
+    def _format_influencer_name(self, influencer: Influencer) -> str:
+        username = f"@{influencer.username}" if influencer.username else "이름 미상"
+        if influencer.full_name:
+            return f"{username} ({influencer.full_name})"
+        return username
+
+    def _primary_category_name(self, influencer: Influencer) -> Optional[str]:
+        for influencer_category in influencer.influencer_categories:
+            if influencer_category.priority == 1 and influencer_category.category:
+                return influencer_category.category.category_name
+        return None
+
+    def _format_count(self, value: Optional[int]) -> str:
+        if value is None:
+            return "정보 없음"
+        return f"{value:,}명"
+
+    def _format_grade_score(self, value: Optional[float]) -> str:
+        if value is None:
+            return "정보 없음"
+        return f"{value:.1f}"
+
+    def _format_style_keywords(self, influencer: Influencer) -> str:
+        keywords = self._extract_style_keywords(influencer.style_keywords_json)
+        if not keywords and influencer.style_keywords_text:
+            keywords = [
+                keyword.strip()
+                for keyword in influencer.style_keywords_text.replace("#", "").split(",")
+                if keyword.strip()
+            ]
+        return ", ".join(keywords[:5])
+
+    def _extract_style_keywords(self, raw_keywords: Any) -> list[str]:
+        if isinstance(raw_keywords, list):
+            return [str(keyword).strip() for keyword in raw_keywords if str(keyword).strip()]
+
+        if isinstance(raw_keywords, dict):
+            keywords: list[str] = []
+            for value in raw_keywords.values():
+                if isinstance(value, list):
+                    keywords.extend(str(keyword).strip() for keyword in value if str(keyword).strip())
+                elif value:
+                    keywords.append(str(value).strip())
+            return keywords
+
+        if isinstance(raw_keywords, str):
+            return [keyword.strip() for keyword in raw_keywords.split(",") if keyword.strip()]
+
+        return []
 
     def _reset_conversation(self, conversation_id: int):
         """대화 종료 시 질문 유형을 초기 상태로 되돌리고 시작 안내를 보냄"""
