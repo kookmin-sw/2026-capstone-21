@@ -25,8 +25,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 # 5. 전체 소스 코드 및 인증서 복사
 COPY . .
 
-RUN python download_model.py
-
 # 6. 스크립트 실행 권한 부여
 RUN chmod +x setup_project.sh
 

@@ -9,9 +9,13 @@ services:
       - .env
     volumes:
       - ./global-bundle.pem:/app/global-bundle.pem
+      - ./model_cache:/app/model_cache
     environment:
       - PYTHONPATH=/
       - PYTHONUNBUFFERED=1
+      - TRANSFORMERS_CACHE=/app/model_cache
+      - TORCH_HOME=/app/model_cache
+      - HF_HOME=/app/model_cache
     working_dir: /app
     command: uvicorn main:app --host 0.0.0.0 --port 8000
     restart: always
