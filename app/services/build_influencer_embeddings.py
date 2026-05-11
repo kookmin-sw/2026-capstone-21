@@ -61,7 +61,8 @@ def build_embeddings(db: Session):
         print("모델 로드 중...")
         local_path = "./model_cache"
         if os.path.exists(local_path):
-            model = SentenceTransformer(local_path)
+            model_name = "BAAI/bge-m3"
+            model = SentenceTransformer(model_name, cache_folder="./model_cache")
         else:
             model = SentenceTransformer(settings.EMBEDDING_MODEL)
         print("임베딩 생성 중...")

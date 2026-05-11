@@ -132,7 +132,8 @@ class RecommendationEngine:
 
             if os.path.exists(local_model_path):
                 print(f"--- [DEBUG] Local 모델 사용: {local_model_path}", flush=True)
-                GLOBAL_MODEL = SentenceTransformer(local_model_path)
+                model_name = "BAAI/bge-m3"
+                GLOBAL_MODEL = SentenceTransformer(model_name, cache_folder="./model_cache")
             else:
                 print(f"--- [DEBUG] Local 모델 없음. 다운로드 시도: {settings.EMBEDDING_MODEL}", flush=True)
                 GLOBAL_MODEL = SentenceTransformer(settings.EMBEDDING_MODEL)
