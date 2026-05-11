@@ -216,6 +216,11 @@ class ChatbotService:
                         self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
                         return
 
+                    keyword_answer = self._keyword_only_answer(question_content)
+                    if keyword_answer:
+                        self._complete_process(conversation_id, keyword_answer)
+                        return
+
                     context_data = f"\n[서비스 이용 안내 문서]\n{self._format_help_center_articles(relevant_articles)}"
                     system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
 
@@ -356,6 +361,25 @@ class ChatbotService:
                 matches.append(article)
 
         return matches
+
+    def _keyword_only_answer(self, question_content: str) -> Optional[str]:
+        normalized = question_content.strip().lower()
+        grade_score_keywords = {
+            "grade score",
+            "gradescore",
+            "그레이드 스코어",
+            "그레이드스코어",
+            "등급 점수",
+        }
+        if normalized in grade_score_keywords:
+            return (
+                "Grade Score는 인플루언서 성과를 확인할 때 활용하는 점수 지표입니다.\n\n"
+                "Find Influencers 화면의 인플루언서 카드에서 프로필, 팔로워 수, 게시물 수, "
+                "스타일 정보와 함께 Grade Score를 확인할 수 있습니다. Data Insights 화면에서는 "
+                "Grade Score와 비교 지표를 통해 인플루언서 성과를 분석하는 데 활용할 수 있습니다."
+            )
+
+        return None
 
     def _map_question_to_document_titles(self, normalized_question: str) -> list[str]:
         mapping = {
