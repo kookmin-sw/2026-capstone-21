@@ -2,6 +2,7 @@ from __future__ import annotations
 from typing import List
 from sentence_transformers import SentenceTransformer
 from sqlalchemy.orm import joinedload, Session
+import os
 
 from app.db.database import SessionLocal
 from app.db.models import Influencer, InfluencerEmbedding, InfluencerCategory
@@ -58,8 +59,11 @@ def build_embeddings(db: Session):
         texts = [make_embedding_text(inf) for inf in influencers]
 
         print("모델 로드 중...")
-        model = SentenceTransformer(settings.EMBEDDING_MODEL)
-
+        local_path = "./model_cache"
+        if os.path.exists(local_path):
+            model = SentenceTransformer(local_path)
+        else:
+            model = SentenceTransformer(settings.EMBEDDING_MODEL)
         print("임베딩 생성 중...")
         vectors = model.encode(
             texts,

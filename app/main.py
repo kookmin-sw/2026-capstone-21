@@ -1,9 +1,8 @@
 from __future__ import annotations
-from typing import Optional, Union, List, Dict
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.db.database import Base, engine
+from app.db.database import Base, engine, SessionLocal
 from app.routers import (
     category,
     influencer,
@@ -16,6 +15,23 @@ from app.routers import (
     auth,
     chatwoot
 )
+from app.services.recommendation import update_global_lfm_model
+
+from contextlib import asynccontextmanager
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # 1. 서버 시작 시 LFM 모델 초기화
+    db = SessionLocal()
+    try:
+        update_global_lfm_model(db)
+        print("✅ Global LFM Model loaded successfully.")
+    except Exception as e:
+        print(f"❌ Failed to load LFM Model: {e}")
+    finally:
+        db.close()
+    
+    yield
 
 app = FastAPI(root_path="/proxy/8000")
 
@@ -41,7 +57,6 @@ app.include_router(favorite.router)
 app.include_router(insight.router)
 app.include_router(admin.router)
 app.include_router(chatwoot.router)
-
 
 @app.get("/")
 def root():
