@@ -183,10 +183,10 @@ class ChatbotService:
                         question_type = last_log.question_type
 
                 # 질문 내용에 따라 question_type 재분류 (이미 설정된 타입이라도)
-                if self._is_influencer_recommendation_question(question_content):
-                    question_type = "인플루언서 추천"
-                elif self._is_site_use_question(question_content):
+                if self._is_site_use_question(question_content):
                     question_type = "사이트 이용 관련"
+                elif self._is_influencer_recommendation_question(question_content):
+                    question_type = "인플루언서 추천"
                 elif question_type == "일반":
                     # 일반 질문으로 유지
                     pass
@@ -678,6 +678,12 @@ class ChatbotService:
             "상담원",
             "상담",
             "연결",
+            "연결해줘",
+            "상담원 연결",
+            "상담원 연결해줘",
+            "문의",
+            "support",
+            "help",
         ]
 
     def _update_conversation_question_type(self, conversation_id: int, question_type: str):
