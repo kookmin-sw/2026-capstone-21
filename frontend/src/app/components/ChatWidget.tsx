@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { MessageCircle, X, ArrowLeft, Plus, Send } from "lucide-react";
+import { MessageCircle, X, ArrowLeft, Plus, Send, Pencil } from "lucide-react";
 
 const API = import.meta.env.VITE_API_BASE_URL;
 
@@ -145,7 +145,7 @@ export function ChatWidget() {
                   </button>
                 )}
                 <span className="font-semibold text-sm">
-                  {view === "list" ? "채팅" : `대화 #${activeConvId}`}
+                  {view === "list" ? "채팅" : (conversations.find((c) => c.id === activeConvId)?.name || "새로운 채팅")}
                 </span>
               </div>
               <button onClick={() => { setOpen(false); if (pollRef.current) clearInterval(pollRef.current); }}>
@@ -199,19 +199,6 @@ export function ChatWidget() {
                     <div key={conv.id} className="flex items-center border-b border-slate-100">
                       <button
                         onClick={() => openConversation(conv.id)}
-                        onDoubleClick={(e) => {
-                          e.preventDefault();
-                          const newName = prompt("채팅 이름을 입력하세요", conv.name || "새로운 채팅");
-                          if (newName && newName.trim()) {
-                            fetch(`${API}/chat/conversations/${conv.id}/name`, {
-                              method: "PATCH",
-                              headers: { "Content-Type": "application/json" },
-                              body: JSON.stringify({ name: newName.trim() }),
-                            }).then(() => {
-                              setConversations((prev) => prev.map((c) => c.id === conv.id ? { ...c, name: newName.trim() } : c));
-                            });
-                          }
-                        }}
                         className="flex-1 px-4 py-3 text-left hover:bg-slate-50"
                       >
                         <div className="flex items-center justify-between">
@@ -226,15 +213,33 @@ export function ChatWidget() {
                       </button>
                       <button
                         onClick={() => {
+                          const newName = prompt("채팅 이름을 입력하세요", conv.name || "새로운 채팅");
+                          if (newName && newName.trim()) {
+                            fetch(`${API}/chat/conversations/${conv.id}/name`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ name: newName.trim() }),
+                            }).then(() => {
+                              setConversations((prev) => prev.map((c) => c.id === conv.id ? { ...c, name: newName.trim() } : c));
+                            });
+                          }
+                        }}
+                        className="px-2 py-3 text-slate-400 hover:text-purple-600 transition"
+                        title="이름 수정"
+                      >
+                        <Pencil className="w-3.5 h-3.5" />
+                      </button>
+                      <button
+                        onClick={() => {
                           if (confirm("이 대화를 삭제할까요?")) {
                             fetch(`${API}/chat/conversations/${conv.id}`, { method: "DELETE" })
                               .then(() => setConversations((prev) => prev.filter((c) => c.id !== conv.id)));
                           }
                         }}
-                        className="px-3 py-3 text-slate-400 hover:text-red-500 transition"
+                        className="px-2 py-3 text-slate-400 hover:text-red-500 transition"
                         title="삭제"
                       >
-                        <X className="w-4 h-4" />
+                        <X className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   ))}
@@ -249,7 +254,7 @@ export function ChatWidget() {
               <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.message_type === 0 ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[75%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap ${
+                    <div className={`max-w-[75%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap break-all ${
                       msg.message_type === 0
                         ? "bg-purple-100 text-purple-900"
                         : "bg-slate-100 text-slate-800"

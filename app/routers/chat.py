@@ -127,8 +127,18 @@ async def send_message(conversation_id: int, body: dict):
     if not content:
         return {"error": "empty content"}
 
-    # 질문 유형 메시지인 경우 conversation custom_attributes에 설정
+    # 질문 유형: conversation의 custom_attributes에서 가져옴
     q_type = "일반"
+    try:
+        conv_info = requests.get(
+            f"{CHATWOOT_URL}/conversations/{conversation_id}",
+            headers=HEADERS,
+            timeout=5,
+        ).json()
+        q_type = conv_info.get("custom_attributes", {}).get("question_type", "일반")
+    except Exception:
+        pass
+
     if content in ("인플루언서 추천", "사이트 이용 관련"):
         q_type = content
         requests.patch(

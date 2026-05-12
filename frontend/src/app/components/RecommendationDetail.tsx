@@ -57,7 +57,7 @@ export function RecommendationDetail() {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold text-slate-900 mb-2">추천 결과 #{data.run_id}</h1>
+      <h1 className="text-3xl font-bold text-slate-900 mb-2">추천 결과 #{data.run_id} — {data.recommendations.length}명 매칭</h1>
       <p className="text-slate-500 mb-6">
         {data.input_text && <span className="text-slate-700 font-medium">"{data.input_text}"</span>}
         {" · "}

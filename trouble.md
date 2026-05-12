@@ -66,3 +66,8 @@
 - **증상**: 새 채팅 만들기 시 대화가 생성되지 않음
 - **원인**: `_get_contact_id`에서 contact가 없을 때 guest만 생성하고 일반 유저는 생성하지 않았음. Chatwoot에 identifier로 등록된 contact가 없는 유저는 대화 생성 불가
 - **해결**: guest/일반 유저 구분 없이 contact가 없으면 자동 생성하도록 수정
+
+## 14. 챗봇 인플루언서 추천 탭에서 질문 유형이 "일반"으로 처리됨
+- **증상**: 인플루언서 추천 탭에서 질문해도 "이용 안내 문서에 없습니다" 응답
+- **원인**: 새 대화 생성 시 `question_type`을 Chatwoot `custom_attributes`에만 설정했는데, `/chat/send`에서 이를 읽지 않고 항상 `"일반"`으로 처리
+- **해결**: `/chat/send`에서 conversation의 `custom_attributes.question_type`을 조회하여 사용하도록 수정

@@ -14,6 +14,43 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 # 전역 변수 혹은 의존성 주입으로 엔진을 관리하여 성능 최적화 필요 (싱글톤 권장)
 # 여기서는 간단하게 로직 통합에 집중합니다.
 
+@router.post("/reason")
+def get_recommendation_reason(body: dict, db: Session = Depends(get_db)):
+    """추천 이유 생성 (LLM)"""
+    import openai
+    from app.utils.setting_config import settings
+
+    influencer_id = body.get("influencer_id")
+    input_text = body.get("input_text", "")
+    score = body.get("score", 0)
+
+    inf = db.query(Influencer).filter(Influencer.influencer_id == influencer_id).first()
+    if not inf:
+        return {"reason": "정보를 찾을 수 없습니다."}
+
+    cat = db.query(Category).join(InfluencerCategory).filter(
+        InfluencerCategory.influencer_id == influencer_id,
+        InfluencerCategory.priority == 1,
+    ).first()
+
+    client = openai.OpenAI(api_key=settings.OPENAI_API_KEY)
+    response = client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[
+            {"role": "system", "content": "인플루언서 추천 이유를 한국어 1~2문장으로 간결하게 설명하세요."},
+            {"role": "user", "content": (
+                f"검색 조건: {input_text}\n"
+                f"인플루언서: @{inf.username}, 카테고리: {cat.category_name if cat else '미분류'}, "
+                f"팔로워: {inf.followers_count}명, 추천점수: {round(score * 100, 1)}점\n"
+                f"스타일 키워드: {inf.style_keywords_text or '없음'}"
+            )},
+        ],
+        temperature=0.3,
+        max_tokens=100,
+    )
+    return {"reason": response.choices[0].message.content.strip()}
+
+
 @router.get("/history/{user_id}")
 def get_recommendation_history(user_id: int, db: Session = Depends(get_db)):
     """유저의 추천 기록 목록 조회"""
@@ -170,7 +207,9 @@ def get_and_save_recommendations(
         final_results.append({
             "influencer_id": inf.influencer_id,
             "username": inf.username,
+            "full_name": inf.full_name,
             "score": rec['score'],
+            "similarity_score": rec.get('similarity_score'),
             "rank_no": save_rank
         })
 

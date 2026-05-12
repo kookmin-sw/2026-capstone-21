@@ -386,7 +386,7 @@ class ChatbotService:
         ]
 
         rank_no = 1
-        for rec in recommendations:
+        for rec in recommendations[:5]:
             influencer = influencer_by_id.get(rec["influencer_id"])
             if not influencer:
                 continue

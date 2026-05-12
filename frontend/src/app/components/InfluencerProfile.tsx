@@ -70,9 +70,12 @@ export function InfluencerProfile() {
 
   const [recommendText, setRecommendText] = useState('');
   const [recommendResults, setRecommendResults] = useState<Influencer[]>([]);
+  const [recommendScores, setRecommendScores] = useState<Record<string, number>>({});
   const [isRecommending, setIsRecommending] = useState(false);
   const [recCategory, setRecCategory] = useState<string>('');
   const [recFollowerRange, setRecFollowerRange] = useState<string>('');
+  const [showReasons, setShowReasons] = useState(false);
+  const [reasons, setReasons] = useState<Record<string, string>>({});
 
   // 필터가 바뀔 때마다 페이지를 1로 리셋하기 위한 로직
   useEffect(() => {
@@ -205,6 +208,14 @@ export function InfluencerProfile() {
       );
 
       setRecommendResults(mappedResults);
+
+      // 점수 매핑 저장
+      const scores: Record<string, number> = {};
+      sortedRecommendations.forEach((item: any) => {
+        const id = String(item.id ?? item.influencer_id);
+        scores[id] = item.score ?? item.final_score ?? 0;
+      });
+      setRecommendScores(scores);
     } catch (err) {
       console.error(err);
       alert('추천 실패');
@@ -389,6 +400,17 @@ export function InfluencerProfile() {
           <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">
             {influencer.category}
           </div>
+
+          {recommendScores[influencerId] !== undefined && (
+            <div className="space-y-1">
+              <div className="text-xs text-purple-600 font-semibold">
+                추천 점수: {(recommendScores[influencerId] * 100).toFixed(1)}점
+              </div>
+              {showReasons && reasons[influencerId] && (
+                <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">{reasons[influencerId]}</p>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
