@@ -58,6 +58,9 @@ app.include_router(insight.router)
 app.include_router(admin.router)
 app.include_router(chatwoot.router)
 
+from app.routers import chat
+app.include_router(chat.router)
+
 @app.get("/")
 def root():
     return {"message": "ok"}

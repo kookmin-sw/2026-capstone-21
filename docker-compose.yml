@@ -41,12 +41,14 @@ services:
       - redis
     volumes:
       - ./global-bundle.pem:/app/global-bundle.pem
+      - ./chatwoot_rack_attack.rb:/app/config/initializers/rack_attack_override.rb
     ports:
       - "3000:3000"
     environment:
       RAILS_ENV: production
       NODE_ENV: production
       INSTALLATION_ENV: docker
+      ENABLE_RACK_ATTACK: "false"
     command: bundle exec rails s -p 3000 -b 0.0.0.0
 
   sidekiq:

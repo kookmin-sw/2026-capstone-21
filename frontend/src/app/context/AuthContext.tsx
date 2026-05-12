@@ -39,25 +39,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setIsAuthenticated(true);
       setIsAdmin(data.user_info.role === "admin");
 
-      // Chatwoot에 유저 식별 정보 전달 (HMAC으로 이전 대화 목록 활성화)
-      if (window.$chatwoot) {
-        const userId = String(data.user_info.user_id);
-        try {
-          const hmacRes = await fetch(
-            `${import.meta.env.VITE_API_BASE_URL}/chatwoot/hmac/${data.user_info.user_id}`
-          );
-          const hmacData = await hmacRes.json();
-          window.$chatwoot.setUser(userId, {
-            name: data.user_info.user_name || `user_${userId}`,
-            identifier_hash: hmacData.identifier_hash,
-          });
-        } catch {
-          window.$chatwoot.setUser(userId, {
-            name: data.user_info.user_name || `user_${userId}`,
-          });
-        }
-      }
-
       return "success";
     } catch (error: any) {
       if (error.message === "wrong-password") {
@@ -84,11 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     setIsAuthenticated(false);
     setIsAdmin(false);
-
-    // Chatwoot 세션 리셋
-    if (window.$chatwoot) {
-      window.$chatwoot.reset();
-    }
   };
 
   const favoritesLoaded = async () => {

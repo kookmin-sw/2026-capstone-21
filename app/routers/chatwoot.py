@@ -26,6 +26,58 @@ async def get_hmac_for_user(user_id: int):
     return {"identifier_hash": identifier_hash}
 
 
+@router.post("/new-chat/{user_id}")
+async def start_new_chat(user_id: int):
+    """유저의 현재 열린 대화를 모두 resolve하여 새 채팅을 시작할 수 있게 함"""
+    import requests as req
+    base_url = settings.CHATWOOT_BASE_URL
+    headers = {"api_access_token": settings.API_ACCESS_TOKEN}
+
+    # 해당 유저(contact)의 열린 대화 찾기
+    try:
+        # identifier로 contact 검색
+        search_res = req.get(
+            f"{base_url}/contacts/search",
+            params={"q": str(user_id), "include_contacts": "true"},
+            headers=headers,
+            timeout=5,
+        )
+        contacts = search_res.json().get("payload", [])
+        contact_id = None
+        for c in contacts:
+            if str(c.get("identifier")) == str(user_id):
+                contact_id = c["id"]
+                break
+
+        if not contact_id:
+            return {"status": "no_contact"}
+
+        # contact의 대화 목록 조회
+        conv_res = req.get(
+            f"{base_url}/contacts/{contact_id}/conversations",
+            headers=headers,
+            timeout=5,
+        )
+        conversations = conv_res.json().get("payload", [])
+
+        # 열린 대화를 모두 resolve
+        resolved_count = 0
+        for conv in conversations:
+            if conv.get("status") == "open":
+                req.post(
+                    f"{base_url}/conversations/{conv['id']}/toggle_status",
+                    json={"status": "resolved"},
+                    headers=headers,
+                    timeout=5,
+                )
+                resolved_count += 1
+
+        return {"status": "ok", "resolved": resolved_count}
+    except Exception as e:
+        print(f"❌ 새 채팅 시작 실패: {e}")
+        return {"status": "error", "message": str(e)}
+
+
 @router.get("/history/{user_id}")
 async def get_chat_history(user_id: int, db: Session = Depends(get_db)):
     """유저의 챗봇 대화 기록 조회"""
