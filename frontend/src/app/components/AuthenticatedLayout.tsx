@@ -35,7 +35,7 @@ export function AuthenticatedLayout() {
               <button
                 onClick={() => navigate('/find')}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
-                  isActive('/') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
+                  isActive('/find') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Find Influencers
