@@ -50,6 +50,14 @@ export function AuthenticatedLayout() {
                 Find Influencers
               </button>
               <button
+                onClick={() => navigate('/recommend')}
+                className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  isActive('/recommend') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Recommendation
+              </button>
+              <button
                 onClick={() => navigate('/interest')}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
                   isActive('/interest') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'

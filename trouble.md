@@ -71,3 +71,33 @@
 - **증상**: 인플루언서 추천 탭에서 질문해도 "이용 안내 문서에 없습니다" 응답
 - **원인**: 새 대화 생성 시 `question_type`을 Chatwoot `custom_attributes`에만 설정했는데, `/chat/send`에서 이를 읽지 않고 항상 `"일반"`으로 처리
 - **해결**: `/chat/send`에서 conversation의 `custom_attributes.question_type`을 조회하여 사용하도록 수정
+
+## 15. 디스크 공간 부족으로 Docker 빌드 실패
+- **증상**: `no space left on device` 에러로 빌드 불가
+- **원인**: Docker 이미지/빌드 캐시가 디스크를 가득 채움
+- **해결**: `docker system prune -f && docker builder prune -f`로 7.7GB 확보
+
+## 16. 챗봇 추천 결과에서 전체보기 링크 연결
+- **증상**: 챗봇에서 추천 받아도 전체 결과 페이지로 이동할 방법 없음
+- **원인**: chatbot service에서 RecommendationRun을 저장하지 않아 run_id가 없었음
+- **해결**: `_build_influencer_recommendation_answer`에서 MallInput + RecommendationRun + RecommendationResult를 DB에 저장하고, 응답 끝에 `[추천 결과 전체보기](/recommendation/{run_id})` 링크 추가. 프론트 ChatWidget에서 마크다운 링크 패턴을 감지하여 버튼으로 렌더링
+
+## 17. 챗봇 대화상자에서 긴 URL이 넘침
+- **증상**: 인스타그램 프로필 URL 등 긴 텍스트가 채팅 버블을 벗어남
+- **원인**: `whitespace-pre-wrap`만 있고 단어 단위 줄바꿈 처리 없음
+- **해결**: 메시지 버블에 `break-all` 클래스 추가
+
+## 18. 채팅 헤더에 "대화 #55" 그대로 표시
+- **증상**: 채팅방에 들어가면 헤더에 ID 기반 이름이 표시됨
+- **원인**: 헤더에서 conversation name을 사용하지 않고 `activeConvId`를 직접 표시
+- **해결**: `conversations.find()`로 해당 대화의 name을 가져와서 표시 (없으면 "새로운 채팅")
+
+## 19. 채팅 이름 수정 방법이 불명확 (더블클릭)
+- **증상**: 유저가 채팅 이름 수정 방법을 모름
+- **원인**: 더블클릭으로만 수정 가능했음
+- **해결**: 대화 목록 각 항목에 연필(Pencil) 아이콘 버튼 추가, 클릭 시 prompt로 이름 수정
+
+## 20. Find Influencers와 Recommendation 페이지 분리
+- **증상**: 검색과 추천이 같은 페이지에 혼재
+- **원인**: `InfluencerProfile.tsx`에 검색+추천이 모두 포함
+- **해결**: `/find` = 검색/필터만, `/recommend` = AI 추천 전용 페이지로 분리. 네비게이션에 "Find Influencers"와 "Recommendation" 버튼 각각 추가

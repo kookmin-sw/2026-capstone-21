@@ -61,6 +61,7 @@ async def get_conversations(user_id: str):
                 "name": c.get("custom_attributes", {}).get("chat_name", ""),
             }
             for c in convs
+            if not c.get("custom_attributes", {}).get("deleted")
         ]
     }
 
@@ -93,10 +94,16 @@ async def get_messages(conversation_id: int):
 
 @router.delete("/conversations/{conversation_id}")
 async def delete_conversation(conversation_id: int):
-    """대화 삭제"""
+    """대화 삭제 (resolve + deleted 플래그)"""
     requests.post(
         f"{CHATWOOT_URL}/conversations/{conversation_id}/toggle_status",
         json={"status": "resolved"},
+        headers=HEADERS,
+        timeout=5,
+    )
+    requests.patch(
+        f"{CHATWOOT_URL}/conversations/{conversation_id}",
+        json={"custom_attributes": {"deleted": True}},
         headers=HEADERS,
         timeout=5,
     )

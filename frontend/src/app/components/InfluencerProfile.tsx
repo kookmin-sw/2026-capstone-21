@@ -420,84 +420,9 @@ export function InfluencerProfile() {
     <div>
       <div className="mb-8 space-y-4">
         <h1 className="text-4xl font-bold text-slate-900">
-          Discover Influencers
+          Find Influencers
         </h1>
 
-        <div className="p-4 border border-slate-200 rounded-2xl bg-white">
-          <div className="flex gap-3">
-            <input
-              value={recommendText}
-              onChange={(e) => setRecommendText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') handleRecommend(); }}
-              placeholder="브랜드 설명을 입력하세요"
-              className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
-            />
-
-            <button
-              onClick={handleRecommend}
-              disabled={isRecommending}
-              className={`px-6 py-3 rounded-xl font-semibold transition ${
-                isRecommending
-                  ? 'bg-slate-400 text-white cursor-not-allowed'
-                  : 'bg-purple-600 text-white hover:bg-purple-700'
-              }`}
-            >
-              {isRecommending ? '추천중...' : '추천받기'}
-            </button>
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <select
-              value={recCategory}
-              onChange={(e) => setRecCategory(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">카테고리 전체</option>
-              {categories.map((cat) => (
-                <option key={String(cat)} value={String(cat)}>
-                  {String(cat)}
-                </option>
-              ))}
-            </select>
-
-            <select
-              value={recFollowerRange}
-              onChange={(e) => setRecFollowerRange(e.target.value)}
-              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
-            >
-              <option value="">팔로워 수 전체</option>
-              <option value="500-1000">500 - 1K</option>
-              <option value="1000-2000">1K - 2K</option>
-              <option value="2000-3000">2K - 3K</option>
-              <option value="3000-5000">3K - 5K</option>
-              <option value="5000+">5K+</option>
-            </select>
-          </div>
-
-          {recommendResults.length > 0 && (
-            <div className="mt-6">
-              <div className="font-semibold mb-4">추천 결과 — {recommendResults.length}명 매칭</div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-                {recommendResults.slice(0, currentPage * itemsPerPage).map((influencer) =>
-                  renderInfluencerCard(influencer)
-                )}
-              </div>
-              {recommendResults.length > currentPage * itemsPerPage && (
-                <div className="mt-12 flex justify-center">
-                  <button
-                    onClick={() => setCurrentPage((prev) => prev + 1)}
-                    className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm"
-                  >
-                    Load More ({currentPage * itemsPerPage} / {recommendResults.length})
-                  </button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {recommendResults.length === 0 && (
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500" />
@@ -524,10 +449,8 @@ export function InfluencerProfile() {
             Filters
           </button>
         </div>
-        )}
       </div>
 
-      {recommendResults.length === 0 && (
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -596,17 +519,14 @@ export function InfluencerProfile() {
           </motion.div>
         )}
       </AnimatePresence>
-      )}
 
-      {recommendResults.length === 0 && (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
         {displayedInfluencers.map((influencer) =>
           renderInfluencerCard(influencer)
         )}
       </div>
-      )}
 
-      {recommendResults.length === 0 && filteredInfluencers.length > displayedInfluencers.length && (
+      {filteredInfluencers.length > displayedInfluencers.length && (
         <div className="mt-12 flex justify-center">
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}

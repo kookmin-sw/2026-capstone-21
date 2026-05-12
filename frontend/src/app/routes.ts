@@ -9,6 +9,7 @@ import { ChatHistory } from "./components/ChatHistory";
 import { RecommendationDetail } from "./components/RecommendationDetail";
 import { MyPage } from "./components/MyPage";
 import { HomePage } from "./components/HomePage";
+import { RecommendPage } from "./components/RecommendPage";
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
       {
         path: "find",
         Component: InfluencerProfile,
+      },
+      {
+        path: "recommend",
+        Component: RecommendPage,
       },
       {
         path: "interest",
