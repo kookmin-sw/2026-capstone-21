@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     API_ACCESS_TOKEN: Optional[str] = None
     CHATWOOT_PORTAL_ID: Optional[str] = None
     CHATWOOT_HELP_CENTER_ARTICLES_URL: Optional[str] = None
+    CHATWOOT_HMAC_TOKEN: Optional[str] = None
     
     model_config = SettingsConfigDict(
         env_file=(PROJECT_DIR / ".env", APP_DIR / ".env"),

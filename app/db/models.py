@@ -503,6 +503,7 @@ class ChatwootLog(Base):
     # 1. 기본 키 및 식별자
     id = Column(Integer, primary_key=True, index=True)
     conversation_id = Column(Integer, nullable=False, index=True)
+    user_id = Column(Integer, nullable=True, index=True)
     
     # 2. 질문 및 답변 데이터
     question_content = Column(Text, nullable=False)

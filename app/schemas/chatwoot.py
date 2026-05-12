@@ -32,6 +32,7 @@ class ChatwootWebhookPayload(BaseModel):
     custom_attributes: Optional[Dict[str, Any]] = Field(default_factory=dict)
     additional_attributes: Optional[AdditionalAttributes] = Field(default_factory=AdditionalAttributes)
     conversation: Optional[ConversationInfo] = None
+    sender: Optional[Dict[str, Any]] = None
 
     class Config:
         extra = "ignore"

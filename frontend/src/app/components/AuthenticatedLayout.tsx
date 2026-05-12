@@ -56,6 +56,14 @@ export function AuthenticatedLayout() {
               >
                 Data Insights
               </button>
+              <button
+                onClick={() => navigate('/chat-history')}
+                className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  isActive('/chat-history') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                Chat History
+              </button>
 
               <div className="w-px h-8 bg-slate-200 mx-2" />
               <button onClick={logout} className="p-2.5 text-slate-600 hover:bg-slate-100 rounded-lg">

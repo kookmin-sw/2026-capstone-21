@@ -71,6 +71,8 @@ export function InfluencerProfile() {
   const [recommendText, setRecommendText] = useState('');
   const [recommendResults, setRecommendResults] = useState<Influencer[]>([]);
   const [isRecommending, setIsRecommending] = useState(false);
+  const [recCategory, setRecCategory] = useState<string>('');
+  const [recFollowerRange, setRecFollowerRange] = useState<string>('');
 
   // 필터가 바뀔 때마다 페이지를 1로 리셋하기 위한 로직
   useEffect(() => {
@@ -131,9 +133,21 @@ export function InfluencerProfile() {
 
       console.log('mall_input 저장 응답:', mallInput);
 
+      const followerMinMap: Record<string, number> = {
+        '500-1000': 500,
+        '1000-2000': 1000,
+        '2000-3000': 2000,
+        '3000-5000': 3000,
+        '5000+': 5000,
+      };
+
       const res = await getPrediction(
         Number(mallInput.input_id),
-        Number(userId)
+        Number(userId),
+        {
+          category: recCategory || undefined,
+          minFollowers: recFollowerRange ? followerMinMap[recFollowerRange] : undefined,
+        }
       );
 
       console.log('추천 API 응답:', res);
@@ -407,6 +421,34 @@ export function InfluencerProfile() {
             >
               {isRecommending ? '추천중...' : '추천받기'}
             </button>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <select
+              value={recCategory}
+              onChange={(e) => setRecCategory(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">카테고리 전체</option>
+              {categories.map((cat) => (
+                <option key={String(cat)} value={String(cat)}>
+                  {String(cat)}
+                </option>
+              ))}
+            </select>
+
+            <select
+              value={recFollowerRange}
+              onChange={(e) => setRecFollowerRange(e.target.value)}
+              className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="">팔로워 수 전체</option>
+              <option value="500-1000">500 - 1K</option>
+              <option value="1000-2000">1K - 2K</option>
+              <option value="2000-3000">2K - 3K</option>
+              <option value="3000-5000">3K - 5K</option>
+              <option value="5000+">5K+</option>
+            </select>
           </div>
 
           {recommendResults.length > 0 && (

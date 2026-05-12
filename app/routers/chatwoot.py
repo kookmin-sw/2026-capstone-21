@@ -1,14 +1,52 @@
 from __future__ import annotations
 from datetime import datetime, timedelta
 from typing import Optional, Union, List, Dict, Any
+import hmac
+import hashlib
 from app.db.database import get_db
 from sqlalchemy.orm import Session
 from fastapi import Depends, APIRouter, BackgroundTasks
 from app.schemas.chatwoot import ChatwootWebhookPayload
 from app.db.models import ChatwootLog
 from app.services.chatbot import ChatbotService
+from app.utils.setting_config import settings
 
 router = APIRouter(prefix="/chatwoot", tags=["Chatbot"])
+
+
+@router.get("/hmac/{user_id}")
+async def get_hmac_for_user(user_id: int):
+    """Chatwoot 위젯 identifier_hash 생성"""
+    token = settings.CHATWOOT_HMAC_TOKEN
+    if not token:
+        return {"identifier_hash": None}
+    identifier_hash = hmac.new(
+        token.encode(), str(user_id).encode(), hashlib.sha256
+    ).hexdigest()
+    return {"identifier_hash": identifier_hash}
+
+
+@router.get("/history/{user_id}")
+async def get_chat_history(user_id: int, db: Session = Depends(get_db)):
+    """유저의 챗봇 대화 기록 조회"""
+    logs = (
+        db.query(ChatwootLog)
+        .filter(ChatwootLog.user_id == user_id)
+        .order_by(ChatwootLog.created_at.desc())
+        .limit(100)
+        .all()
+    )
+    return [
+        {
+            "id": log.id,
+            "conversation_id": log.conversation_id,
+            "question": log.question_content,
+            "answer": log.answer_content,
+            "question_type": log.question_type,
+            "created_at": log.created_at,
+        }
+        for log in logs
+    ]
 
 def _is_incoming_message(message_type: Optional[Union[str, int]]) -> bool:
     if message_type == 0:
@@ -72,6 +110,16 @@ async def receive_question(
     # 안전하게 question_type 추출
     q_type = _extract_question_type(payload)
 
+    # sender에서 user_id 추출 (프론트에서 setUser로 설정한 identifier)
+    user_id = None
+    if payload.sender:
+        identifier = payload.sender.get("identifier")
+        if identifier:
+            try:
+                user_id = int(identifier)
+            except (ValueError, TypeError):
+                pass
+
     duplicate_cutoff = datetime.now() - timedelta(seconds=5)
     existing_log = (
         db.query(ChatwootLog)
@@ -91,7 +139,8 @@ async def receive_question(
     new_log = ChatwootLog(
         conversation_id=conversation_id,
         question_content=content,
-        question_type=q_type
+        question_type=q_type,
+        user_id=user_id
     )
     db.add(new_log)
     db.commit()
@@ -103,7 +152,8 @@ async def receive_question(
         chatbot_service.process_and_reply, 
         conversation_id, 
         content, 
-        q_type
+        q_type,
+        user_id or 1
     )
 
     return {"status": "processing", "saved_id": new_log.id}

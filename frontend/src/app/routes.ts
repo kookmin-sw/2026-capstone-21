@@ -5,6 +5,7 @@ import { InfluencerProfile } from "./components/InfluencerProfile";
 import { InterestList } from "./components/InterestList";
 import { StatisticsChart } from "./components/StatisticsChart";
 import { SystemConsole } from "./components/SystemConsole";
+import { ChatHistory } from "./components/ChatHistory";
 
 export const router = createBrowserRouter([
   {
@@ -12,7 +13,7 @@ export const router = createBrowserRouter([
     Component: Root,
     children: [
       {
-        index: true, // 사용자가 "/" 경로로 들어왔을 때 기본으로 보여줄 페이지
+        index: true,
         Component: InfluencerProfile, 
       },
       {
@@ -26,6 +27,10 @@ export const router = createBrowserRouter([
       {
         path: "Insights",
         Component: StatisticsChart,
+      },
+      {
+        path: "chat-history",
+        Component: ChatHistory,
       },
       {
         path: "system-console",

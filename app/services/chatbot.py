@@ -206,6 +206,7 @@ class ChatbotService:
                     ai_answer = self._build_influencer_recommendation_answer(
                         user_id=user_id,
                         question_content=question_content,
+                        conversation_id=conversation_id,
                     )
                     self._complete_process(conversation_id, ai_answer)
                     return
@@ -256,16 +257,74 @@ class ChatbotService:
                 print(f"❌ 챗봇 처리 실패: {e}")
                 self._complete_process(conversation_id, "시스템 오류로 답변을 생성하지 못했습니다. 잠시 후 다시 시도해 주세요.")
 
+    def _enhance_query_with_history(self, conversation_id: int, current_question: str) -> str:
+        """대화 히스토리를 기반으로 누적 선호를 반영한 개선된 추천 쿼리를 생성합니다."""
+        if not conversation_id:
+            return current_question
+
+        # 같은 conversation의 이전 추천 관련 대화 조회 (최근 10개)
+        history_logs = (
+            self.db.query(ChatwootLog)
+            .filter(
+                ChatwootLog.conversation_id == conversation_id,
+                ChatwootLog.question_type == "인플루언서 추천",
+            )
+            .order_by(ChatwootLog.id.desc())
+            .limit(10)
+            .all()
+        )
+
+        if len(history_logs) <= 1:
+            return current_question
+
+        # 히스토리를 시간순으로 정렬 (현재 질문 제외)
+        past_logs = sorted(history_logs[1:], key=lambda x: x.id)
+        history_text = "\n".join(
+            f"유저: {log.question_content}\n봇: {log.answer_content or ''}"
+            for log in past_logs[-5:]  # 최근 5개만
+        )
+
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "당신은 인플루언서 추천 검색 쿼리를 개선하는 도우미입니다.\n"
+                            "아래 대화 히스토리와 현재 질문을 보고, 유저의 누적된 선호(카테고리, 분위기, 팔로워 규모, 스타일 등)를 "
+                            "반영하여 추천 엔진에 전달할 하나의 검색 쿼리 문장을 생성하세요.\n"
+                            "검색 쿼리만 출력하세요. 설명이나 부가 텍스트는 불필요합니다."
+                        ),
+                    },
+                    {
+                        "role": "user",
+                        "content": f"[이전 대화]\n{history_text}\n\n[현재 질문]\n{current_question}",
+                    },
+                ],
+                temperature=0.0,
+                max_tokens=200,
+            )
+            enhanced = response.choices[0].message.content.strip()
+            print(f"--- [DEBUG] 쿼리 개선: '{current_question}' → '{enhanced}'", flush=True)
+            return enhanced
+        except Exception as e:
+            print(f"⚠️ 쿼리 개선 실패, 원본 사용: {e}")
+            return current_question
+
     def _complete_process(self, conversation_id: int, ai_answer: str):
         """결과 발송 및 로그 기록 공통 로직"""
         self._send_to_chatwoot(conversation_id, ai_answer)
         self._update_log(conversation_id, ai_answer)
 
-    def _build_influencer_recommendation_answer(self, user_id: int, question_content: str) -> str:
+    def _build_influencer_recommendation_answer(self, user_id: int, question_content: str, conversation_id: int = None) -> str:
         """추천 엔진 결과를 Chatwoot에서 읽기 좋은 텍스트 답변으로 변환합니다."""
+        # 대화 히스토리 기반 쿼리 개선
+        enhanced_query = self._enhance_query_with_history(conversation_id, question_content)
+
         try:
             engine = RecommendationEngine(self.db)
-            recommendations = engine.recommend(user_id=user_id, query_text=question_content, top_k=5)
+            recommendations = engine.recommend(user_id=user_id, query_text=enhanced_query, top_k=5)
         except Exception as e:
             print(f"❌ 인플루언서 추천 생성 실패: {e}")
             return "시스템 오류로 추천 결과를 생성하지 못했습니다. 잠시 후 다시 시도해 주세요."
