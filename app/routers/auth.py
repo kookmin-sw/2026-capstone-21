@@ -96,3 +96,32 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
         "access_token": access_token,
         "token_type": "bearer",
     }
+
+
+@router.get("/profile/{user_id}")
+def get_profile(user_id: int, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+    return {
+        "user_id": user.user_id,
+        "email": user.email,
+        "user_name": user.user_name,
+        "mall_name": user.mall_name,
+        "mall_url": user.mall_url,
+    }
+
+
+@router.put("/profile/{user_id}")
+def update_profile(user_id: int, body: dict, db: Session = Depends(get_db)):
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+    if "user_name" in body:
+        user.user_name = body["user_name"]
+    if "mall_name" in body:
+        user.mall_name = body["mall_name"]
+    if "mall_url" in body:
+        user.mall_url = body["mall_url"]
+    db.commit()
+    return {"status": "ok"}

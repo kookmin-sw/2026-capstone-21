@@ -6,6 +6,8 @@ import { InterestList } from "./components/InterestList";
 import { StatisticsChart } from "./components/StatisticsChart";
 import { SystemConsole } from "./components/SystemConsole";
 import { ChatHistory } from "./components/ChatHistory";
+import { RecommendationDetail } from "./components/RecommendationDetail";
+import { MyPage } from "./components/MyPage";
 
 export const router = createBrowserRouter([
   {
@@ -31,6 +33,14 @@ export const router = createBrowserRouter([
       {
         path: "chat-history",
         Component: ChatHistory,
+      },
+      {
+        path: "my",
+        Component: MyPage,
+      },
+      {
+        path: "recommendation/:id",
+        Component: RecommendationDetail,
       },
       {
         path: "system-console",

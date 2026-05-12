@@ -29,6 +29,8 @@ class User(Base):
     email = Column(String(255), nullable=False, unique=True)
     password_hash = Column(String(255), nullable=False)
     user_name = Column(String(100), nullable=False)
+    mall_name = Column(String(200), nullable=True)
+    mall_url = Column(String(500), nullable=True)
 
     # user: 일반 사용자 / admin: 관리자
     role = Column(String(50), nullable=False, default="user")

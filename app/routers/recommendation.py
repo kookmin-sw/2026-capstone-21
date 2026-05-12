@@ -14,6 +14,85 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 # 전역 변수 혹은 의존성 주입으로 엔진을 관리하여 성능 최적화 필요 (싱글톤 권장)
 # 여기서는 간단하게 로직 통합에 집중합니다.
 
+@router.get("/history/{user_id}")
+def get_recommendation_history(user_id: int, db: Session = Depends(get_db)):
+    """유저의 추천 기록 목록 조회"""
+    runs = (
+        db.query(RecommendationRun)
+        .filter(RecommendationRun.user_id == user_id)
+        .order_by(RecommendationRun.requested_at.desc())
+        .limit(50)
+        .all()
+    )
+    return [
+        {
+            "run_id": r.run_id,
+            "input_text": r.mall_input.input_text if r.mall_input else None,
+            "status": r.status,
+            "requested_at": r.requested_at,
+            "result_count": len(r.results),
+        }
+        for r in runs
+    ]
+
+
+@router.get("/{run_id}")
+def get_recommendation_detail(
+    run_id: int,
+    user_id: int = Query(...),
+    db: Session = Depends(get_db),
+):
+    """추천 결과 상세 조회 - user는 자기 추천만 접근 가능"""
+    run = db.query(RecommendationRun).filter(RecommendationRun.run_id == run_id).first()
+    if not run:
+        raise HTTPException(status_code=404, detail="추천 결과를 찾을 수 없습니다.")
+
+    from app.db.models import User
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="유저를 찾을 수 없습니다.")
+    if user.role != "admin" and run.user_id != user_id:
+        raise HTTPException(status_code=403, detail="접근 권한이 없습니다.")
+
+    results = (
+        db.query(RecommendationResult)
+        .filter(RecommendationResult.run_id == run_id)
+        .order_by(RecommendationResult.rank_no)
+        .all()
+    )
+
+    recommendations = []
+    for r in results:
+        inf = db.query(Influencer).filter(Influencer.influencer_id == r.influencer_id).first()
+        cat = db.query(Category).join(InfluencerCategory).filter(
+            InfluencerCategory.influencer_id == r.influencer_id,
+            InfluencerCategory.priority == 1,
+        ).first()
+        recommendations.append({
+            "rank_no": r.rank_no,
+            "influencer_id": r.influencer_id,
+            "username": inf.username if inf else None,
+            "full_name": inf.full_name if inf else None,
+            "profile_pic_url": inf.profile_pic_url if inf else None,
+            "followers_count": inf.followers_count if inf else 0,
+            "category": cat.category_name if cat else None,
+            "grade_score": inf.grade_score if inf else None,
+            "final_score": r.final_score,
+            "similarity_score": r.similarity_score,
+            "personalization_score": r.personalization_score,
+        })
+
+    return {
+        "run_id": run.run_id,
+        "user_id": run.user_id,
+        "input_id": run.input_id,
+        "status": run.status,
+        "requested_at": run.requested_at,
+        "input_text": run.mall_input.input_text if run.mall_input else None,
+        "recommendations": recommendations,
+    }
+
+
 @router.post("/predict", response_model=RecommendationRunResponse)
 def get_and_save_recommendations(
     input_id: int, 
