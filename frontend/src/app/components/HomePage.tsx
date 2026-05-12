@@ -16,8 +16,8 @@ export function HomePage() {
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-xl">D</div>
-            <span className="text-2xl font-bold text-white">링크디매치</span>
+            <img src="/logo_black.png" alt="링크디매치" className="h-10" />
+            <span className="text-2xl font-bold text-white">LinkD-Match</span>
           </div>
           <div className="flex items-center gap-4">
             <button onClick={() => navigate('/find')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Find Influencers</button>
@@ -41,8 +41,8 @@ export function HomePage() {
               <Sparkles className="w-4 h-4 text-purple-300" />
               <span className="text-sm text-white/90">Influencer Marketing Platform</span>
             </div>
-            <h1 className="text-5xl lg:text-6xl font-bold text-white leading-tight">
-              <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">브랜드에 맞는 완벽한 인플루언서를 만나보세요.</span>
+            <h1 className="font-bold text-white leading-tight" style={{ fontSize: 'clamp(1.75rem, 4vw, 3rem)' }}>
+              <span className="block bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">브랜드에 맞는 완벽한<br />인플루언서를 만나보세요.</span>
             </h1>
             <p className="text-xl text-white/70 leading-relaxed max-w-xl">브랜드 가치에 공감하는 인플루언서를 탐색하세요. 데이터 기반 분석부터 맞춤형 검색까지 해결할 수 있습니다.</p>
             <div className="flex items-center gap-4">

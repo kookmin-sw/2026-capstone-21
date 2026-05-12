@@ -8,6 +8,7 @@ interface Conversation {
   status: string;
   created_at: number;
   last_message: string;
+  name: string;
 }
 
 interface Message {
@@ -195,21 +196,47 @@ export function ChatWidget() {
                     <div className="text-center text-slate-400 text-sm py-8">대화가 없습니다</div>
                   )}
                   {conversations.map((conv) => (
-                    <button
-                      key={conv.id}
-                      onClick={() => openConversation(conv.id)}
-                      className="w-full px-4 py-3 border-b border-slate-100 text-left hover:bg-slate-50"
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-slate-800">대화 #{conv.id}</span>
-                        <span className={`text-xs px-2 py-0.5 rounded-full ${conv.status === "open" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
-                          {conv.status === "open" ? "진행중" : "종료"}
-                        </span>
-                      </div>
-                      {conv.last_message && (
-                        <p className="text-xs text-slate-500 mt-1 truncate">{conv.last_message}</p>
-                      )}
-                    </button>
+                    <div key={conv.id} className="flex items-center border-b border-slate-100">
+                      <button
+                        onClick={() => openConversation(conv.id)}
+                        onDoubleClick={(e) => {
+                          e.preventDefault();
+                          const newName = prompt("채팅 이름을 입력하세요", conv.name || "새로운 채팅");
+                          if (newName && newName.trim()) {
+                            fetch(`${API}/chat/conversations/${conv.id}/name`, {
+                              method: "PATCH",
+                              headers: { "Content-Type": "application/json" },
+                              body: JSON.stringify({ name: newName.trim() }),
+                            }).then(() => {
+                              setConversations((prev) => prev.map((c) => c.id === conv.id ? { ...c, name: newName.trim() } : c));
+                            });
+                          }
+                        }}
+                        className="flex-1 px-4 py-3 text-left hover:bg-slate-50"
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-slate-800">{conv.name || "새로운 채팅"}</span>
+                          <span className={`text-xs px-2 py-0.5 rounded-full ${conv.status === "open" ? "bg-green-100 text-green-700" : "bg-slate-100 text-slate-500"}`}>
+                            {conv.status === "open" ? "진행중" : "종료"}
+                          </span>
+                        </div>
+                        {conv.last_message && (
+                          <p className="text-xs text-slate-500 mt-1 truncate">{conv.last_message}</p>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (confirm("이 대화를 삭제할까요?")) {
+                            fetch(`${API}/chat/conversations/${conv.id}`, { method: "DELETE" })
+                              .then(() => setConversations((prev) => prev.filter((c) => c.id !== conv.id)));
+                          }
+                        }}
+                        className="px-3 py-3 text-slate-400 hover:text-red-500 transition"
+                        title="삭제"
+                      >
+                        <X className="w-4 h-4" />
+                      </button>
+                    </div>
                   ))}
                 </>
               )}
@@ -227,7 +254,17 @@ export function ChatWidget() {
                         ? "bg-purple-100 text-purple-900"
                         : "bg-slate-100 text-slate-800"
                     }`}>
-                      {msg.content}
+                      {msg.content.split("\n").map((line, i) => {
+                        const linkMatch = line.match(/\[(.+?)\]\((.+?)\)/);
+                        if (linkMatch) {
+                          return (
+                            <a key={i} href={linkMatch[2]} className="block mt-2 px-3 py-2 bg-purple-600 text-white text-center rounded-lg text-xs font-semibold hover:bg-purple-700 transition">
+                              {linkMatch[1]}
+                            </a>
+                          );
+                        }
+                        return <span key={i}>{line}{"\n"}</span>;
+                      })}
                     </div>
                   </div>
                 ))}

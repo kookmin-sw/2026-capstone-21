@@ -319,6 +319,8 @@ class ChatbotService:
 
     def _build_influencer_recommendation_answer(self, user_id: int, question_content: str, conversation_id: int = None) -> str:
         """추천 엔진 결과를 Chatwoot에서 읽기 좋은 텍스트 답변으로 변환합니다."""
+        from app.db.models import RecommendationRun, RecommendationResult, MallInput
+
         # 대화 히스토리 기반 쿼리 개선
         enhanced_query = self._enhance_query_with_history(conversation_id, question_content)
 
@@ -331,6 +333,38 @@ class ChatbotService:
 
         if not recommendations:
             return RECOMMENDATION_EMPTY_MESSAGE
+
+        # MallInput 생성 및 RecommendationRun 저장
+        run_id = None
+        try:
+            mall_input = MallInput(user_id=user_id, input_text=enhanced_query)
+            self.db.add(mall_input)
+            self.db.flush()
+
+            new_run = RecommendationRun(
+                input_id=mall_input.input_id,
+                user_id=user_id,
+                applied_action_idx=recommendations[0].get("action_idx", 0),
+                status="completed",
+            )
+            self.db.add(new_run)
+            self.db.flush()
+            run_id = new_run.run_id
+
+            for i, rec in enumerate(recommendations):
+                self.db.add(RecommendationResult(
+                    run_id=run_id,
+                    influencer_id=rec["influencer_id"],
+                    similarity_score=rec.get("similarity_score"),
+                    grade_score=rec.get("grade_score"),
+                    personalization_score=rec.get("personalization_score"),
+                    final_score=rec["score"],
+                    rank_no=i + 1,
+                ))
+            self.db.commit()
+        except Exception as e:
+            print(f"⚠️ 추천 결과 저장 실패: {e}")
+            self.db.rollback()
 
         rec_by_id = {rec["influencer_id"]: rec for rec in recommendations}
         influencers = (
@@ -380,6 +414,8 @@ class ChatbotService:
         lines.append(
             "더 정확한 추천이 필요하면 제품명, 브랜드 분위기, 원하는 카테고리나 콘텐츠 스타일을 함께 알려주세요."
         )
+        if run_id:
+            lines.append(f"\n[추천 결과 전체보기](/recommendation/{run_id})")
         return "\n".join(lines).strip()
 
     def _format_influencer_name(self, influencer: Influencer) -> str:

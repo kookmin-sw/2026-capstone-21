@@ -24,16 +24,16 @@ def _get_contact_id(user_id) -> Optional[int]:
         if str(c.get("identifier")) == identifier:
             return c["id"]
 
-    # guest인 경우 새 contact 생성
-    if identifier.startswith("guest_"):
-        create_res = requests.post(
-            f"{CHATWOOT_URL}/contacts",
-            json={"identifier": identifier, "name": f"Guest ({identifier[-6:]})"},
-            headers=HEADERS,
-            timeout=5,
-        )
-        if create_res.status_code in (200, 201):
-            return create_res.json().get("id")
+    # contact가 없으면 생성
+    name = f"Guest ({identifier[-6:]})" if identifier.startswith("guest_") else f"user_{identifier}"
+    create_res = requests.post(
+        f"{CHATWOOT_URL}/contacts",
+        json={"identifier": identifier, "name": name},
+        headers=HEADERS,
+        timeout=5,
+    )
+    if create_res.status_code in (200, 201):
+        return create_res.json().get("id")
     return None
 
 
@@ -58,6 +58,7 @@ async def get_conversations(user_id: str):
                 "status": c.get("status", "open"),
                 "created_at": c.get("created_at"),
                 "last_message": c.get("messages", [{}])[-1].get("content", "") if c.get("messages") else "",
+                "name": c.get("custom_attributes", {}).get("chat_name", ""),
             }
             for c in convs
         ]
@@ -88,6 +89,33 @@ async def get_messages(conversation_id: int):
             if m.get("message_type") != 2  # activity 메시지 제외
         ]
     }
+
+
+@router.delete("/conversations/{conversation_id}")
+async def delete_conversation(conversation_id: int):
+    """대화 삭제"""
+    requests.post(
+        f"{CHATWOOT_URL}/conversations/{conversation_id}/toggle_status",
+        json={"status": "resolved"},
+        headers=HEADERS,
+        timeout=5,
+    )
+    return {"status": "ok"}
+
+
+@router.patch("/conversations/{conversation_id}/name")
+async def rename_conversation(conversation_id: int, body: dict):
+    """대화 이름 수정"""
+    name = body.get("name", "").strip()
+    if not name:
+        return {"error": "empty name"}
+    requests.patch(
+        f"{CHATWOOT_URL}/conversations/{conversation_id}",
+        json={"custom_attributes": {"chat_name": name}},
+        headers=HEADERS,
+        timeout=5,
+    )
+    return {"status": "ok"}
 
 
 @router.post("/send/{conversation_id}")
