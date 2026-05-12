@@ -11,22 +11,34 @@ HEADERS = {"api_access_token": settings.API_ACCESS_TOKEN}
 ACCOUNT_ID = 1
 
 
-def _get_contact_id(user_id: int) -> Optional[int]:
-    """user_id(identifier)로 Chatwoot contact_id 조회"""
+def _get_contact_id(user_id) -> Optional[int]:
+    """user_id(identifier)로 Chatwoot contact_id 조회. 없으면 생성."""
+    identifier = str(user_id)
     res = requests.get(
         f"{CHATWOOT_URL}/contacts/search",
-        params={"q": str(user_id)},
+        params={"q": identifier},
         headers=HEADERS,
         timeout=5,
     )
     for c in res.json().get("payload", []):
-        if str(c.get("identifier")) == str(user_id):
+        if str(c.get("identifier")) == identifier:
             return c["id"]
+
+    # guest인 경우 새 contact 생성
+    if identifier.startswith("guest_"):
+        create_res = requests.post(
+            f"{CHATWOOT_URL}/contacts",
+            json={"identifier": identifier, "name": f"Guest ({identifier[-6:]})"},
+            headers=HEADERS,
+            timeout=5,
+        )
+        if create_res.status_code in (200, 201):
+            return create_res.json().get("id")
     return None
 
 
 @router.get("/conversations/{user_id}")
-async def get_conversations(user_id: int):
+async def get_conversations(user_id: str):
     """유저의 대화 목록 조회"""
     contact_id = _get_contact_id(user_id)
     if not contact_id:
@@ -141,25 +153,32 @@ async def send_message(conversation_id: int, body: dict):
     from app.db.database import SessionLocal
 
     # DB에 로그 저장
+    numeric_user_id = None
+    if user_id:
+        try:
+            numeric_user_id = int(user_id)
+        except (ValueError, TypeError):
+            pass
+
     with SessionLocal() as db:
         new_log = ChatwootLog(
             conversation_id=conversation_id,
             question_content=content,
             question_type=q_type,
-            user_id=user_id,
+            user_id=numeric_user_id,
         )
         db.add(new_log)
         db.commit()
 
     # 챗봇 응답 처리
     chatbot = ChatbotService()
-    chatbot.process_and_reply(conversation_id, content, q_type, user_id or 1)
+    chatbot.process_and_reply(conversation_id, content, q_type, numeric_user_id or 1)
 
     return {"status": "ok"}
 
 
 @router.post("/new/{user_id}")
-async def create_conversation(user_id: int, question_type: str = "일반"):
+async def create_conversation(user_id: str, question_type: str = "일반"):
     """새 대화 생성"""
     contact_id = _get_contact_id(user_id)
     if not contact_id:

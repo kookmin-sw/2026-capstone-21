@@ -31,7 +31,14 @@ export function ChatWidget() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localMsgsRef = useRef<Message[]>([]);
 
-  const userId = localStorage.getItem("user_id");
+  const userId = localStorage.getItem("user_id") || (() => {
+    let guestId = sessionStorage.getItem("guest_id");
+    if (!guestId) {
+      guestId = `guest_${Date.now()}`;
+      sessionStorage.setItem("guest_id", guestId);
+    }
+    return guestId;
+  })();
 
   const fetchConversations = async () => {
     if (!userId) return;
@@ -101,7 +108,7 @@ export function ChatWidget() {
     await fetch(`${API}/chat/send/${activeConvId}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ content, user_id: Number(userId) }),
+      body: JSON.stringify({ content, user_id: userId }),
     });
   };
 
@@ -111,8 +118,6 @@ export function ChatWidget() {
       handleSend();
     }
   };
-
-  if (!userId) return null;
 
   return (
     <>
@@ -130,20 +135,25 @@ export function ChatWidget() {
       {open && (
         <div className="fixed bottom-6 right-6 z-[9999] w-96 h-[32rem] bg-white rounded-2xl shadow-2xl border border-slate-200 flex flex-col overflow-hidden">
           {/* 헤더 */}
-          <div className="bg-purple-600 text-white px-4 py-3 flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {view === "chat" && (
-                <button onClick={() => { setView("list"); if (pollRef.current) clearInterval(pollRef.current); }}>
-                  <ArrowLeft className="w-5 h-5" />
-                </button>
-              )}
-              <span className="font-semibold text-sm">
-                {view === "list" ? "채팅" : `대화 #${activeConvId}`}
-              </span>
+          <div className="bg-purple-600 text-white px-4 py-3 flex flex-col">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {view === "chat" && (
+                  <button onClick={() => { setView("list"); if (pollRef.current) clearInterval(pollRef.current); }}>
+                    <ArrowLeft className="w-5 h-5" />
+                  </button>
+                )}
+                <span className="font-semibold text-sm">
+                  {view === "list" ? "채팅" : `대화 #${activeConvId}`}
+                </span>
+              </div>
+              <button onClick={() => { setOpen(false); if (pollRef.current) clearInterval(pollRef.current); }}>
+                <X className="w-5 h-5" />
+              </button>
             </div>
-            <button onClick={() => { setOpen(false); if (pollRef.current) clearInterval(pollRef.current); }}>
-              <X className="w-5 h-5" />
-            </button>
+            {!localStorage.getItem("user_id") && (
+              <p className="text-xs text-purple-200 mt-1">⚠️ 비로그인 상태 — 탭을 닫으면 대화 기록이 사라집니다</p>
+            )}
           </div>
 
           {/* 대화 목록 */}
