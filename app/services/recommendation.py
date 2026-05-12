@@ -157,6 +157,16 @@ class RecommendationEngine:
         # 유저의 쇼핑몰 분위기 설명을 쿼리에 합침
         from app.db.models import User
         user = self.db.query(User).filter(User.user_id == user_id).first()
+        if user and user.mall_url and not user.mall_description:
+            # mall_url은 있는데 분석이 안 된 경우 자동 분석
+            try:
+                from app.services.mall_analyzer import analyze_mall
+                user.mall_description = analyze_mall(user.mall_url)
+                self.db.commit()
+                print(f"--- [DEBUG] mall_description 자동 생성 완료", flush=True)
+            except Exception as e:
+                print(f"--- [DEBUG] mall 자동 분석 실패: {e}", flush=True)
+
         if user and user.mall_description:
             query_text = f"{query_text} [쇼핑몰 분위기: {user.mall_description}]"
             print(f"--- [DEBUG] mall_description 반영: {user.mall_description[:50]}...", flush=True)

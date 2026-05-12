@@ -28,9 +28,8 @@ export function LandingPage({ onShowLogin, onShowProfile, onShowInterest, onShow
 
   const handleLoginSuccess = () => {
     setShowLogin(false);
-    if (loginTrigger === 'button') {
-      onShowLogin();
-    }
+    // 로그인 성공 시 /my로 이동
+    window.location.href = '/my';
   };
 
   return (
