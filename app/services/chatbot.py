@@ -120,7 +120,7 @@ class ChatbotService:
                     "- 평일 10시 ~ 11시\n"
                     "- 평일 13시 30분 ~ 16시\n\n"
                     "운영 시간에 답변 드리겠습니다.\n\n"
-                    "문의는 support@linkd.kr 메일로 보내주세요. 감사합니다."
+                    "문의는 dev_pickple@gmail.com 메일로 보내주세요. 감사합니다."
                 ),
             },
         ]
@@ -197,7 +197,7 @@ class ChatbotService:
                     "가장 중요한 규칙: 반드시 제공된 [참고 데이터] 내의 정보만을 사용하여 답변하세요.\n"
                     "참고 데이터에는 Chatwoot Help Center의 다음 제목의 문서가 포함됩니다: '회원가입 및 로그인 안내', 'My Picks의 기능 안내', '인플루언서 추천 기능 안내', 'Find Influencers의 기능 안내', 'Data Insights의 기능 안내', '상담원 안내'.\n"
                     "질문에 답이 이 문서들에 있다면, 반드시 그 문서의 내용을 그대로 사용하여 구체적으로 답변하세요.\n"
-                    "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.'라고만 답하세요."
+                    "문서에 없는 내용은 절대 사용하지 마세요. 답을 찾을 수 없으면 반드시 '죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. 문의는 dev_pickple@gmail.com 로 해주시기 바랍니다.'라고만 답하세요."
                 )
                 context_data=""
 
@@ -214,12 +214,12 @@ class ChatbotService:
                 elif question_type == "사이트 이용 관련":
                     help_articles = self._get_chatwoot_help_center_articles()
                     if not help_articles:
-                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. 문의는 dev_pickple@gmail.com 로 해주시기 바랍니다.")
                         return
 
                     relevant_articles = self._select_relevant_help_center_articles(question_content, help_articles)
                     if not relevant_articles:
-                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                        self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. 문의는 dev_pickple@gmail.com 로 해주시기 바랍니다.")
                         return
 
                     keyword_answer = self._keyword_only_answer(question_content)
@@ -231,7 +231,7 @@ class ChatbotService:
                     system_role += "\n제공된 이용 안내 문서 외의 외부 지식은 절대 사용하지 마세요."
 
                 else:
-                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다.")
+                    self._complete_process(conversation_id, "죄송합니다. 해당 내용은 이용 안내 문서에 등록되어 있지 않습니다. 문의는 dev_pickple@gmail.com 로 해주시기 바랍니다.")
                     return
 
                 # --- GPT API 호출 (검증된 설정 적용) ---
@@ -404,8 +404,6 @@ class ChatbotService:
             "search influencers",
             "필터",
             "추천받기 검색창",
-            "추천받기",
-            "추천",
             "별표 기능",
             "별표",
             "찜",
@@ -422,9 +420,11 @@ class ChatbotService:
             "등급 점수",
             "인플루언서 비교",
             "카테고리별 분포도",
-            "추천받기 검색창",
             "인플루언서 카드",
             "인플루언서 메모",
+            "상담원 연결",
+            "문의",
+            "질문",
         ]
         return any(keyword in normalized for keyword in keywords)
 
@@ -433,6 +433,9 @@ class ChatbotService:
         if not question_content:
             return False
         normalized = question_content.strip().lower()
+        support_keywords = ["상담원", "문의", "help", "support", "연결","질문"]
+        if any(keyword in normalized for keyword in support_keywords):
+            return False
         keywords = [
             "인플루언서 추천",
             "추천해줘",
@@ -443,7 +446,6 @@ class ChatbotService:
             "인플루언서 추천해줘",
             "인플루언서 추천해주세요",
             "인플루언서 추천받기",
-            "추천받기",
             "ai 추천",
             "ai 매칭",
             "맞춤 추천",
@@ -646,8 +648,6 @@ class ChatbotService:
             "인플루언서 찾기",
             "인플루언서 목록",
             "인플루언서 리스트",
-            "추천받기",
-            "추천",
             "별표",
             "찜",
             "my picks",
@@ -684,6 +684,7 @@ class ChatbotService:
             "문의",
             "support",
             "help",
+            "상담"
         ]
 
     def _update_conversation_question_type(self, conversation_id: int, question_type: str):
