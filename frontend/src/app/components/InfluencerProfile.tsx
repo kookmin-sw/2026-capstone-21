@@ -406,6 +406,7 @@ export function InfluencerProfile() {
             <input
               value={recommendText}
               onChange={(e) => setRecommendText(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') handleRecommend(); }}
               placeholder="브랜드 설명을 입력하세요"
               className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
             />
