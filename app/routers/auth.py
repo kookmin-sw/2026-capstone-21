@@ -109,6 +109,7 @@ def get_profile(user_id: int, db: Session = Depends(get_db)):
         "user_name": user.user_name,
         "mall_name": user.mall_name,
         "mall_url": user.mall_url,
+        "mall_description": user.mall_description,
     }
 
 
@@ -125,3 +126,19 @@ def update_profile(user_id: int, body: dict, db: Session = Depends(get_db)):
         user.mall_url = body["mall_url"]
     db.commit()
     return {"status": "ok"}
+
+
+@router.post("/profile/{user_id}/analyze-mall")
+def analyze_mall_endpoint(user_id: int, db: Session = Depends(get_db)):
+    """쇼핑몰 URL을 크롤링하여 분위기 요약 생성 후 저장"""
+    from app.services.mall_analyzer import analyze_mall
+    user = db.query(User).filter(User.user_id == user_id).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="유저를 찾을 수 없습니다.")
+    if not user.mall_url:
+        raise HTTPException(status_code=400, detail="쇼핑몰 URL이 없습니다.")
+
+    description = analyze_mall(user.mall_url)
+    user.mall_description = description
+    db.commit()
+    return {"mall_description": description}

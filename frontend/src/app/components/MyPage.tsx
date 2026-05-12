@@ -9,6 +9,7 @@ interface Profile {
   email: string;
   mall_name: string;
   mall_url: string;
+  mall_description: string;
 }
 
 interface RunItem {
@@ -20,10 +21,11 @@ interface RunItem {
 }
 
 export function MyPage() {
-  const [profile, setProfile] = useState<Profile>({ user_name: "", email: "", mall_name: "", mall_url: "" });
+  const [profile, setProfile] = useState<Profile>({ user_name: "", email: "", mall_name: "", mall_url: "", mall_description: "" });
   const [runs, setRuns] = useState<RunItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [analyzing, setAnalyzing] = useState(false);
   const navigate = useNavigate();
   const userId = localStorage.getItem("user_id");
 
@@ -53,6 +55,24 @@ export function MyPage() {
     setSaving(false);
     localStorage.setItem("user_name", profile.user_name);
     alert("저장되었습니다.");
+  };
+
+  const handleAnalyze = async () => {
+    if (!userId || !profile.mall_url) { alert("쇼핑몰 URL을 먼저 입력하세요."); return; }
+    // 먼저 저장
+    await fetch(`${API}/auth/profile/${userId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ user_name: profile.user_name, mall_name: profile.mall_name, mall_url: profile.mall_url }),
+    });
+    setAnalyzing(true);
+    try {
+      const res = await fetch(`${API}/auth/profile/${userId}/analyze-mall`, { method: "POST" });
+      if (!res.ok) { alert("분석 실패: " + (await res.json()).detail); setAnalyzing(false); return; }
+      const data = await res.json();
+      setProfile({ ...profile, mall_description: data.mall_description || "" });
+    } catch { alert("분석 실패"); }
+    setAnalyzing(false);
   };
 
   if (loading) return <div className="text-center py-12 text-slate-500">로딩 중...</div>;
@@ -95,13 +115,28 @@ export function MyPage() {
             />
           </div>
         </div>
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="mt-4 px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-slate-400 transition"
-        >
-          {saving ? "저장 중..." : "저장"}
-        </button>
+        <div className="mt-4 flex items-center gap-3">
+          <button
+            onClick={handleSave}
+            disabled={saving}
+            className="px-6 py-2 bg-purple-600 text-white rounded-lg font-semibold hover:bg-purple-700 disabled:bg-slate-400 transition"
+          >
+            {saving ? "저장 중..." : "저장"}
+          </button>
+          <button
+            onClick={handleAnalyze}
+            disabled={analyzing || !profile.mall_url}
+            className="px-6 py-2 bg-slate-700 text-white rounded-lg font-semibold hover:bg-slate-800 disabled:bg-slate-400 transition"
+          >
+            {analyzing ? "분석 중..." : "🔍 쇼핑몰 분위기 분석"}
+          </button>
+        </div>
+        {profile.mall_description && (
+          <div className="mt-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+            <p className="text-xs font-semibold text-purple-700 mb-1">쇼핑몰 분위기 (추천에 자동 반영됨)</p>
+            <p className="text-sm text-slate-700">{profile.mall_description}</p>
+          </div>
+        )}
       </section>
 
       {/* 추천 기록 */}

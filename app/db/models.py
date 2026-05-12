@@ -31,6 +31,7 @@ class User(Base):
     user_name = Column(String(100), nullable=False)
     mall_name = Column(String(200), nullable=True)
     mall_url = Column(String(500), nullable=True)
+    mall_description = Column(Text, nullable=True)
 
     # user: 일반 사용자 / admin: 관리자
     role = Column(String(50), nullable=False, default="user")

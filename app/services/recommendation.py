@@ -154,6 +154,13 @@ class RecommendationEngine:
         """최종 추천 수행"""
         print(f"--- [DEBUG] recommend() 시작: user={user_id}, query='{query_text}'", flush=True)
 
+        # 유저의 쇼핑몰 분위기 설명을 쿼리에 합침
+        from app.db.models import User
+        user = self.db.query(User).filter(User.user_id == user_id).first()
+        if user and user.mall_description:
+            query_text = f"{query_text} [쇼핑몰 분위기: {user.mall_description}]"
+            print(f"--- [DEBUG] mall_description 반영: {user.mall_description[:50]}...", flush=True)
+
         # [STEP 1] 사용자 입력 문장 임베딩
         try:
             query_vec = (
