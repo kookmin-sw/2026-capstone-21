@@ -8,8 +8,13 @@ import { SystemConsole } from "./components/SystemConsole";
 import { ChatHistory } from "./components/ChatHistory";
 import { RecommendationDetail } from "./components/RecommendationDetail";
 import { MyPage } from "./components/MyPage";
+import { HomePage } from "./components/HomePage";
 
 export const router = createBrowserRouter([
+  {
+    path: "/home",
+    Component: HomePage,
+  },
   {
     path: "/",
     Component: Root,

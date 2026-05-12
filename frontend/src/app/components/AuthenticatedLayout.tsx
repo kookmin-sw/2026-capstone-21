@@ -16,7 +16,7 @@ export function AuthenticatedLayout() {
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             
-            <button onClick={() => navigate('/')} className="flex items-center gap-2 cursor-pointer">
+            <button onClick={() => navigate('/home')} className="flex items-center gap-2 cursor-pointer">
               <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center font-bold text-white text-xl">D</div>
               <span className="text-2xl font-bold text-slate-900">링크디매치</span>
             </button>
