@@ -176,10 +176,6 @@ def get_and_save_recommendations(
 
         save_rank += 1
 
-        # 👉 최대 20개까지만 저장
-        if len(final_results) == 20:
-            break
-
     db.commit()
     
     return {

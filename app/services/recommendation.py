@@ -251,13 +251,22 @@ class RecommendationEngine:
             except Exception as e:
                 print(f"--- [DEBUG] LFM 점수 계산 에러: {e}", flush=True)
 
-        # [STEP 5] Hybrid Scoring
+        # [STEP 5] Hybrid Scoring — 유사도+개인화 기준 컷, grade는 정렬에만 사용
+        SIMILARITY_THRESHOLD = 0.55
+        PERSONALIZATION_THRESHOLD = 0.3
+
         results = []
         for row in rows:
             inf_id = row.influencer_id
             similarity_score = float(row.similarity or 0.0)
             personalization_score = lfm_score_map.get(inf_id, 0.5)
             grade_score = (float(row.grade_score) / 5.0) if row.grade_score else 0.2
+
+            # 유사도 또는 개인화 점수가 임계값 미만이면 제외
+            if similarity_score < SIMILARITY_THRESHOLD:
+                continue
+            if personalization_score < PERSONALIZATION_THRESHOLD:
+                continue
 
             final_score = (similarity_score * w_vector + personalization_score * w_lfm + grade_score * w_grade)
 
@@ -272,5 +281,5 @@ class RecommendationEngine:
             })
 
         results.sort(key=lambda x: x["score"], reverse=True)
-        print(f"--- [DEBUG] 최종 추천 목록 {len(results[:top_k])}개 생성 완료", flush=True)
-        return results[:top_k]
+        print(f"--- [DEBUG] 최종 추천 목록 {len(results)}개 (컷 적용 후)", flush=True)
+        return results

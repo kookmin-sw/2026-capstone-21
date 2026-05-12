@@ -453,20 +453,20 @@ export function InfluencerProfile() {
 
           {recommendResults.length > 0 && (
             <div className="mt-6">
-              <div className="font-semibold mb-4">추천 결과</div>
+              <div className="font-semibold mb-4">추천 결과 — {recommendResults.length}명 매칭</div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-                {recommendResults.map((influencer) =>
+                {recommendResults.slice(0, currentPage * itemsPerPage).map((influencer) =>
                   renderInfluencerCard(influencer)
                 )}
               </div>
-              {filteredInfluencers.length > displayedInfluencers.length && (
+              {recommendResults.length > currentPage * itemsPerPage && (
                 <div className="mt-12 flex justify-center">
                   <button
                     onClick={() => setCurrentPage((prev) => prev + 1)}
                     className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm"
                   >
-                    Load More Influencers ({displayedInfluencers.length} / {filteredInfluencers.length})
+                    Load More ({currentPage * itemsPerPage} / {recommendResults.length})
                   </button>
                 </div>
               )}
@@ -474,6 +474,7 @@ export function InfluencerProfile() {
           )}
         </div>
 
+        {recommendResults.length === 0 && (
         <div className="flex items-center gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-slate-500" />
@@ -500,8 +501,10 @@ export function InfluencerProfile() {
             Filters
           </button>
         </div>
+        )}
       </div>
 
+      {recommendResults.length === 0 && (
       <AnimatePresence>
         {showFilters && (
           <motion.div
@@ -570,14 +573,17 @@ export function InfluencerProfile() {
           </motion.div>
         )}
       </AnimatePresence>
+      )}
 
+      {recommendResults.length === 0 && (
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
         {displayedInfluencers.map((influencer) =>
           renderInfluencerCard(influencer)
         )}
       </div>
+      )}
 
-      {filteredInfluencers.length > displayedInfluencers.length && (
+      {recommendResults.length === 0 && filteredInfluencers.length > displayedInfluencers.length && (
         <div className="mt-12 flex justify-center">
           <button
             onClick={() => setCurrentPage((prev) => prev + 1)}
