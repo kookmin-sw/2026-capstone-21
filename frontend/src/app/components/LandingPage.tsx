@@ -53,12 +53,6 @@ export function LandingPage({ onShowLogin, onShowProfile, onShowInterest, onShow
                 onClick={() => handleNavClick(onShowProfile)}
                 className="text-white/80 hover:text-white transition-colors px-4 py-2"
               >
-                Find Influencers
-              </button>
-              <button
-                onClick={() => handleNavClick(onShowProfile)}
-                className="text-white/80 hover:text-white transition-colors px-4 py-2"
-              >
                 Recommendation
               </button>
               <button
@@ -72,6 +66,12 @@ export function LandingPage({ onShowLogin, onShowProfile, onShowInterest, onShow
                 className="text-white/80 hover:text-white transition-colors px-4 py-2"
               >
                 Data Insights
+              </button>
+              <button
+                onClick={() => handleNavClick(onShowProfile)}
+                className="text-white/80 hover:text-white transition-colors px-4 py-2"
+              >
+                My
               </button>
               <button
                 onClick={handleLoginClick}

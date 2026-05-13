@@ -20,6 +20,8 @@ export function RecommendPage() {
   const [isRecommending, setIsRecommending] = useState(false);
   const [recCategory, setRecCategory] = useState<string>('');
   const [recFollowerRange, setRecFollowerRange] = useState<string>('');
+  const [customMin, setCustomMin] = useState<string>('');
+  const [customMax, setCustomMax] = useState<string>('');
   const [reasons, setReasons] = useState<Record<string, string>>({});
   const [loadingReasons, setLoadingReasons] = useState<Record<string, boolean>>({});
   const [selectedInfluencer, setSelectedInfluencer] = useState<Influencer | null>(null);
@@ -37,9 +39,10 @@ export function RecommendPage() {
     try {
       const mallInput = await createMallInput({ user_id: Number(userId), input_text: recommendText });
       const followerMinMap: Record<string, number> = { '500-1000': 500, '1000-2000': 1000, '2000-3000': 2000, '3000-5000': 3000, '5000+': 5000 };
+      const minFollowers = recFollowerRange === 'custom' ? (Number(customMin) || undefined) : (recFollowerRange ? followerMinMap[recFollowerRange] : undefined);
       const res = await getPrediction(Number(mallInput.input_id), Number(userId), {
         category: recCategory || undefined,
-        minFollowers: recFollowerRange ? followerMinMap[recFollowerRange] : undefined,
+        minFollowers,
       });
       setRunId(res.run_id ?? null);
 
@@ -99,21 +102,34 @@ export function RecommendPage() {
             </button>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-3">
-            <select value={recCategory} onChange={(e) => setRecCategory(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-              <option value="">카테고리 전체</option>
-              {categories.map((cat) => (<option key={String(cat)} value={String(cat)}>{String(cat)}</option>))}
-            </select>
-            <select value={recFollowerRange} onChange={(e) => setRecFollowerRange(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-              <option value="">팔로워 수 전체</option>
-              <option value="500-1000">500 - 1K</option>
-              <option value="1000-2000">1K - 2K</option>
-              <option value="2000-3000">2K - 3K</option>
-              <option value="3000-5000">3K - 5K</option>
-              <option value="5000+">5K+</option>
-            </select>
+            <div>
+              <label className="font-semibold text-sm text-slate-700 block mb-2">팔로워 수</label>
+              <div className="flex flex-wrap gap-2 items-center">
+                {[{ label: '500 - 1K', value: '500-1000' }, { label: '1K - 2K', value: '1000-2000' }, { label: '2K - 3K', value: '2000-3000' }, { label: '3K - 5K', value: '3000-5000' }, { label: '5K+', value: '5000+' }].map((r) => (
+                  <button key={r.value} onClick={() => { setRecFollowerRange(recFollowerRange === r.value ? '' : r.value); setCustomMin(''); setCustomMax(''); }} className={`px-4 py-2 rounded-lg text-sm transition ${recFollowerRange === r.value ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                    {r.label}
+                  </button>
+                ))}
+                <div className="flex items-center gap-1 ml-2">
+                  <input type="number" placeholder="최소" value={customMin} onChange={(e) => { setCustomMin(e.target.value); setRecFollowerRange(e.target.value ? 'custom' : ''); }} className="w-20 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                  <span className="text-slate-400">~</span>
+                  <input type="number" placeholder="최대" value={customMax} onChange={(e) => { setCustomMax(e.target.value); if (customMin) setRecFollowerRange('custom'); }} className="w-20 px-2 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                </div>
+              </div>
+            </div>
+            <div>
+              <label className="font-semibold text-sm text-slate-700 block mb-2">카테고리</label>
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button key={String(cat)} onClick={() => setRecCategory(recCategory === String(cat) ? '' : String(cat))} className={`px-4 py-2 rounded-lg text-sm transition ${recCategory === String(cat) ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                    {String(cat)}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
 
-          {recommendResults.length > 0 && (
+          {recommendResults.length > 0 ? (
             <div className="mt-6">
               <div className="font-semibold mb-4">추천 결과 — {recommendResults.length}명 매칭</div>
 
@@ -172,6 +188,31 @@ export function RecommendPage() {
                   </button>
                 </div>
               )}
+            </div>
+          ) : (
+            <div className="mt-6">
+              <div className="font-semibold mb-4 text-slate-600">인플루언서 둘러보기</div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
+                {influencers.slice(0, 20).map((influencer) => {
+                  const influencerId = String(influencer.id);
+                  const isFavorite = interestList.includes(influencerId);
+                  return (
+                    <div key={influencer.id} onClick={() => handleCardClick(influencerId)} className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100">
+                      <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
+                        <img src={influencer.photo} alt={influencer.name} onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/default-profile.png'; }} className="w-full h-full object-cover" />
+                        <button onClick={(e) => handleFavoriteClick(influencerId, e)} className="absolute top-4 right-4 bg-white rounded-full p-3 shadow-md hover:bg-yellow-50 transition" title="My Picks">
+                          <Star className={`w-6 h-6 ${isFavorite ? 'fill-yellow-400 text-yellow-400' : 'text-slate-600'}`} />
+                        </button>
+                      </div>
+                      <div className="p-6 space-y-3">
+                        <div className="font-bold text-xl text-slate-900">{influencer.name}</div>
+                        <div className="text-slate-600">{Number(influencer.followers || 0).toLocaleString()} followers</div>
+                        <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">{influencer.category}</div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>

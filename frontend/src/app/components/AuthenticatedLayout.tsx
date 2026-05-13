@@ -22,7 +22,7 @@ export function AuthenticatedLayout() {
             </button>
 
             <div className="flex items-center gap-2">
-              {isAdmin ? (
+              {isAdmin && (
                 <button
                   onClick={() => navigate('/system-console')}
                   className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
@@ -31,24 +31,7 @@ export function AuthenticatedLayout() {
                 >
                   System Console
                 </button>
-              ) : (
-                <button
-                  onClick={() => navigate('/my')}
-                  className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
-                    isActive('/my') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
-                  }`}
-                >
-                  My
-                </button>
               )}
-              <button
-                onClick={() => navigate('/find')}
-                className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
-                  isActive('/find') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
-                }`}
-              >
-                Find Influencers
-              </button>
               <button
                 onClick={() => navigate('/recommend')}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
@@ -68,10 +51,18 @@ export function AuthenticatedLayout() {
               <button
                 onClick={() => navigate('/Insights')}
                 className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
-                  isActive('/statistics') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
+                  isActive('/Insights') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
                 }`}
               >
                 Data Insights
+              </button>
+              <button
+                onClick={() => navigate('/my')}
+                className={`px-6 py-2.5 rounded-lg font-semibold transition-all ${
+                  isActive('/my') ? 'bg-purple-100 text-purple-700' : 'text-slate-600 hover:bg-slate-100'
+                }`}
+              >
+                My
               </button>
 
               <div className="w-px h-8 bg-slate-200 mx-2" />

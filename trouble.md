@@ -217,3 +217,30 @@
 
 ## S. 엔터키로 추천 실행
 - 추천 입력창에서 Enter 누르면 바로 추천 실행
+
+## T. 추천 결과 세부 점수 0으로 표시되는 버그
+- **증상**: 추천 이유 보기 시 유사도/개인화/등급 점수가 전부 0
+- **원인**: `RecommendationItemResponse` Pydantic 스키마에 `similarity_score`, `personalization_score`, `grade_score` 필드가 없어서 응답 직렬화 시 제거됨
+- **해결**: 스키마에 3개 Optional 필드 추가
+
+## U. 회원가입 시 쇼핑몰 정보 입력
+- `UserCreate` 스키마에 `mall_name`, `mall_url` (Optional) 추가
+- signup 라우터에서 해당 필드 저장
+- SignupModal에 "쇼핑몰 정보 (선택)" 섹션 추가
+- 모달 높이 초과 시 스크롤 가능하도록 `max-h-[90vh] overflow-y-auto` 적용
+
+## V. Find Influencers 탭 제거 및 네비게이션 정리
+- 모든 네비게이션(LandingPage, HomePage, AuthenticatedLayout)에서 Find Influencers 버튼 제거
+- admin 계정도 My 페이지 접근 가능하도록 변경 (System Console + My 둘 다 표시)
+- My 탭을 네비게이션 제일 오른쪽(로그아웃 버튼 바로 왼쪽)으로 이동
+- 로그아웃 상태에서도 My 탭 표시
+- Get Started / Start Your Journey 버튼을 /recommend로 연결
+
+## W. Recommendation 페이지 UI 개선
+- 필터를 select 드롭다운에서 버튼 토글 선택형으로 변경 (Find에서 쓰던 방식)
+- 추천 전에도 기본 인플루언서 카드 20개 표시 ("인플루언서 둘러보기")
+- 팔로워 수 필터에 직접 구간 입력(최소~최대) 필드 추가
+
+## X. 기타 카테고리 제거
+- 카테고리 API에서 "기타" 필터링하여 프론트에 반환하지 않도록 수정
+- 해당 카테고리에 속한 인플루언서가 없어 불필요
