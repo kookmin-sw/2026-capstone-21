@@ -16,11 +16,12 @@ export function RecommendPage() {
   const [recommendText, setRecommendText] = useState('');
   const [recommendResults, setRecommendResults] = useState<Influencer[]>([]);
   const [recommendScores, setRecommendScores] = useState<Record<string, number>>({});
+  const [detailScores, setDetailScores] = useState<Record<string, { similarity: number; personalization: number; grade: number }>>({});
   const [isRecommending, setIsRecommending] = useState(false);
   const [recCategory, setRecCategory] = useState<string>('');
   const [recFollowerRange, setRecFollowerRange] = useState<string>('');
-  const [showReasons, setShowReasons] = useState(false);
   const [reasons, setReasons] = useState<Record<string, string>>({});
+  const [loadingReasons, setLoadingReasons] = useState<Record<string, boolean>>({});
   const [selectedInfluencer, setSelectedInfluencer] = useState<Influencer | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 30;
@@ -52,8 +53,14 @@ export function RecommendPage() {
       setRecommendResults(mapped);
 
       const scores: Record<string, number> = {};
-      sorted.forEach((item: any) => { scores[String(item.id ?? item.influencer_id)] = item.score ?? 0; });
+      const detailScores: Record<string, { similarity: number; personalization: number; grade: number }> = {};
+      sorted.forEach((item: any) => {
+        const id = String(item.id ?? item.influencer_id);
+        scores[id] = item.score ?? 0;
+        detailScores[id] = { similarity: item.similarity_score ?? 0, personalization: item.personalization_score ?? 0, grade: item.grade_score ?? 0 };
+      });
       setRecommendScores(scores);
+      setDetailScores(detailScores);
     } catch { alert('추천 실패'); }
     setIsRecommending(false);
   };
@@ -108,26 +115,13 @@ export function RecommendPage() {
 
           {recommendResults.length > 0 && (
             <div className="mt-6">
-              <div className="flex items-center justify-between mb-4">
-                <div className="font-semibold">추천 결과 — {recommendResults.length}명 매칭</div>
-                <button onClick={() => {
-                  const next = !showReasons;
-                  setShowReasons(next);
-                  if (next && Object.keys(reasons).length === 0) {
-                    recommendResults.slice(0, currentPage * itemsPerPage).forEach((inf) => {
-                      fetch(`${import.meta.env.VITE_API_BASE_URL}/recommendations/reason`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ influencer_id: Number(inf.id), input_text: recommendText, score: recommendScores[String(inf.id)] || 0 }) })
-                        .then((r) => r.json()).then((d) => setReasons((prev) => ({ ...prev, [String(inf.id)]: d.reason })));
-                    });
-                  }
-                }} className="text-xs px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg font-medium hover:bg-purple-100 transition">
-                  {showReasons ? "추천 이유 숨기기" : "추천 이유 보기"}
-                </button>
-              </div>
+              <div className="font-semibold mb-4">추천 결과 — {recommendResults.length}명 매칭</div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
                 {recommendResults.slice(0, currentPage * itemsPerPage).map((influencer) => {
                   const influencerId = String(influencer.id);
                   const isFavorite = interestList.includes(influencerId);
+                  const ds = detailScores[influencerId];
                   return (
                     <div key={influencer.id} onClick={() => handleCardClick(influencerId)} className="bg-white rounded-2xl shadow-md hover:shadow-xl transition cursor-pointer overflow-hidden border border-slate-100">
                       <div className="w-full h-72 overflow-hidden relative bg-gradient-to-b from-slate-100 to-slate-300">
@@ -141,10 +135,30 @@ export function RecommendPage() {
                         <div className="text-slate-600">{Number(influencer.followers || 0).toLocaleString()} followers</div>
                         <div className="inline-block px-4 py-1.5 bg-purple-100 text-purple-700 rounded-full text-sm font-semibold">{influencer.category}</div>
                         {recommendScores[influencerId] !== undefined && (
-                          <div className="space-y-1">
-                            <div className="text-xs text-purple-600 font-semibold">추천 점수: {(recommendScores[influencerId] * 100).toFixed(1)}점</div>
-                            {showReasons && reasons[influencerId] && (<p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg">{reasons[influencerId]}</p>)}
+                          <div className="text-xs text-purple-600 font-semibold">추천 점수: {(recommendScores[influencerId] * 100).toFixed(1)}점</div>
+                        )}
+                        {reasons[influencerId] ? (
+                          <div className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg space-y-1">
+                            {ds && (
+                              <div className="text-xs text-slate-500">유사도 {(ds.similarity * 100).toFixed(0)} · 개인화 {(ds.personalization * 100).toFixed(0)} · 등급 {(ds.grade * 100).toFixed(0)}</div>
+                            )}
+                            <p>{reasons[influencerId]}</p>
                           </div>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setLoadingReasons((prev) => ({ ...prev, [influencerId]: true }));
+                              fetch(`${import.meta.env.VITE_API_BASE_URL}/recommendations/reason`, {
+                                method: "POST", headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ influencer_id: Number(influencerId), input_text: recommendText, score: recommendScores[influencerId] || 0, similarity_score: ds?.similarity || 0, personalization_score: ds?.personalization || 0, grade_score: ds?.grade || 0 }),
+                              }).then((r) => r.json()).then((d) => { setReasons((prev) => ({ ...prev, [influencerId]: d.reason })); setLoadingReasons((prev) => ({ ...prev, [influencerId]: false })); });
+                            }}
+                            disabled={loadingReasons[influencerId]}
+                            className="text-xs px-3 py-1.5 bg-purple-50 text-purple-700 rounded-lg font-medium hover:bg-purple-100 transition"
+                          >
+                            {loadingReasons[influencerId] ? "분석 중..." : "추천 이유 보기"}
+                          </button>
                         )}
                       </div>
                     </div>

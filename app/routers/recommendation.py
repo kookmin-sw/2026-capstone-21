@@ -16,13 +16,16 @@ router = APIRouter(prefix="/recommendations", tags=["Recommendation"])
 
 @router.post("/reason")
 def get_recommendation_reason(body: dict, db: Session = Depends(get_db)):
-    """추천 이유 생성 (LLM)"""
+    """추천 이유 생성 (LLM) + 세부 점수"""
     import openai
     from app.utils.setting_config import settings
 
     influencer_id = body.get("influencer_id")
     input_text = body.get("input_text", "")
     score = body.get("score", 0)
+    similarity_score = body.get("similarity_score", 0)
+    personalization_score = body.get("personalization_score", 0)
+    grade_score = body.get("grade_score", 0)
 
     inf = db.query(Influencer).filter(Influencer.influencer_id == influencer_id).first()
     if not inf:
@@ -37,16 +40,20 @@ def get_recommendation_reason(body: dict, db: Session = Depends(get_db)):
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
-            {"role": "system", "content": "인플루언서 추천 이유를 한국어 1~2문장으로 간결하게 설명하세요."},
+            {"role": "system", "content": "인플루언서 추천 이유를 한국어 2~3문장으로 설명하세요. 유사도, 개인화, 등급 점수를 언급하며 왜 이 인플루언서가 적합한지 설명하세요."},
             {"role": "user", "content": (
                 f"검색 조건: {input_text}\n"
                 f"인플루언서: @{inf.username}, 카테고리: {cat.category_name if cat else '미분류'}, "
-                f"팔로워: {inf.followers_count}명, 추천점수: {round(score * 100, 1)}점\n"
-                f"스타일 키워드: {inf.style_keywords_text or '없음'}"
+                f"팔로워: {inf.followers_count}명\n"
+                f"스타일 키워드: {inf.style_keywords_text or '없음'}\n"
+                f"유사도 점수: {round(similarity_score * 100, 1)}점, "
+                f"개인화 점수: {round(personalization_score * 100, 1)}점, "
+                f"등급 점수: {round(grade_score * 100, 1)}점, "
+                f"최종 점수: {round(score * 100, 1)}점"
             )},
         ],
         temperature=0.3,
-        max_tokens=100,
+        max_tokens=150,
     )
     return {"reason": response.choices[0].message.content.strip()}
 
@@ -210,6 +217,8 @@ def get_and_save_recommendations(
             "full_name": inf.full_name,
             "score": rec['score'],
             "similarity_score": rec.get('similarity_score'),
+            "personalization_score": rec.get('personalization_score'),
+            "grade_score": rec.get('grade_score'),
             "rank_no": save_rank
         })
 
