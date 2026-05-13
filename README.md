@@ -1,3 +1,54 @@
+# LinkD-Match
+
+AI 기반 인플루언서 매칭 솔루션 — 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여 최적의 인플루언서를 추천합니다.
+
+## 📁 프로젝트 구조
+
+```
+2026-capstone-21/
+├── app/                    # 백엔드 (FastAPI, Python 3.9)
+│   ├── routers/            # API 엔드포인트 (auth, chat, recommendation, influencer 등)
+│   ├── services/           # 비즈니스 로직 (chatbot, recommendation, mall_analyzer 등)
+│   ├── db/                 # DB 모델 및 연결 (PostgreSQL + pgvector)
+│   ├── schemas/            # Pydantic 요청/응답 스키마
+│   ├── crud/               # CRUD 함수
+│   ├── seed/               # 초기 데이터 시딩
+│   ├── utils/              # 유틸리티 (인증, 설정)
+│   └── data/               # 데이터 파일 (JSON, 프로필 이미지)
+├── frontend/               # 프론트엔드 (React + Vite + TailwindCSS)
+│   ├── src/app/components/ # 페이지 컴포넌트
+│   ├── src/api/            # API 클라이언트
+│   ├── src/app/context/    # React Context (Auth, Influencer)
+│   └── public/             # 정적 파일 (로고, 파비콘)
+├── chatwoot/               # Chatwoot 소스 (git submodule, 관리자 대시보드)
+├── model_cache/            # BGE-M3 임베딩 모델 캐시
+├── docs/                   # 문서 및 이미지
+├── docker-compose.yml      # 전체 서비스 오케스트레이션
+├── .env                    # 환경변수 (DB, API 키 등)
+├── CHANGELOG.md            # 패치노트
+└── trouble.md              # 트러블슈팅 및 수정사항 기록
+```
+
+## 🚀 실행 방법
+
+```bash
+# 전체 서비스 실행
+docker compose up -d
+
+# 개별 빌드
+docker compose build frontend backend
+docker compose up -d frontend backend
+```
+
+| 서비스 | 포트 | 설명 |
+|--------|------|------|
+| frontend | :80 | React 웹 앱 (Nginx) |
+| backend | :8000 | FastAPI 서버 |
+| chatwoot | :3000 | 챗봇 관리자 대시보드 |
+| redis | 내부 | Chatwoot 캐시 |
+
+---
+
 ## 💡 프로젝트 배경
 
 ![Project Background](./docs/images/project_background.png)
