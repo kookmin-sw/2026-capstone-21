@@ -29,8 +29,10 @@ export function ChatWidget() {
   const [loading, setLoading] = useState(false);
   const [showTypeSelect, setShowTypeSelect] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const localMsgsRef = useRef<Message[]>([]);
+  const shouldAutoScroll = useRef(true);
 
   const userId = localStorage.getItem("user_id") || (() => {
     let guestId = sessionStorage.getItem("guest_id");
@@ -73,7 +75,9 @@ export function ChatWidget() {
   }, [activeConvId, view]);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (shouldAutoScroll.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
   }, [messages]);
 
   const openConversation = (convId: number) => {
@@ -102,6 +106,7 @@ export function ChatWidget() {
     if (!input.trim() || !activeConvId) return;
     const content = input.trim();
     setInput("");
+    shouldAutoScroll.current = true;
     // 낙관적 업데이트
     const localMsg: Message = { id: Date.now(), content, message_type: 0, created_at: Date.now() / 1000, sender_type: "Contact" };
     localMsgsRef.current = [...localMsgsRef.current, localMsg];
@@ -251,7 +256,17 @@ export function ChatWidget() {
           {/* 채팅창 */}
           {view === "chat" && (
             <>
-              <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2">
+              <div
+                ref={messagesContainerRef}
+                onScroll={() => {
+                  const el = messagesContainerRef.current;
+                  if (el) {
+                    const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 50;
+                    shouldAutoScroll.current = atBottom;
+                  }
+                }}
+                className="flex-1 overflow-y-auto px-4 py-3 space-y-2"
+              >
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.message_type === 0 ? "justify-end" : "justify-start"}`}>
                     <div className={`max-w-[75%] px-3 py-2 rounded-xl text-sm whitespace-pre-wrap break-all ${
