@@ -8,7 +8,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
   login: (email: string, password: string) => Promise<LoginResult>;
-  signup: (email: string, password: string, userName: string) => Promise<void>;
+  signup: (email: string, password: string, userName: string, mallName?: string, mallUrl?: string) => Promise<void>;
   logout: () => void;
   favoritesLoaded: () => Promise<any>;
 }
@@ -52,9 +52,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const signup = async (
     email: string,
     password: string,
-    userName: string
+    userName: string,
+    mallName?: string,
+    mallUrl?: string
   ) => {
-    await signupApi(email, password, userName);
+    await signupApi(email, password, userName, mallName, mallUrl);
   };
 
   const logout = () => {

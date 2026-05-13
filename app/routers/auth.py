@@ -21,6 +21,8 @@ def signup(data: UserCreate, db: Session = Depends(get_db)):
         email=data.email,
         password_hash=hash_password(data.password),
         user_name=data.user_name,
+        mall_name=data.mall_name,
+        mall_url=data.mall_url,
         role="user",
         status="active",
     )

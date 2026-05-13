@@ -17,6 +17,8 @@ export function SignupModal({
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [mallName, setMallName] = useState('');
+  const [mallUrl, setMallUrl] = useState('');
 
   const [emailTouched, setEmailTouched] = useState(false);
   const [passwordTouched, setPasswordTouched] = useState(false);
@@ -47,7 +49,7 @@ export function SignupModal({
     if (!isFormValid) return;
 
     try {
-      await signup(email, password, name);
+      await signup(email, password, name, mallName || undefined, mallUrl || undefined);
       onSuccess();
     } catch (error) {
       console.error('회원가입 실패:', error);
@@ -71,7 +73,7 @@ export function SignupModal({
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 20 }}
           transition={{ duration: 0.2 }}
-          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden"
+          className="relative w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         >
           <div className="relative bg-gradient-to-br from-purple-600 to-pink-600 px-8 py-12 text-white">
             <button
@@ -181,6 +183,44 @@ export function SignupModal({
             {signupError && (
               <p className="text-red-500 text-sm text-center">{signupError}</p>
             )}
+
+            <div className="border-t border-slate-200 pt-4">
+              <p className="text-xs text-slate-500 mb-3">쇼핑몰 정보 (선택)</p>
+              <div className="space-y-3">
+                <div>
+                  <label
+                    htmlFor="mallName"
+                    className="block text-sm font-semibold text-slate-700 mb-1"
+                  >
+                    쇼핑몰 이름
+                  </label>
+                  <input
+                    type="text"
+                    id="mallName"
+                    value={mallName}
+                    onChange={(e) => setMallName(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="예: 마이브랜드"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="mallUrl"
+                    className="block text-sm font-semibold text-slate-700 mb-1"
+                  >
+                    쇼핑몰 URL
+                  </label>
+                  <input
+                    type="url"
+                    id="mallUrl"
+                    value={mallUrl}
+                    onChange={(e) => setMallUrl(e.target.value)}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    placeholder="예: https://mybrand.com"
+                  />
+                </div>
+              </div>
+            </div>
 
             <button
               type="submit"

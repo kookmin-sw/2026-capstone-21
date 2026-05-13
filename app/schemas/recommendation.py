@@ -14,6 +14,9 @@ class RecommendationItemResponse(BaseModel):
     username: str
     score: float
     rank_no: int
+    similarity_score: Optional[float] = None
+    personalization_score: Optional[float] = None
+    grade_score: Optional[float] = None
 
 
 class RecommendationRunResponse(BaseModel):

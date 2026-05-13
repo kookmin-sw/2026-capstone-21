@@ -24,7 +24,9 @@ export async function loginApi(email: string, password: string) {
 export async function signupApi(
     email: string,
     password: string,
-    userName: string
+    userName: string,
+    mallName?: string,
+    mallUrl?: string
     ) {
     const res = await customFetch(`${BASE_URL}/signup`, {
         method: "POST",
@@ -35,6 +37,8 @@ export async function signupApi(
         email,
         password,
         user_name: userName,
+        ...(mallName && { mall_name: mallName }),
+        ...(mallUrl && { mall_url: mallUrl }),
         }),
     });
 

@@ -6,7 +6,9 @@ import re
 class UserCreate(BaseModel):
     email: EmailStr
     password: str = Field(..., min_length=8, max_length=50)
-    user_name: str = Field(..., min_length=2, max_length=100) # 이름 필드 추가
+    user_name: str = Field(..., min_length=2, max_length=100)
+    mall_name: Optional[str] = None
+    mall_url: Optional[str] = None
 
     @field_validator('password')
     @classmethod
