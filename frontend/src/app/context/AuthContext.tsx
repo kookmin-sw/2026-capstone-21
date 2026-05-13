@@ -63,8 +63,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem("user_name");
     localStorage.removeItem("role");
 
-    setIsAuthenticated(false);
-    setIsAdmin(false);
+    window.location.href = '/';
   };
 
   const favoritesLoaded = async () => {
