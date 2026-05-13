@@ -101,3 +101,119 @@
 - **증상**: 검색과 추천이 같은 페이지에 혼재
 - **원인**: `InfluencerProfile.tsx`에 검색+추천이 모두 포함
 - **해결**: `/find` = 검색/필터만, `/recommend` = AI 추천 전용 페이지로 분리. 네비게이션에 "Find Influencers"와 "Recommendation" 버튼 각각 추가
+
+## 21. 추천 이유 토글을 개별 카드로 이동
+- **변경 전**: 상단에 "추천 이유 보기" 토글 → 전체 카드에 한꺼번에 GPT 호출 (토큰 낭비)
+- **변경 후**: 각 카드마다 "추천 이유 보기" 버튼 → 클릭한 인플루언서만 GPT 호출. 유사도/개인화/등급 3가지 점수 + 자연어 설명 표시
+
+## 22. Home 화면 네비게이션 정리
+- My/System Console을 맨 왼쪽으로 이동
+- 로그아웃 버튼에서 텍스트 제거 (아이콘만)
+- Recommendation 버튼 추가
+- 로그인 전 화면에도 동일하게 Recommendation 추가
+
+## 23. 로그아웃 시 화면 전환 안 됨
+- **증상**: 로그아웃 눌러도 로그인된 화면에 머무름
+- **원인**: `setIsAuthenticated(false)`만 하고 페이지 이동 없음
+- **해결**: `window.location.href = '/'`로 강제 새로고침하여 로그인 전 화면으로 이동
+
+---
+
+# 기능 추가 및 수정사항
+
+## A. 추천받기 필터 추가
+- 추천받기 영역에 카테고리/팔로워 수 드롭다운 필터 추가
+- 선택한 필터 값을 getPrediction API에 전달
+
+## B. 챗봇 유저별 관리 + 새 채팅 기능
+- ChatwootLog 모델에 user_id 컬럼 추가
+- Webhook에서 sender.identifier를 user_id로 추출하여 저장
+- 프론트에서 로그인 시 Chatwoot setUser 호출
+- "새 채팅" 플로팅 버튼 추가
+
+## C. 챗봇 대화 히스토리 기반 추천 개선
+- 같은 conversation의 이전 추천 대화를 GPT에 전달하여 누적 선호 반영한 검색 쿼리 생성
+- `_enhance_query_with_history` 메서드 추가
+
+## D. 유저별 채팅 기록 조회 페이지
+- GET /chatwoot/history/{user_id} API 추가
+- /chat-history 페이지 (conversation별 그룹핑, 채팅 버블 형태)
+
+## E. Chatwoot Rack::Attack 비활성화
+- `chatwoot_rack_attack.rb` 파일로 영구 비활성화
+- docker-compose.yml에 volume mount 추가
+
+## F. Chatwoot HMAC 인증 적용
+- GET /chatwoot/hmac/{user_id} API 추가
+- 프론트에서 setUser 시 identifier_hash 전달
+
+## G. 자체 채팅 UI 구현 (Chatwoot 위젯 제거)
+- Chatwoot SDK 위젯 완전 제거
+- ChatWidget.tsx: 플로팅 버튼 + 패널 (대화 목록/채팅창/새 채팅)
+- 백엔드 /chat 프록시 API (conversations, messages, send, new)
+- 3초 폴링으로 봇 응답 실시간 수신
+- 질문 유형 선택 UI (인플루언서 추천 / 사이트 이용 관련)
+- 대화 이름 수정 (연필 아이콘), 삭제 기능
+- 비로그인 시 guest ID 발급 + 안내 문구 표시
+
+## H. 추천 결과 상세 페이지
+- /recommendation/:id 라우트 추가
+- GET /recommendations/{run_id} API (user 권한 검증: 자기 추천만 접근, admin은 전체)
+- 인플루언서 카드 형태로 순위/점수/카테고리 표시
+
+## I. My 페이지 (유저 보드)
+- /my 라우트 추가
+- 프로필 편집: 이름, 쇼핑몰 이름, 쇼핑몰 URL 수정/저장
+- 추천 기록 리스트 (클릭 시 상세 페이지 이동)
+- 네비게이션: admin → System Console, user → My
+
+## J. 쇼핑몰 분위기 분석 및 추천 반영
+- User 모델에 mall_name, mall_url, mall_description 컬럼 추가
+- mall_analyzer.py: URL 크롤링 + GPT 분위기 요약
+- POST /auth/profile/{user_id}/analyze-mall API
+- 추천 엔진에서 mall_description을 query_text에 자동 합침
+- mall_url 있고 mall_description 없으면 추천 시 자동 분석
+- mall_input 생성 시 User의 mall_name/mall_url 자동 채움
+
+## K. 추천 임계값 기반 컷
+- 유사도 점수 0.55 미만 제외
+- 개인화 점수 0.3 미만 제외
+- grade score는 정렬에만 사용 (컷 기준 아님)
+- 개수 제한(top_k) 제거 → 임계값 통과한 전체 결과 반환
+
+## L. 추천 점수 및 추천 이유 표기
+- 각 추천 카드에 추천 점수 항상 표시
+- 카드별 "추천 이유 보기" 버튼 (개별 GPT 호출)
+- 유사도/개인화/등급 3가지 점수 + 자연어 설명 표시
+
+## M. 챗봇에서 추천 결과 전체보기 연결
+- 챗봇 추천 시 RecommendationRun DB 저장
+- 상위 5명만 텍스트로 표시
+- 하단에 "추천 결과 전체보기" 버튼 → /recommendation/{run_id}로 이동
+
+## N. Find Influencers / Recommendation 페이지 분리
+- /find = 검색/필터만
+- /recommend = AI 추천 전용
+- 네비게이션에 각각 버튼 추가
+
+## O. 홈 화면 (/home)
+- 로그인 후에도 접근 가능한 홈 화면 (로그인 버튼 대신 네비게이션)
+- 독립 라우트로 등록 (AuthenticatedLayout 밖)
+- 로고 클릭 시 /home으로 이동
+
+## P. 로고 및 브랜딩
+- logo_white.png, logo_black.png 적용
+- 어두운 배경 → logo_black, 밝은 배경 → logo_white
+- 텍스트 "LinkD-Match"로 통일
+- favicon을 logo_white.png로 변경
+- 브라우저 탭 제목 "LinkD-Match"로 변경
+
+## Q. 히어로 타이틀 반응형
+- clamp(1.75rem, 4vw, 3rem)으로 화면 크기에 따라 자동 조절
+- "완벽한"과 "인플루언서를" 사이에 줄바꿈 추가
+
+## R. 로그인 시 /my로 이동
+- 로그인 성공 시 항상 /my 페이지로 이동
+
+## S. 엔터키로 추천 실행
+- 추천 입력창에서 Enter 누르면 바로 추천 실행
