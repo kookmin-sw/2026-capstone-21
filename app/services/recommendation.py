@@ -282,4 +282,29 @@ class RecommendationEngine:
 
         results.sort(key=lambda x: x["score"], reverse=True)
         print(f"--- [DEBUG] 최종 추천 목록 {len(results)}개 (컷 적용 후)", flush=True)
+
+        # 결과가 0개면 임계값 완화하여 재시도
+        if not results:
+            print("--- [DEBUG] 결과 0개 → 임계값 완화 재시도 (sim=0.3)", flush=True)
+            for row in rows:
+                inf_id = row.influencer_id
+                similarity_score = float(row.similarity or 0.0)
+                personalization_score = lfm_score_map.get(inf_id, 0.5)
+                grade_score = (float(row.grade_score) / 5.0) if row.grade_score else 0.2
+                if similarity_score < 0.3:
+                    continue
+                final_score = (similarity_score * w_vector + personalization_score * w_lfm + grade_score * w_grade)
+                results.append({
+                    "influencer_id": inf_id,
+                    "similarity_score": similarity_score,
+                    "personalization_score": personalization_score,
+                    "grade_score": grade_score,
+                    "final_score": final_score,
+                    "score": final_score,
+                    "action_idx": action_idx
+                })
+            results.sort(key=lambda x: x["score"], reverse=True)
+            results = results[:20]
+            print(f"--- [DEBUG] 완화 후 {len(results)}개", flush=True)
+
         return results
