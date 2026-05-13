@@ -183,10 +183,16 @@ class ChatbotService:
                         question_type = last_log.question_type
 
                 # 질문 내용에 따라 question_type 재분류 (이미 설정된 타입이라도)
-                if self._is_site_use_question(question_content):
-                    question_type = "사이트 이용 관련"
-                elif self._is_influencer_recommendation_question(question_content):
+                is_site = self._is_site_use_question(question_content)
+                is_recommendation = self._is_influencer_recommendation_question(question_content)
+
+                if is_site and is_recommendation:
+                    # 충돌 시 GPT로 의도 판별
+                    question_type = self._classify_intent_with_gpt(question_content)
+                elif is_recommendation:
                     question_type = "인플루언서 추천"
+                elif is_site:
+                    question_type = "사이트 이용 관련"
                 elif question_type == "일반":
                     # 일반 질문으로 유지
                     pass
@@ -518,8 +524,7 @@ class ChatbotService:
             "인플루언서 카드",
             "인플루언서 메모",
             "상담원 연결",
-            "문의",
-            "질문",
+            "상담원",
         ]
         return any(keyword in normalized for keyword in keywords)
 
@@ -528,7 +533,7 @@ class ChatbotService:
         if not question_content:
             return False
         normalized = question_content.strip().lower()
-        support_keywords = ["상담원", "문의", "help", "support", "연결","질문"]
+        support_keywords = ["상담원", "문의", "help", "support", "연결", "질문"]
         if any(keyword in normalized for keyword in support_keywords):
             return False
         keywords = [
@@ -550,7 +555,57 @@ class ChatbotService:
             "인플루언서 분석",
             "매칭 점수",
         ]
-        return any(keyword in normalized for keyword in keywords)
+        if any(keyword in normalized for keyword in keywords):
+            return True
+
+        # 상품/브랜드 설명 패턴 감지 — 키워드 없이 상품 정보만 입력한 경우
+        product_indicators = [
+            "분위기", "스타일", "용품", "제품", "상품", "브랜드",
+            "쇼핑몰", "의류", "패션", "뷰티", "화장품", "코스메틱",
+            "식품", "건강", "다이어트", "홈", "인테리어", "가구",
+            "전자", "디지털", "키즈", "유아", "반려동물", "펫",
+            "스포츠", "아웃도어", "여행", "리빙", "주방", "청소",
+            "악세사리", "주얼리", "가방", "신발", "향수",
+        ]
+        if any(indicator in normalized for indicator in product_indicators):
+            # 사이트 이용 관련 키워드가 함께 있으면 제외
+            site_exclusions = [
+                "로그인", "회원가입", "비밀번호", "접속", "가입",
+                "이용 방법", "사용 방법", "어떻게 사용", "어떻게 이용",
+            ]
+            if any(exc in normalized for exc in site_exclusions):
+                return False
+            return True
+
+        return False
+
+    def _classify_intent_with_gpt(self, question_content: str) -> str:
+        """키워드 충돌 시 GPT로 사용자 의도를 판별합니다."""
+        try:
+            response = self.client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": (
+                            "사용자의 질문 의도를 분류하세요. 반드시 다음 중 하나만 출력하세요:\n"
+                            "- 인플루언서 추천: 상품/브랜드에 맞는 인플루언서를 찾거나 추천받으려는 의도\n"
+                            "- 사이트 이용 관련: 서비스 기능 사용법, 로그인, 회원가입 등 사이트 이용에 대한 질문\n"
+                            "답변은 '인플루언서 추천' 또는 '사이트 이용 관련' 중 하나만 출력하세요."
+                        ),
+                    },
+                    {"role": "user", "content": question_content},
+                ],
+                temperature=0.0,
+                max_tokens=20,
+            )
+            result = response.choices[0].message.content.strip()
+            if "추천" in result:
+                return "인플루언서 추천"
+            return "사이트 이용 관련"
+        except Exception as e:
+            print(f"⚠️ GPT 의도 분류 실패, 추천으로 폴백: {e}")
+            return "인플루언서 추천"
 
     def _select_relevant_help_center_articles(self, question_content: str, articles: list[dict]) -> list[dict]:
         normalized_question = question_content.strip().lower()
