@@ -8,6 +8,7 @@ export async function getPrediction(
     options?: {
         category?: string;
         minFollowers?: number;
+        maxFollowers?: number;
     }
     ) {
     const params = new URLSearchParams({
@@ -21,6 +22,10 @@ export async function getPrediction(
 
     if (options?.minFollowers !== undefined) {
         params.append("minFollowers", String(options.minFollowers));
+    }
+
+    if (options?.maxFollowers !== undefined) {
+        params.append("maxFollowers", String(options.maxFollowers));
     }
 
     const res = await customFetch(`${BASE_URL}/predict?${params.toString()}`, {

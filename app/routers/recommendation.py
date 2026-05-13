@@ -143,6 +143,7 @@ def get_and_save_recommendations(
     user_id: int, 
     category: Optional[str] = Query(None),
     minFollowers: Optional[int] = Query(None),
+    maxFollowers: Optional[int] = Query(None),
     db: Session = Depends(get_db)
 ):
     """
@@ -197,6 +198,8 @@ def get_and_save_recommendations(
 
         # 팔로워 수 필터
         if minFollowers is not None and (inf.followers_count or 0) < minFollowers:
+            continue
+        if maxFollowers is not None and (inf.followers_count or 0) > maxFollowers:
             continue
 
         # 👉 필터 통과한 경우만 저장

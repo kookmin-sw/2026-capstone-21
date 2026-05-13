@@ -67,7 +67,7 @@ export function ChatHistory() {
                     </div>
                   )}
                   <div className="text-xs text-slate-400">
-                    {new Date(log.created_at).toLocaleString('ko-KR')}
+                    {new Date(log.created_at + "Z").toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
                   </div>
                 </div>
               ))}

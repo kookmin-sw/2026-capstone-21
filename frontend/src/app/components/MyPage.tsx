@@ -158,7 +158,7 @@ export function MyPage() {
                       {run.input_text || `추천 #${run.run_id}`}
                     </span>
                     <span className="ml-3 text-xs text-slate-400">
-                      {new Date(run.requested_at).toLocaleString("ko-KR")}
+                      {new Date(run.requested_at + "Z").toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">

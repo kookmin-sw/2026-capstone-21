@@ -61,7 +61,7 @@ export function RecommendationDetail() {
       <p className="text-slate-500 mb-6">
         {data.input_text && <span className="text-slate-700 font-medium">"{data.input_text}"</span>}
         {" · "}
-        {new Date(data.requested_at).toLocaleString("ko-KR")}
+        {new Date(data.requested_at + "Z").toLocaleString("ko-KR", { timeZone: "Asia/Seoul" })}
       </p>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-6">

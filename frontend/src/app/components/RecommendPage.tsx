@@ -18,8 +18,9 @@ export function RecommendPage() {
   const [recommendScores, setRecommendScores] = useState<Record<string, number>>({});
   const [detailScores, setDetailScores] = useState<Record<string, { similarity: number; personalization: number; grade: number }>>({});
   const [isRecommending, setIsRecommending] = useState(false);
-  const [recCategory, setRecCategory] = useState<string>('');
-  const [recFollowerRange, setRecFollowerRange] = useState<string>('');
+  const [recCategory, setRecCategory] = useState<string[]>([]);
+  const [recFollowerRange, setRecFollowerRange] = useState<string[]>([]);
+  const [recKeywords, setRecKeywords] = useState<string[]>([]);
   const [customMin, setCustomMin] = useState<string>('');
   const [customMax, setCustomMax] = useState<string>('');
   const [reasons, setReasons] = useState<Record<string, string>>({});
@@ -29,7 +30,38 @@ export function RecommendPage() {
   const itemsPerPage = 30;
 
   useEffect(() => { getCategories().then((d) => setCategories(d as Category[])).catch(console.error); }, []);
-  useEffect(() => { setCurrentPage(1); }, [recommendResults]);
+  useEffect(() => { setCurrentPage(1); }, [recommendResults, recCategory, recFollowerRange, recKeywords, customMin, customMax]);
+
+  const filteredRecommendResults = useMemo(() => {
+    if (recommendResults.length === 0) return [];
+    return recommendResults.filter((inf) => {
+      if (recCategory.length > 0 && !recCategory.includes(inf.category)) return false;
+      if (recFollowerRange.length > 0) {
+        const ranges: Record<string, [number, number]> = { '1000-5000': [1000, 5000], '5000-10000': [5000, 10000], '10000-30000': [10000, 30000], '30000-50000': [30000, 50000], '50000+': [50000, Infinity] };
+        const inRange = recFollowerRange.some((r) => { const [min, max] = ranges[r] || [0, Infinity]; return inf.followers >= min && inf.followers <= max; });
+        if (!inRange) return false;
+      }
+      if (recKeywords.length > 0 && !recKeywords.some((kw) => inf.styleKeywords.some((sk) => sk.includes(kw)))) return false;
+      if (customMin && inf.followers < Number(customMin)) return false;
+      if (customMax && inf.followers > Number(customMax)) return false;
+      return true;
+    });
+  }, [recommendResults, recCategory, recFollowerRange, recKeywords, customMin, customMax]);
+
+  const filteredBrowse = useMemo(() => {
+    return influencers.filter((inf) => {
+      if (recCategory.length > 0 && !recCategory.includes(inf.category)) return false;
+      if (recFollowerRange.length > 0) {
+        const ranges: Record<string, [number, number]> = { '1000-5000': [1000, 5000], '5000-10000': [5000, 10000], '10000-30000': [10000, 30000], '30000-50000': [30000, 50000], '50000+': [50000, Infinity] };
+        const inRange = recFollowerRange.some((r) => { const [min, max] = ranges[r] || [0, Infinity]; return inf.followers >= min && inf.followers <= max; });
+        if (!inRange) return false;
+      }
+      if (recKeywords.length > 0 && !recKeywords.some((kw) => inf.styleKeywords.some((sk) => sk.includes(kw)))) return false;
+      if (customMin && inf.followers < Number(customMin)) return false;
+      if (customMax && inf.followers > Number(customMax)) return false;
+      return true;
+    });
+  }, [influencers, recCategory, recFollowerRange, recKeywords, customMin, customMax]);
 
   const handleRecommend = async () => {
     const userId = localStorage.getItem('user_id');
@@ -38,12 +70,7 @@ export function RecommendPage() {
     setIsRecommending(true);
     try {
       const mallInput = await createMallInput({ user_id: Number(userId), input_text: recommendText });
-      const followerMinMap: Record<string, number> = { '500-1000': 500, '1000-2000': 1000, '2000-3000': 2000, '3000-5000': 3000, '5000+': 5000 };
-      const minFollowers = recFollowerRange === 'custom' ? (Number(customMin) || undefined) : (recFollowerRange ? followerMinMap[recFollowerRange] : undefined);
-      const res = await getPrediction(Number(mallInput.input_id), Number(userId), {
-        category: recCategory || undefined,
-        minFollowers,
-      });
+      const res = await getPrediction(Number(mallInput.input_id), Number(userId), {});
       setRunId(res.run_id ?? null);
 
       const sorted = [...(res.recommendations || [])].sort((a: any, b: any) => (a.rank_no ?? 0) - (b.rank_no ?? 0));
@@ -96,7 +123,7 @@ export function RecommendPage() {
 
         <div className="p-4 border border-slate-200 rounded-2xl bg-white">
           <div className="flex gap-3">
-            <input value={recommendText} onChange={(e) => setRecommendText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleRecommend(); }} placeholder="브랜드 설명을 입력하세요" className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" />
+            <input value={recommendText} onChange={(e) => setRecommendText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter') handleRecommend(); }} placeholder="브랜드, 상품의 특징, 키워드, 원하는 분위기를 입력하세요" className="flex-1 px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500" />
             <button onClick={handleRecommend} disabled={isRecommending} className={`px-6 py-3 rounded-xl font-semibold transition ${isRecommending ? 'bg-slate-400 text-white cursor-not-allowed' : 'bg-purple-600 text-white hover:bg-purple-700'}`}>
               {isRecommending ? '추천중...' : '추천받기'}
             </button>
@@ -105,8 +132,8 @@ export function RecommendPage() {
             <div>
               <label className="font-semibold text-sm text-slate-700 block mb-2">팔로워 수</label>
               <div className="flex flex-wrap gap-2 items-center">
-                {[{ label: '500 - 1K', value: '500-1000' }, { label: '1K - 2K', value: '1000-2000' }, { label: '2K - 3K', value: '2000-3000' }, { label: '3K - 5K', value: '3000-5000' }, { label: '5K+', value: '5000+' }].map((r) => (
-                  <button key={r.value} onClick={() => { setRecFollowerRange(recFollowerRange === r.value ? '' : r.value); setCustomMin(''); setCustomMax(''); }} className={`px-4 py-2 rounded-lg text-sm transition ${recFollowerRange === r.value ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                {[{ label: '1K - 5K', value: '1000-5000' }, { label: '5K - 10K', value: '5000-10000' }, { label: '10K - 30K', value: '10000-30000' }, { label: '30K - 50K', value: '30000-50000' }, { label: '50K+', value: '50000+' }].map((r) => (
+                  <button key={r.value} onClick={() => { setRecFollowerRange((prev) => prev.includes(r.value) ? prev.filter((v) => v !== r.value) : [...prev, r.value]); setCustomMin(''); setCustomMax(''); }} className={`px-4 py-2 rounded-lg text-sm transition ${recFollowerRange.includes(r.value) ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
                     {r.label}
                   </button>
                 ))}
@@ -121,8 +148,18 @@ export function RecommendPage() {
               <label className="font-semibold text-sm text-slate-700 block mb-2">카테고리</label>
               <div className="flex flex-wrap gap-2">
                 {categories.map((cat) => (
-                  <button key={String(cat)} onClick={() => setRecCategory(recCategory === String(cat) ? '' : String(cat))} className={`px-4 py-2 rounded-lg text-sm transition ${recCategory === String(cat) ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                  <button key={String(cat)} onClick={() => setRecCategory((prev) => prev.includes(String(cat)) ? prev.filter((c) => c !== String(cat)) : [...prev, String(cat)])} className={`px-4 py-2 rounded-lg text-sm transition ${recCategory.includes(String(cat)) ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
                     {String(cat)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div>
+              <label className="font-semibold text-sm text-slate-700 block mb-2">스타일 키워드</label>
+              <div className="flex flex-wrap gap-2">
+                {['일상', '감성', '트렌드', '자연', '카페', '디저트', '사진', '편안함', '사랑', '행복', '공간', '디자인', '맛집', '정보', '브랜드'].map((kw) => (
+                  <button key={kw} onClick={() => setRecKeywords((prev) => prev.includes(kw) ? prev.filter((k) => k !== kw) : [...prev, kw])} className={`px-4 py-2 rounded-lg text-sm transition ${recKeywords.includes(kw) ? 'bg-purple-600 text-white' : 'bg-slate-100 hover:bg-slate-200'}`}>
+                    {kw}
                   </button>
                 ))}
               </div>
@@ -131,10 +168,10 @@ export function RecommendPage() {
 
           {recommendResults.length > 0 ? (
             <div className="mt-6">
-              <div className="font-semibold mb-4">추천 결과 — {recommendResults.length}명 매칭</div>
+              <div className="font-semibold mb-4">추천 결과 — {filteredRecommendResults.length}명 매칭</div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-                {recommendResults.slice(0, currentPage * itemsPerPage).map((influencer) => {
+                {filteredRecommendResults.slice(0, currentPage * itemsPerPage).map((influencer) => {
                   const influencerId = String(influencer.id);
                   const isFavorite = interestList.includes(influencerId);
                   const ds = detailScores[influencerId];
@@ -181,19 +218,19 @@ export function RecommendPage() {
                   );
                 })}
               </div>
-              {recommendResults.length > currentPage * itemsPerPage && (
+              {filteredRecommendResults.length > currentPage * itemsPerPage && (
                 <div className="mt-12 flex justify-center">
                   <button onClick={() => setCurrentPage((p) => p + 1)} className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm">
-                    Load More ({currentPage * itemsPerPage} / {recommendResults.length})
+                    Load More ({currentPage * itemsPerPage} / {filteredRecommendResults.length})
                   </button>
                 </div>
               )}
             </div>
           ) : (
             <div className="mt-6">
-              <div className="font-semibold mb-4 text-slate-600">인플루언서 둘러보기</div>
+              <div className="font-semibold mb-4 text-slate-600">인플루언서 둘러보기 — {filteredBrowse.length}명</div>
               <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-8">
-                {influencers.slice(0, 20).map((influencer) => {
+                {filteredBrowse.slice(0, currentPage * itemsPerPage).map((influencer) => {
                   const influencerId = String(influencer.id);
                   const isFavorite = interestList.includes(influencerId);
                   return (
@@ -213,6 +250,13 @@ export function RecommendPage() {
                   );
                 })}
               </div>
+              {filteredBrowse.length > currentPage * itemsPerPage && (
+                <div className="mt-12 flex justify-center">
+                  <button onClick={() => setCurrentPage((p) => p + 1)} className="px-10 py-4 bg-white border-2 border-purple-600 text-purple-600 rounded-2xl font-bold hover:bg-purple-50 transition shadow-sm">
+                    Load More ({currentPage * itemsPerPage} / {filteredBrowse.length})
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

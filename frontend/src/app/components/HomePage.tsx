@@ -1,5 +1,5 @@
 import { motion } from 'motion/react';
-import { ArrowRight, BarChart3, Users, TrendingUp, Sparkles, LogOut } from 'lucide-react';
+import { ArrowRight, BarChart3, Users, TrendingUp, Sparkles, LogOut, UserCircle } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useAuth } from '../context/AuthContext';
 
@@ -27,8 +27,9 @@ export function HomePage() {
             <button onClick={() => navigate('/recommend')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Recommendation</button>
             <button onClick={() => navigate('/interest')} className="text-white/80 hover:text-white transition-colors px-4 py-2">My Picks</button>
             <button onClick={() => navigate('/Insights')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Data Insights</button>
-            <button onClick={() => navigate('/my')} className="text-white/80 hover:text-white transition-colors px-4 py-2">My</button>
-            <button onClick={logout} className="ml-2 p-2.5 bg-white/10 hover:bg-white/20 rounded-lg transition"><LogOut className="w-4 h-4 text-white" /></button>
+            <button onClick={() => navigate('/my')} className="flex items-center gap-2 px-4 py-2 border border-white/30 rounded-lg text-white hover:bg-white/10 transition-colors"><UserCircle className="w-5 h-5" />My</button>
+            <div className="w-px h-8 bg-white/20 mx-2" />
+            <button onClick={logout} className="p-2.5 bg-white/10 hover:bg-white/20 rounded-lg transition"><LogOut className="w-4 h-4 text-white" /></button>
           </div>
         </div>
       </motion.nav>
