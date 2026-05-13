@@ -1,9 +1,12 @@
 import { motion } from 'motion/react';
-import { ArrowRight, BarChart3, Users, TrendingUp, Sparkles } from 'lucide-react';
+import { ArrowRight, BarChart3, Users, TrendingUp, Sparkles, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { useAuth } from '../context/AuthContext';
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+  const isAdmin = localStorage.getItem("role") === "admin";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
@@ -15,15 +18,17 @@ export function HomePage() {
         className="fixed top-0 left-0 right-0 z-50 bg-slate-900/80 backdrop-blur-lg border-b border-white/10"
       >
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <img src="/logo_black.png" alt="링크디매치" className="h-10" />
+          <button onClick={() => navigate('/home')} className="flex items-center gap-2 cursor-pointer">
+            <img src="/logo_black.png" alt="LinkD-Match" className="h-10" />
             <span className="text-2xl font-bold text-white">LinkD-Match</span>
-          </div>
+          </button>
           <div className="flex items-center gap-4">
             <button onClick={() => navigate('/find')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Find Influencers</button>
+            <button onClick={() => navigate('/recommend')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Recommendation</button>
             <button onClick={() => navigate('/interest')} className="text-white/80 hover:text-white transition-colors px-4 py-2">My Picks</button>
             <button onClick={() => navigate('/Insights')} className="text-white/80 hover:text-white transition-colors px-4 py-2">Data Insights</button>
-            <button onClick={() => navigate('/my')} className="ml-2 px-6 py-2.5 bg-white text-slate-900 rounded-lg font-semibold hover:bg-white/90 transition-all">My Page</button>
+            <button onClick={() => navigate(isAdmin ? '/system-console' : '/my')} className="text-white/80 hover:text-white transition-colors px-4 py-2">{isAdmin ? 'System Console' : 'My'}</button>
+            <button onClick={logout} className="ml-2 px-6 py-2.5 bg-white text-slate-900 rounded-lg font-semibold hover:bg-white/90 transition-all flex items-center gap-2"><LogOut className="w-4 h-4" />Logout</button>
           </div>
         </div>
       </motion.nav>
