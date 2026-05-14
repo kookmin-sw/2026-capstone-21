@@ -1,4 +1,4 @@
-# LinkD-Match
+# ![Project Logo](./docs/images/project_logo.png)
 
 AI 기반 인플루언서 매칭 솔루션 — 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여 최적의 인플루언서를 추천합니다.
 
