@@ -118,8 +118,10 @@ export function ChatWidget() {
     });
   };
 
+  const isComposing = useRef(false);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey && !isComposing.current) {
       e.preventDefault();
       handleSend();
     }
@@ -295,6 +297,8 @@ export function ChatWidget() {
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
                   onKeyDown={handleKeyDown}
+                  onCompositionStart={() => { isComposing.current = true; }}
+                  onCompositionEnd={() => { isComposing.current = false; }}
                   placeholder="메시지를 입력하세요..."
                   className="flex-1 px-3 py-2 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
                 />
