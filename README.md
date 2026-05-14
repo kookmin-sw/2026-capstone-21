@@ -195,44 +195,22 @@ AI 기반 인플루언서 추천 기술로 국내 자사몰과 중소형 이커�
 ## 🛠️ 기술 스택
 
 ### 🔍 AI & Data Processing
-![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white)
-
-![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4B8BBE?style=for-the-badge&logo=python&logoColor=white)
-
-![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white)
-
-![GPT-4o mini](https://img.shields.io/badge/GPT--4o%20mini-412991?style=for-the-badge&logo=openai&logoColor=white)
-
-![BGE-M3](https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black)
-
-![LightFM](https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white)
-
-![Thompson Sampling](https://img.shields.io/badge/Thompson%20Sampling-7C3AED?style=for-the-badge&logo=python&logoColor=white)
+![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white) ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4B8BBE?style=for-the-badge&logo=python&logoColor=white) ![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white) ![GPT-4o mini](https://img.shields.io/badge/GPT--4o%20mini-412991?style=for-the-badge&logo=openai&logoColor=white) ![BGE-M3](https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black) ![LightFM](https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white) ![Thompson Sampling](https://img.shields.io/badge/Thompson%20Sampling-7C3AED?style=for-the-badge&logo=python&logoColor=white)
 
 ### 💾 Back-end
-| Category | Stack |
-|----------|-------|
-| Framework | ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) |
-| Database | ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?style=for-the-badge&logo=postgresql&logoColor=white) |
-| Container | ![Docker](https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white) |
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) ![Chatwoot API](https://img.shields.io/badge/Chatwoot%20API-1F93FF?style=for-the-badge&logo=chatwoot&logoColor=white)
 
 ### 🖥️ Front-end
-| Category | Stack |
-|----------|-------|
-| Framework | ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) |
+![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white) ![Recharts](https://img.shields.io/badge/Recharts-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
 
-### ☁️ DevOps
-| Category | Stack |
-|----------|-------|
-| Cloud | ![AWS](https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white) |
+### 🗄️ DB / Storage
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white) ![pgvector](https://img.shields.io/badge/pgvector-336791?style=for-the-badge&logo=postgresql&logoColor=white) ![AWS RDS](https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white) ![AWS S3](https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
+
+### ☁️ Infra / DevOps
+![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) ![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white)
 
 ### 📚 Tools
-| Category | Stack |
-|----------|-------|
-| Code Management | ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) |
-| Collaboration | ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white) ![ClickUp](https://img.shields.io/badge/ClickUp-7B68EE?style=for-the-badge&logo=clickup&logoColor=white) ![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white) |
-| UI/UX Design | ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white) |
-| Chatbot | ![Chatwoot](https://img.shields.io/badge/Chatwoot-1F93FF?style=for-the-badge&logo=chatwoot&logoColor=white) |
+![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white) ![ClickUp](https://img.shields.io/badge/ClickUp-7B68EE?style=for-the-badge&logo=clickup&logoColor=white) ![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white) ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
 
 <br>
 
