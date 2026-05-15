@@ -309,3 +309,25 @@
 - **증상**: 회원가입 시 쇼핑몰 이름/URL을 입력해도 DB에 저장되지 않음
 - **원인**: `signup` 라우터에서 `mall_name`, `mall_url` 필드를 User 생성 시 전달하지 않았음
 - **해결**: `UserCreate` 스키마에 `mall_name`, `mall_url` Optional 필드 추가, signup 라우터에서 해당 값을 User 모델에 전달
+
+## AM. HTTPS 적용 (Let's Encrypt + Certbot + Docker)
+- **날짜**: 2025-05-15
+- **목적**: `linkd-match.kr` 도메인에 SSL 인증서 적용
+- **구성**:
+  - Let's Encrypt 인증서 발급 (만료: 2026-08-13)
+  - Certbot 컨테이너가 12시간마다 자동 갱신 체크
+  - nginx에서 HTTP(80) → HTTPS(443) 자동 리다이렉트
+- **변경 파일**:
+  - `frontend/nginx.conf` — 80→443 리다이렉트, SSL 설정, certbot challenge 경로 추가
+  - `frontend/nginx-init.conf` — 초기 인증서 발급용 HTTP 전용 설정
+  - `docker-compose.yml` — frontend에 443 포트 추가, certbot 서비스 + volume 추가
+  - `init-letsencrypt.sh` — 초기 인증서 발급 스크립트 (최초 1회 실행)
+- **트러블슈팅**:
+  - 처음에 더미 인증서 생성 → 삭제 → certbot 발급 방식 시도했으나, 더미 삭제 후 nginx가 SSL 인증서 없이 시작 실패하여 certbot challenge 검증 불가
+  - 해결: HTTP 전용 nginx 설정(`nginx-init.conf`)으로 임시 컨테이너를 띄워 certbot 발급 완료 후, SSL 설정된 정식 컨테이너로 교체하는 방식으로 변경
+- **실행 방법**:
+  ```bash
+  docker compose build frontend
+  ./init-letsencrypt.sh
+  docker compose up -d
+  ```
