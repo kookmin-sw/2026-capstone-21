@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Link:D Match - AI 기반 인플루언서 매칭 솔루션</title>
+    <title>Link:D Match - 산학협력프로젝트</title>
 
     <!-- Pretendard Font -->
     <link rel="stylesheet" as="style" crossorigin href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
@@ -17,7 +17,6 @@
         }
 
         body {
-            font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             line-height: 1.6;
             background: linear-gradient(to bottom right, #f8fafc, #e2e8f0);
             color: #1e293b;
@@ -35,11 +34,11 @@
         }
 
         header h1 {
-            font-size: 3rem;
+            font-size: 3.25rem;
             font-weight: 800;
             color: #0f172a;
             margin-bottom: 1rem;
-            letter-spacing: -0.04em;
+            letter-spacing: -0.05em;
         }
 
         header p {
@@ -49,9 +48,9 @@
         }
 
         section {
-            background: white;
+            background: #ffffff;
             border-radius: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.08);
             padding: 2rem;
             margin-bottom: 3rem;
         }
@@ -68,13 +67,13 @@
             font-size: 1.5rem;
             font-weight: 700;
             color: #1e293b;
-            margin-bottom: 1rem;
+            margin: 1.5rem 0 1rem;
             letter-spacing: -0.02em;
         }
 
         h4 {
             font-size: 1.125rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #334155;
             margin-bottom: 0.75rem;
         }
@@ -105,6 +104,22 @@
 
         ul li span:first-child {
             margin-right: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        pre {
+            background: #0f172a;
+            color: #e2e8f0;
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            overflow-x: auto;
+            font-size: 0.9rem;
+            line-height: 1.7;
+            margin-top: 1rem;
+        }
+
+        code {
+            font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
         }
 
         .section-image {
@@ -113,7 +128,7 @@
             display: block;
             margin: 0 auto 2rem auto;
             border-radius: 1rem;
-            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
         }
 
         .image-row {
@@ -127,7 +142,7 @@
         .image-row img {
             width: 48%;
             border-radius: 0.75rem;
-            box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
         }
 
         .quote-box {
@@ -140,7 +155,7 @@
 
         .quote-box p {
             font-size: 1.125rem;
-            font-weight: 600;
+            font-weight: 700;
             color: #1e293b;
             font-style: italic;
             margin-bottom: 0.5rem;
@@ -161,6 +176,7 @@
             background: #f8fafc;
             border-radius: 0.75rem;
             padding: 1.25rem;
+            border: 1px solid #e2e8f0;
         }
 
         .card h4 {
@@ -168,8 +184,9 @@
         }
 
         .card p {
-            font-size: 0.875rem;
+            font-size: 0.925rem;
             color: #64748b;
+            margin-bottom: 0;
         }
 
         .feature-section {
@@ -260,17 +277,38 @@
         table a {
             color: #2563eb;
             text-decoration: none;
-            font-weight: 500;
+            font-weight: 600;
         }
 
         table a:hover {
             text-decoration: underline;
         }
 
-        .badge {
-            height: 28px;
-            margin: 0.15rem 0.25rem 0.15rem 0;
+        .profile-img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 0.75rem;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
+        }
+
+        .github-icon {
+            width: 20px;
+            height: 20px;
             vertical-align: middle;
+            margin-right: 0.25rem;
+        }
+
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+            margin: 0.75rem 0 1.75rem;
+        }
+
+        .badge-row img {
+            height: 28px;
         }
 
         footer {
@@ -286,7 +324,7 @@
             }
 
             header h1 {
-                font-size: 2rem;
+                font-size: 2.25rem;
             }
 
             header p {
@@ -326,10 +364,78 @@
     <div class="container">
         <header>
             <h1>Link:D Match</h1>
-            <p>AI 기반 쇼핑몰 맞춤 인플루언서 추천 서비스</p>
+            <p>산학협력프로젝트</p>
         </header>
 
         <main>
+            <section>
+                <h2>📁 프로젝트 구조</h2>
+                <pre><code>2026-capstone-21/
+├── app/                    # 백엔드 (FastAPI, Python 3.9)
+│   ├── routers/            # API 엔드포인트 (auth, chat, recommendation, influencer 등)
+│   ├── services/           # 비즈니스 로직 (chatbot, recommendation, mall_analyzer 등)
+│   ├── db/                 # DB 모델 및 연결 (PostgreSQL + pgvector)
+│   ├── schemas/            # Pydantic 요청/응답 스키마
+│   ├── crud/               # CRUD 함수
+│   ├── seed/               # 초기 데이터 시딩
+│   ├── utils/              # 유틸리티 (인증, 설정)
+│   └── data/               # 데이터 파일 (JSON, 프로필 이미지)
+├── frontend/               # 프론트엔드 (React + Vite + TailwindCSS)
+│   ├── src/app/components/ # 페이지 컴포넌트
+│   ├── src/api/            # API 클라이언트
+│   ├── src/app/context/    # React Context (Auth, Influencer)
+│   └── public/             # 정적 파일 (로고, 파비콘)
+├── chatwoot/               # Chatwoot 소스 (git submodule, 관리자 대시보드)
+├── model_cache/            # BGE-M3 임베딩 모델 캐시
+├── docs/                   # 문서 및 이미지
+├── docker-compose.yml      # 전체 서비스 오케스트레이션
+├── .env                    # 환경변수 (DB, API 키 등)
+├── CHANGELOG.md            # 패치노트
+└── trouble.md              # 트러블슈팅 및 수정사항 기록</code></pre>
+            </section>
+
+            <section>
+                <h2>🚀 실행 방법</h2>
+                <pre><code># 전체 서비스 실행
+docker compose up -d
+
+# 개별 빌드
+docker compose build frontend backend
+docker compose up -d frontend backend</code></pre>
+
+                <table>
+                    <thead>
+                        <tr>
+                            <th>서비스</th>
+                            <th>포트</th>
+                            <th>설명</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>frontend</td>
+                            <td>:80</td>
+                            <td>React 웹 앱 (Nginx)</td>
+                        </tr>
+                        <tr>
+                            <td>backend</td>
+                            <td>:8000</td>
+                            <td>FastAPI 서버</td>
+                        </tr>
+                        <tr>
+                            <td>chatwoot</td>
+                            <td>:3000</td>
+                            <td>챗봇 관리자 대시보드</td>
+                        </tr>
+                        <tr>
+                            <td>redis</td>
+                            <td>내부</td>
+                            <td>Chatwoot 캐시</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </section>
+
             <section>
                 <h2>💡 프로젝트 배경</h2>
 
@@ -338,22 +444,10 @@
                 <h3>⏳ 어필리에이트 마케팅의 인플루언서 탐색에 많은 시간 소요</h3>
 
                 <ul>
-                    <li>
-                        <span>🔍</span>
-                        <span>상품과 어울리는 인플루언서를 직접 검색해야 함</span>
-                    </li>
-                    <li>
-                        <span>📊</span>
-                        <span>콘텐츠 분위기, 카테고리, 팔로워 수 등을 하나씩 비교해야 함</span>
-                    </li>
-                    <li>
-                        <span>🤔</span>
-                        <span>브랜드 이미지와 맞는 계정을 판단하기 어려움</span>
-                    </li>
-                    <li>
-                        <span>💸</span>
-                        <span>소규모 쇼핑몰은 인력·예산 부족으로 탐색 부담 증가</span>
-                    </li>
+                    <li><span>🔍</span><span>상품과 어울리는 인플루언서를 직접 검색해야 함</span></li>
+                    <li><span>📊</span><span>콘텐츠 분위기, 카테고리, 팔로워 수 등을 하나씩 비교해야 함</span></li>
+                    <li><span>🤔</span><span>브랜드 이미지와 맞는 계정을 판단하기 어려움</span></li>
+                    <li><span>💸</span><span>소규모 쇼핑몰은 인력·예산 부족으로 탐색 부담 증가</span></li>
                 </ul>
             </section>
 
@@ -369,34 +463,20 @@
                     <p>“상품과 어울리는 인플루언서를 AI로 더 빠르고 정확하게”</p>
                 </div>
 
-                <p>
-                    Link:D Match는 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여,
-                    상품과 가장 어울리는 인플루언서를 추천하는 AI 기반 인플루언서 매칭 솔루션입니다.
-                </p>
+                <p>Link:D Match는 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여, 상품과 가장 어울리는 인플루언서를 추천하는 AI 기반 인플루언서 매칭 솔루션입니다.</p>
 
                 <div class="grid-3">
                     <div class="card">
                         <h4>⏱️ 탐색 시간 및 비용 절감</h4>
-                        <p>
-                            인플루언서 탐색 과정 자동화를 통해 수작업 비교 부담을 줄이고,
-                            탐색에 소요되는 시간과 비용을 절감할 수 있습니다.
-                        </p>
+                        <p>인플루언서 탐색 과정 자동화를 통해 수작업 비교 부담을 줄이고, 탐색에 소요되는 시간과 비용을 절감할 수 있습니다.</p>
                     </div>
-
                     <div class="card">
                         <h4>🛍️ 소규모 쇼핑몰의 마케팅 실행 지원</h4>
-                        <p>
-                            전문 마케팅 인력이 없는 소규모 쇼핑몰도 추천 결과를 활용하여
-                            보다 쉽게 인플루언서 마케팅을 시작할 수 있습니다.
-                        </p>
+                        <p>전문 마케팅 인력이 없는 소규모 쇼핑몰도 추천 결과를 활용하여 보다 쉽게 인플루언서 마케팅을 시작할 수 있습니다.</p>
                     </div>
-
                     <div class="card">
                         <h4>🎯 상품 적합도 기반 인플루언서 추천</h4>
-                        <p>
-                            단순 수치 지표 중심이 아닌, 상품 적합도를 기반으로
-                            브랜드와 어울리는 인플루언서를 추천합니다.
-                        </p>
+                        <p>단순 수치 지표 중심이 아닌, 상품 적합도를 기반으로 브랜드와 어울리는 인플루언서를 추천합니다.</p>
                     </div>
                 </div>
             </section>
@@ -405,191 +485,142 @@
                 <h2>📌 주요 기능</h2>
 
                 <div class="feature-section">
-                    <h3>🔍 인플루언서 검색 기능</h3>
-
-                    <div class="image-row">
-                        <img src="./images/project_influencerList1.png" alt="Influencer List 1">
-                        <img src="./images/project_influencerList2.png" alt="Influencer List 2">
-                    </div>
-
-                    <h4>조건 및 키워드 기반 인플루언서 탐색 기능</h4>
-
-                    <ul>
-                        <li>
-                            <span>•</span>
-                            <span>카테고리, 팔로워 수 기반 검색 지원</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>“청소용품”, “주방용품”과 같은 키워드를 입력하면, 해당 키워드가 미리 저장된 인플루언서를 검색 결과에 제공</span>
-                        </li>
-                    </ul>
-                </div>
-
-                <div class="feature-section">
                     <h3>🤖 인플루언서 추천 기능</h3>
+                    <div class="image-row">
+                        <img src="./images/project_recommendation1.png" alt="Recommendation 1">
+                        <img src="./images/project_recommendation2.png" alt="Recommendation 2">
+                    </div>
                     <h4>자연어 기반 AI 추천 기능</h4>
-
                     <div class="step-box">
                         <h5>① 상품 정보 입력</h5>
                         <p>사용자는 원하는 분위기의 상품 정보를 입력할 수 있습니다.</p>
                         <p class="example">예: “따뜻한 분위기의 인테리어 용품”</p>
                     </div>
-
                     <div class="step-box">
                         <h5>② 추천 요소 분석 수행</h5>
                         <p>시스템은 상품 유사도, 인플루언서 등급, 사용자 행동 로그를 종합 반영하여 추천을 수행합니다.</p>
                     </div>
-
                     <div class="step-box">
                         <h5>③ 추천 결과 제공</h5>
-                        <p>시스템은 분석 결과를 기반으로 상위 5명의 인플루언서를 카드 형식으로 제공합니다.</p>
+                        <p>시스템은 분석 결과를 기반으로 적합도가 높은 순서대로 인플루언서 추천 결과를 카드 형식으로 제공합니다.</p>
                     </div>
                 </div>
 
                 <div class="feature-section">
                     <h3>⭐ 관심목록 기능</h3>
-
                     <div class="image-row">
                         <img src="./images/project_favorite1.png" alt="Favorite 1">
                         <img src="./images/project_favorite2.png" alt="Favorite 2">
                     </div>
-
                     <h4>관심 인플루언서 저장 및 메모 기능</h4>
                     <p>관심목록 저장 및 메모 기능을 통한 협업 후보 관리 지원</p>
                 </div>
 
                 <div class="feature-section">
                     <h3>📊 통계 차트 기능</h3>
-
                     <div class="image-row">
                         <img src="./images/project_dataInsight1.png" alt="Data Insight 1">
                         <img src="./images/project_dataInsight2.png" alt="Data Insight 2">
                     </div>
-
                     <h4>인플루언서 통계 및 비교 기능</h4>
-
                     <ul>
-                        <li>
-                            <span>•</span>
-                            <span>날짜별 추천 및 선택 추이 제공</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>카테고리별 인플루언서 분포 시각화 지원</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>팔로워 수, 반응도, 활동성을 기반으로 산정한 Grade Score 리더보드 제공</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>인플루언서 비교 기능 지원</span>
-                        </li>
+                        <li><span>•</span><span>날짜별 추천 및 선택 추이 제공</span></li>
+                        <li><span>•</span><span>카테고리별 인플루언서 분포 시각화 지원</span></li>
+                        <li><span>•</span><span>팔로워 수, 반응도, 활동성을 기반으로 산정한 Grade Score 리더보드 제공</span></li>
+                        <li><span>•</span><span>인플루언서 비교 기능 지원</span></li>
                     </ul>
                 </div>
 
                 <div class="feature-section">
                     <h3>💬 챗봇 기능</h3>
-
                     <div class="image-row">
                         <img src="./images/project_chatBot1.png" alt="ChatBot 1">
                         <img src="./images/project_chatBot2.png" alt="ChatBot 2">
                     </div>
-
                     <h4>추천 안내 및 FAQ 지원 기능</h4>
-
                     <ul>
-                        <li>
-                            <span>•</span>
-                            <span>사용자가 입력한 상품 조건에 맞는 추천 결과 안내</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>인플루언서 선택 방법 및 추천 기준 설명</span>
-                        </li>
-                        <li>
-                            <span>•</span>
-                            <span>서비스 이용 중 자주 발생하는 질문에 대한 FAQ 제공</span>
-                        </li>
+                        <li><span>•</span><span>사용자가 입력한 상품 조건에 맞는 추천 결과 안내</span></li>
+                        <li><span>•</span><span>인플루언서 선택 방법 및 추천 기준 설명</span></li>
+                        <li><span>•</span><span>서비스 이용 중 자주 발생하는 질문에 대한 FAQ 제공</span></li>
+                    </ul>
+                </div>
+
+                <div class="feature-section">
+                    <h3>👤 내 정보 보기 기능</h3>
+                    <div class="image-row">
+                        <img src="./images/project_myTab1.png" alt="MyTab 1">
+                        <img src="./images/project_myTab2.png" alt="MyTab 2">
+                    </div>
+                    <h4>프로필 관리 및 추천 기록 조회 기능</h4>
+                    <ul>
+                        <li><span>•</span><span>My 페이지에서 쇼핑몰 정보를 포함한 사용자 프로필 편집 지원</span></li>
+                        <li><span>•</span><span>사용자가 입력했던 추천 요청 기록을 리스트 형태로 조회 가능</span></li>
                     </ul>
                 </div>
             </section>
 
             <section>
                 <h2>✨ 기대 효과</h2>
-
                 <div class="effect-item">
                     <h3>🛍️ 자사몰 마케팅 고도화</h3>
-                    <p>
-                        AI 기반 인플루언서 추천 기술로 국내 자사몰과 중소형 이커머스의
-                        마케팅 접근성과 운영 효율 향상에 기여합니다.
-                    </p>
+                    <p>AI 기반 인플루언서 추천 기술로 국내 자사몰과 중소형 이커머스의 마케팅 접근성과 운영 효율 향상에 기여합니다.</p>
                 </div>
-
                 <div class="effect-item">
                     <h3>🤖 AI 기술 경쟁력 강화</h3>
-                    <p>
-                        데이터 기반 추천/분석 시스템을 서비스에 적용하여
-                        국내 AI 기반 마케팅 기술 경쟁력 강화 및 서비스 고도화에 활용합니다.
-                    </p>
+                    <p>데이터 기반 추천/분석 시스템을 서비스에 적용하여 국내 AI 기반 마케팅 기술 경쟁력 강화 및 서비스 고도화에 활용합니다.</p>
                 </div>
-
                 <div class="effect-item">
                     <h3>🌏 글로벌 시장 확장</h3>
-                    <p>
-                        국내 인플루언서를 해외 서비스와 연계하여 글로벌 브랜드 협업과 해외 시장 진출 가능성을 확대하고,
-                        국내 콘텐츠 기반 수익 창출에 기여합니다.
-                    </p>
+                    <p>국내 인플루언서를 해외 서비스와 연계하여 글로벌 브랜드 협업과 해외 시장 진출 가능성을 확대하고, 국내 콘텐츠 기반 수익 창출에 기여합니다.</p>
                 </div>
             </section>
 
             <section>
                 <h2>🙋‍♂️ 팀원 소개</h2>
-
                 <table>
                     <thead>
                         <tr>
+                            <th>사진</th>
                             <th>이름</th>
                             <th>역할</th>
                             <th>GitHub</th>
                             <th>Email</th>
                         </tr>
                     </thead>
-
                     <tbody>
                         <tr>
+                            <td><img src="./images/joohee_profile.webp" alt="고주희 프로필" class="profile-img"></td>
                             <td>고주희 (팀장)</td>
                             <td>AI & Data Processing</td>
-                            <td><a href="https://github.com/jooheeko" target="_blank" rel="noopener noreferrer">@jooheeko</a></td>
+                            <td><a href="https://github.com/jooheeko" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" alt="GitHub" class="github-icon">@jooheeko</a></td>
                             <td>20222092@kookmin.ac.kr</td>
                         </tr>
-
                         <tr>
+                            <td><img src="./images/eunjin_profile.jpg" alt="이은진 프로필" class="profile-img"></td>
                             <td>이은진</td>
                             <td>Back-end</td>
-                            <td><a href="https://github.com/molba2see" target="_blank" rel="noopener noreferrer">@molba2see</a></td>
+                            <td><a href="https://github.com/molba2see" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" alt="GitHub" class="github-icon">@molba2see</a></td>
                             <td>20232861@kookmin.ac.kr</td>
                         </tr>
-
                         <tr>
+                            <td><img src="./images/yunji_profile.jpg" alt="최윤지 프로필" class="profile-img"></td>
                             <td>최윤지</td>
                             <td>Back-end</td>
-                            <td><a href="https://github.com/yunji0417" target="_blank" rel="noopener noreferrer">@yunji0417</a></td>
+                            <td><a href="https://github.com/yunji0417" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" alt="GitHub" class="github-icon">@yunji0417</a></td>
                             <td>yunji0417@kookmin.ac.kr</td>
                         </tr>
-
                         <tr>
+                            <td><img src="./images/songhoon_profile.jpg" alt="백송훈 프로필" class="profile-img"></td>
                             <td>백송훈</td>
                             <td>Front-end</td>
-                            <td><a href="https://github.com/100songhoon" target="_blank" rel="noopener noreferrer">@100songhoon</a></td>
+                            <td><a href="https://github.com/100songhoon" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" alt="GitHub" class="github-icon">@100songhoon</a></td>
                             <td>songhoon@kookmin.ac.kr</td>
                         </tr>
-
                         <tr>
+                            <td><img src="./images/hyungseok_profile.jpg" alt="오형석 프로필" class="profile-img"></td>
                             <td>오형석</td>
                             <td>Front-end</td>
-                            <td><a href="https://github.com/lovesuperlit" target="_blank" rel="noopener noreferrer">@lovesuperlit</a></td>
+                            <td><a href="https://github.com/lovesuperlit" target="_blank" rel="noopener noreferrer"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" alt="GitHub" class="github-icon">@lovesuperlit</a></td>
                             <td>ohsoksk1569@kookmin.ac.kr</td>
                         </tr>
                     </tbody>
@@ -600,165 +631,56 @@
                 <h2>🛠️ 기술 스택</h2>
 
                 <h3>🔍 AI & Data Processing</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Stack</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Crawling</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white" alt="Apify">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Classification</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/GPT--5.4%20mini-412991?style=for-the-badge&logo=openai&logoColor=white" alt="GPT-5.4 mini">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Recommendation</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="BGE-M3">
-                                <img class="badge" src="https://img.shields.io/badge/FAISS-0467DF?style=for-the-badge&logo=meta&logoColor=white" alt="FAISS">
-                                <img class="badge" src="https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white" alt="LightFM">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <br>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white" alt="Apify">
+                    <img src="https://img.shields.io/badge/BeautifulSoup-4B8BBE?style=for-the-badge&logo=python&logoColor=white" alt="BeautifulSoup">
+                    <img src="https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white" alt="Pandas">
+                    <img src="https://img.shields.io/badge/GPT--4o%20mini-412991?style=for-the-badge&logo=openai&logoColor=white" alt="GPT-4o mini">
+                    <img src="https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black" alt="BGE-M3">
+                    <img src="https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white" alt="LightFM">
+                    <img src="https://img.shields.io/badge/Thompson%20Sampling-7C3AED?style=for-the-badge&logo=python&logoColor=white" alt="Thompson Sampling">
+                </div>
 
                 <h3>💾 Back-end</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Stack</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Framework</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Database</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/MySQL-4479A1?style=for-the-badge&logo=mysql&logoColor=white" alt="MySQL">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Container</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/Docker-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <br>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white" alt="FastAPI">
+                    <img src="https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white" alt="SQLAlchemy">
+                    <img src="https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white" alt="JWT">
+                    <img src="https://img.shields.io/badge/Chatwoot%20API-1F93FF?style=for-the-badge&logo=chatwoot&logoColor=white" alt="Chatwoot API">
+                </div>
 
                 <h3>🖥️ Front-end</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Stack</th>
-                        </tr>
-                    </thead>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
+                    <img src="https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E" alt="Vite">
+                    <img src="https://img.shields.io/badge/TailwindCSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8" alt="TailwindCSS">
+                    <img src="https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white" alt="shadcn/ui">
+                    <img src="https://img.shields.io/badge/Recharts-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white" alt="Recharts">
+                </div>
 
-                    <tbody>
-                        <tr>
-                            <td>Framework</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB" alt="React">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                <h3>🗄️ DB / Storage</h3>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL">
+                    <img src="https://img.shields.io/badge/pgvector-336791?style=for-the-badge&logo=postgresql&logoColor=white" alt="pgvector">
+                    <img src="https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white" alt="AWS RDS">
+                    <img src="https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white" alt="AWS S3">
+                </div>
 
-                <br>
-
-                <h3>☁️ DevOps</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Stack</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Cloud</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/AWS-232F3E?style=for-the-badge&logo=amazonaws&logoColor=white" alt="AWS">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-
-                <br>
+                <h3>☁️ Infra / DevOps</h3>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker Compose">
+                    <img src="https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white" alt="Nginx">
+                    <img src="https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white" alt="AWS EC2">
+                </div>
 
                 <h3>📚 Tools</h3>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>Category</th>
-                            <th>Stack</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-                        <tr>
-                            <td>Code Management</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Collaboration</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white" alt="Notion">
-                                <img class="badge" src="https://img.shields.io/badge/ClickUp-7B68EE?style=for-the-badge&logo=clickup&logoColor=white" alt="ClickUp">
-                                <img class="badge" src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>UI/UX Design</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma">
-                            </td>
-                        </tr>
-
-                        <tr>
-                            <td>Chatbot</td>
-                            <td>
-                                <img class="badge" src="https://img.shields.io/badge/Chatwoot-1F93FF?style=for-the-badge&logo=chatwoot&logoColor=white" alt="Chatwoot">
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </section>
-
-            <section>
-                <h2>⚙️ 사용법</h2>
-                <p>소스코드 제출 시 설치법이나 사용법을 작성하세요.</p>
+                <div class="badge-row">
+                    <img src="https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white" alt="GitHub">
+                    <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white" alt="Notion">
+                    <img src="https://img.shields.io/badge/ClickUp-7B68EE?style=for-the-badge&logo=clickup&logoColor=white" alt="ClickUp">
+                    <img src="https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Discord">
+                    <img src="https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white" alt="Figma">
+                </div>
             </section>
 
             <section>
@@ -768,7 +690,7 @@
         </main>
 
         <footer>
-            <p>Link:D Match - AI 기반 쇼핑몰 맞춤 인플루언서 매칭 솔루션</p>
+            <p>Link:D Match - 산학협력프로젝트</p>
         </footer>
     </div>
 </body>
