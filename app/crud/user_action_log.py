@@ -12,6 +12,9 @@ ACTION_REWARD_MAP = {
     "favorite_remove": -2,
     "contact": 3,
     "collaboration_complete": 4,
+    "instagram_follow": 2,
+    "instagram_like": 1,
+    "instagram_comment": 3,
 }
 
 

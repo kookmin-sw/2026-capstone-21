@@ -239,3 +239,30 @@ def search_influencers_for_admin(
         )
 
     return results
+
+
+@router.post("/sync-instagram-logs/{user_id}")
+def sync_instagram_logs_endpoint(
+    user_id: int,
+    body: dict,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db),
+):
+    """
+    쇼핑몰 인스타 계정의 팔로잉/좋아요/댓글 활동을 크롤링하여 user_action_log에 적재.
+    body: {"instagram_username": "shop_account"}
+    """
+    from app.services.instagram_sync import sync_instagram_logs
+
+    username = body.get("instagram_username", "").strip().lstrip("@")
+    if not username:
+        raise HTTPException(status_code=400, detail="instagram_username이 필요합니다.")
+
+    result = sync_instagram_logs(db, user_id, username)
+    return {
+        "status": "success",
+        "user_id": user_id,
+        "instagram_username": username,
+        "logs_created": result,
+    }
+
