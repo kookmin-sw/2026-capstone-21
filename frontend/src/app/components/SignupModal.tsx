@@ -30,15 +30,26 @@ export function SignupModal({
   const isEmailValid = emailRegex.test(email);
   const showEmailError = emailTouched && !isEmailValid && email.length > 0;
 
+  const hasMinLength = password.length >= 8;
+  const hasMaxLength = password.length <= 50;
+  const hasLowercase = /[a-z]/.test(password);
+  const hasNumber = /[0-9]/.test(password);
+  const hasSpecialChar = /[!@#$%^&*(),.?":{}|<>]/.test(password);
+
   const isPasswordValid =
-    password.length >= 8 &&
-    password.length <= 50 &&
-    /[a-zA-Z]/.test(password) &&
-    /[0-9]/.test(password) &&
-    /[!@#$%^&*(),.?":{}|<>]/.test(password);
+    hasMinLength && hasMaxLength && hasLowercase && hasNumber && hasSpecialChar;
 
   const showPasswordError =
     passwordTouched && !isPasswordValid && password.length > 0;
+
+  const passwordErrors: string[] = [];
+  if (showPasswordError) {
+    if (!hasMinLength) passwordErrors.push('8자 이상');
+    if (!hasMaxLength) passwordErrors.push('50자 이하');
+    if (!hasLowercase) passwordErrors.push('영문 소문자 포함');
+    if (!hasNumber) passwordErrors.push('숫자 포함');
+    if (!hasSpecialChar) passwordErrors.push('특수문자 포함');
+  }
 
   const isFormValid = name.trim().length > 0 && isEmailValid && isPasswordValid;
 
@@ -174,9 +185,28 @@ export function SignupModal({
                 required
               />
               {showPasswordError && (
-                <p className="text-red-500 text-sm mt-1">
-                  패스워드는 8~50자, 영어, 숫자, 특수문자가 조합되어야 합니다.
-                </p>
+                <div className="mt-2 space-y-1">
+                  <p className="text-red-500 text-sm font-medium">
+                    비밀번호 조건: 8~50자, 영문 소문자+숫자+특수문자 조합 필수
+                  </p>
+                  <ul className="text-xs space-y-0.5 ml-2">
+                    <li className={hasMinLength ? 'text-green-600' : 'text-red-500'}>
+                      {hasMinLength ? '✓' : '✗'} 8자 이상
+                    </li>
+                    <li className={hasMaxLength ? 'text-green-600' : 'text-red-500'}>
+                      {hasMaxLength ? '✓' : '✗'} 50자 이하
+                    </li>
+                    <li className={hasLowercase ? 'text-green-600' : 'text-red-500'}>
+                      {hasLowercase ? '✓' : '✗'} 영문 소문자 포함
+                    </li>
+                    <li className={hasNumber ? 'text-green-600' : 'text-red-500'}>
+                      {hasNumber ? '✓' : '✗'} 숫자 포함
+                    </li>
+                    <li className={hasSpecialChar ? 'text-green-600' : 'text-red-500'}>
+                      {hasSpecialChar ? '✓' : '✗'} 특수문자 포함
+                    </li>
+                  </ul>
+                </div>
               )}
             </div>
 

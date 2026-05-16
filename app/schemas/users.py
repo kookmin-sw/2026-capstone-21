@@ -13,10 +13,18 @@ class UserCreate(BaseModel):
     @field_validator('password')
     @classmethod
     def password_complexity(cls, v: str) -> str:
-        pattern = r"^(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
-        if not re.match(pattern, v):
+        errors: list[str] = []
+        if len(v) < 8 or len(v) > 50:
+            errors.append('8~50자')
+        if not re.search(r'[a-z]', v):
+            errors.append('영문 소문자 1자 이상')
+        if not re.search(r'\d', v):
+            errors.append('숫자 1자 이상')
+        if not re.search(r'[!@#$%^&*(),.?":{}|<>]', v):
+            errors.append('특수문자 1자 이상')
+        if errors:
             raise ValueError(
-                '비밀번호는 최소 8자 이상이며, 영문 소문자, 숫자, 특수문자를 각각 최소 1개 이상 포함해야 합니다.'
+                f'비밀번호 조건 미충족: {", ".join(errors)}. (8~50자, 영문 소문자+숫자+특수문자 조합 필수)'
             )
         return v
 
