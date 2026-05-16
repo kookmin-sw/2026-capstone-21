@@ -43,6 +43,18 @@ export async function signupApi(
     });
 
     if (!res.ok) {
+        const data = await res.json().catch(() => null);
+        if (res.status === 422 && data?.detail) {
+            const details = Array.isArray(data.detail) ? data.detail : [data.detail];
+            const messages = details.map((d: any) => typeof d === 'string' ? d : d.msg || '').filter(Boolean);
+            const passwordError = messages.find((m: string) => m.includes('비밀번호'));
+            if (passwordError) {
+                throw new Error("password-invalid");
+            }
+        }
+        if (res.status === 400 && data?.detail && typeof data.detail === 'string' && data.detail.includes('이미')) {
+            throw new Error("email-duplicate");
+        }
         throw new Error("signup-failed");
     }
 

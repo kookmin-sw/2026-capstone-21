@@ -62,9 +62,15 @@ export function SignupModal({
     try {
       await signup(email, password, name, mallName || undefined, mallUrl || undefined);
       onSuccess();
-    } catch (error) {
+    } catch (error: any) {
       console.error('회원가입 실패:', error);
-      setSignupError('회원가입에 실패했습니다. 이미 가입된 이메일인지 확인해주세요.');
+      if (error.message === 'password-invalid') {
+        setSignupError('비밀번호는 8~50자, 영문 소문자+숫자+특수문자 조합이 필수입니다.');
+      } else if (error.message === 'email-duplicate') {
+        setSignupError('이미 가입된 이메일입니다. 다른 이메일을 사용해주세요.');
+      } else {
+        setSignupError('회원가입에 실패했습니다. 입력 정보를 다시 확인해주세요.');
+      }
     }
   };
 
