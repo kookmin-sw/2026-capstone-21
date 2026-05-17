@@ -22,3 +22,5 @@ model_cache
 
 # SSL 인증서 (Let's Encrypt)
 certbot/
+
+ppt
