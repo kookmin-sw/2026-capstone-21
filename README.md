@@ -11,16 +11,6 @@
   <a href="https://github.com/kookmin-sw/2026-capstone-21">GitHub로 이동</a>
 </p>
 
-<p align="center">
-  <a href="#-프로젝트-배경">프로젝트 배경</a> ·
-  <a href="#-프로젝트-소개">프로젝트 소개</a> ·
-  <a href="#-주요-기능">주요 기능</a> ·
-  <a href="#-기대-효과">기대 효과</a> ·
-  <a href="#-팀원-소개">팀원 소개</a> ·
-  <a href="#-기술-스택">기술 스택</a> ·
-  <a href="#-자료">자료</a>
-</p>
-
 <br>
 
 ## 💡 프로젝트 배경
@@ -191,45 +181,13 @@ Link:D Match는 쇼핑몰 상품 정보와 인플루언서 데이터를 분석�
 
 ## 🙋‍♂️ 팀원 소개
 
-<p align="center">
-  <img src="./docs/images/joohee_profile.webp" width="120" alt="고주희 프로필"><br>
-  <strong>고주희 (팀장)</strong><br>
-  AI & Data Processing<br>
-  <a href="https://github.com/jooheeko">@jooheeko</a><br>
-  20222092@kookmin.ac.kr
-</p>
-
-<p align="center">
-  <img src="./docs/images/eunjin_profile.jpg" width="120" alt="이은진 프로필"><br>
-  <strong>이은진</strong><br>
-  Back-end<br>
-  <a href="https://github.com/molba2see">@molba2see</a><br>
-  20232861@kookmin.ac.kr
-</p>
-
-<p align="center">
-  <img src="./docs/images/yunji_profile.jpg" width="120" alt="최윤지 프로필"><br>
-  <strong>최윤지</strong><br>
-  Back-end<br>
-  <a href="https://github.com/yunji0417">@yunji0417</a><br>
-  yunji0417@kookmin.ac.kr
-</p>
-
-<p align="center">
-  <img src="./docs/images/songhoon_profile.jpg" width="120" alt="백송훈 프로필"><br>
-  <strong>백송훈</strong><br>
-  Front-end<br>
-  <a href="https://github.com/100songhoon">@100songhoon</a><br>
-  songhoon@kookmin.ac.kr
-</p>
-
-<p align="center">
-  <img src="./docs/images/hyungseok_profile.jpg" width="120" alt="오형석 프로필"><br>
-  <strong>오형석</strong><br>
-  Front-end<br>
-  <a href="https://github.com/lovesuperlit">@lovesuperlit</a><br>
-  ohsoksk1569@kookmin.ac.kr
-</p>
+| 사진 | 이름 | 역할 | GitHub | Email |
+|---|---|---|---|---|
+| <img src="./docs/images/joohee_profile.webp" width="120" alt="고주희 프로필"> | 고주희 (팀장) | AI & Data Processing | [@jooheeko](https://github.com/jooheeko) | 20222092@kookmin.ac.kr |
+| <img src="./docs/images/eunjin_profile.jpg" width="120" alt="이은진 프로필"> | 이은진 | Back-end | [@molba2see](https://github.com/molba2see) | 20232861@kookmin.ac.kr |
+| <img src="./docs/images/yunji_profile.jpg" width="120" alt="최윤지 프로필"> | 최윤지 | Back-end | [@yunji0417](https://github.com/yunji0417) | yunji0417@kookmin.ac.kr |
+| <img src="./docs/images/songhoon_profile.jpg" width="120" alt="백송훈 프로필"> | 백송훈 | Front-end | [@100songhoon](https://github.com/100songhoon) | songhoon@kookmin.ac.kr |
+| <img src="./docs/images/hyungseok_profile.jpg" width="120" alt="오형석 프로필"> | 오형석 | Front-end | [@lovesuperlit](https://github.com/lovesuperlit) | ohsoksk1569@kookmin.ac.kr |
 
 <br>
 
