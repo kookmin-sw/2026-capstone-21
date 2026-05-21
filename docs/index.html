@@ -58,19 +58,13 @@
             flex-shrink: 0;
         }
 
-        .brand-logo-placeholder {
+        .brand-logo {
             width: 48px;
             height: 48px;
             border-radius: 0.75rem;
-            background: #f1f5f9;
-            border: 1px dashed #c4b5fd;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8b5cf6;
-            font-size: 0.75rem;
-            font-weight: 800;
+            object-fit: cover;
             flex-shrink: 0;
+            box-shadow: 0 6px 14px rgba(15, 23, 42, 0.08);
         }
 
         .brand {
@@ -151,23 +145,11 @@
             box-shadow: 0 12px 24px rgba(15, 23, 42, 0.12);
         }
 
-        .quick-link-logo-placeholder,
         .quick-link-logo {
             width: 28px;
             height: 28px;
             border-radius: 0.45rem;
             flex-shrink: 0;
-        }
-
-        .quick-link-logo-placeholder {
-            background: #f1f5f9;
-            border: 1px dashed #c4b5fd;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #8b5cf6;
-            font-size: 0.6rem;
-            font-weight: 900;
         }
 
         .quick-link-logo {
@@ -529,6 +511,15 @@
             box-shadow: 0 8px 18px rgba(15, 23, 42, 0.06);
         }
 
+        .feature-square-image {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            object-fit: cover;
+            border-radius: 1rem;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.08);
+            display: block;
+        }
+
         .chart-image-grid {
             position: relative;
             display: block;
@@ -541,15 +532,10 @@
             width: 62%;
             aspect-ratio: 1 / 1;
             border-radius: 0.9rem;
-            border: 1px dashed #c4b5fd;
+            border: 1px solid #e2e8f0;
             background: #ffffff;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: #8b5cf6;
-            font-size: 0.9rem;
-            font-weight: 800;
-            text-align: center;
+            object-fit: cover;
+            display: block;
             box-shadow: 0 10px 22px rgba(15, 23, 42, 0.12);
         }
 
@@ -943,7 +929,7 @@
     <div class="container">
         <header>
             <div class="brand-area">
-                <div class="brand-logo-placeholder">LOGO</div>
+                <img src="./images/project_logo.jpg" alt="Link:D Match Logo" class="brand-logo">
                 <div class="brand">
                     <h1>Link:D Match</h1>
                     <span class="brand-subtitle">산학협력프로젝트</span>
@@ -963,7 +949,7 @@
 
         <div class="quick-link-row">
             <a href="https://linkd-match.kr/" target="_blank" rel="noopener noreferrer" class="quick-link-button">
-                <span class="quick-link-logo-placeholder">LOGO</span>
+                <img src="./images/project_logo.jpg" alt="Link:D Match Logo" class="quick-link-logo">
                 <span>Link:D Match로 이동</span>
             </a>
             <a href="https://github.com/kookmin-sw/2026-capstone-21" target="_blank" rel="noopener noreferrer" class="quick-link-button">
@@ -1110,7 +1096,7 @@
                         <p>시스템은 분석 결과를 기반으로 적합도가 높은 순서대로 인플루언서 추천 결과를 카드 형식으로 제공</p>
                     </div>
                         </div>
-                        <div class="feature-image-placeholder">이미지 영역</div>
+                        <img src="./images/project_recommendation.jpg" alt="인플루언서 추천 기능 이미지" class="feature-square-image">
                     </div>
                 </div>
 
@@ -1121,7 +1107,7 @@
                             <h4>관심 인플루언서 저장 및 메모 기능</h4>
                             <p>관심목록 저장 및 메모 기능을 통한 협업 후보 관리 지원</p>
                         </div>
-                        <div class="feature-image-placeholder">이미지 영역</div>
+                        <img src="./images/project_myPicks.jpg" alt="관심 목록 기능 이미지" class="feature-square-image">
                     </div>
                 </div>
 
@@ -1138,8 +1124,8 @@
                             </ul>
                         </div>
                         <div class="feature-image-placeholder chart-image-grid">
-                            <div class="chart-image-slot">이미지 1</div>
-                            <div class="chart-image-slot">이미지 2</div>
+                            <img src="./images/project_dataInsight1.jpg" alt="통계 차트 기능 이미지 1" class="chart-image-slot">
+                            <img src="./images/project_dataInsight2.jpg" alt="통계 차트 기능 이미지 2" class="chart-image-slot">
                         </div>
                     </div>
                 </div>
@@ -1155,7 +1141,7 @@
                         <li><span>•</span><span>서비스 이용 중 자주 발생하는 질문에 대한 FAQ 제공</span></li>
                             </ul>
                         </div>
-                        <div class="feature-image-placeholder">이미지 영역</div>
+                        <img src="./images/project_chatBot.jpg" alt="챗봇 기능 이미지" class="feature-square-image">
                     </div>
                 </div>
 
@@ -1169,7 +1155,7 @@
                         <li><span>•</span><span>사용자가 입력했던 추천 요청 기록을 리스트 형태로 조회 가능</span></li>
                             </ul>
                         </div>
-                        <div class="feature-image-placeholder">이미지 영역</div>
+                        <img src="./images/project_myTab.jpg" alt="내 정보 보기 기능 이미지" class="feature-square-image">
                     </div>
                 </div>
             </section>
@@ -1332,7 +1318,7 @@
                     <a href="./files/[Pickple] 수행계획서 최종평가.pdf" target="_blank" rel="noopener noreferrer" class="material-card">
                         <span class="material-title">[Pickple] 수행계획서 최종평가.pdf</span>
                     </a>
-                
+
                     <a href="./files/[Pickple] 캡스톤 기말발표 자료.pdf" target="_blank" rel="noopener noreferrer" class="material-card">
                         <span class="material-title">[Pickple] 캡스톤 기말발표 자료.pdf</span>
                     </a>
@@ -1341,7 +1327,7 @@
         </main>
 
         <footer>
-            <p>Link:D Match - 산학협력프로젝트</p>
+            <p>Link:D Match</p>
         </footer>
     </div>
 </body>
