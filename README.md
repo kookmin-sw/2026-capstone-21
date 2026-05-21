@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://linkd-match.kr/">Link:D Match로 이동</a>
+  <a href="https://kookmin-sw.github.io/2026-capstone-21/">GitHub Page로 이동</a>
 </p>
 
 <br>
