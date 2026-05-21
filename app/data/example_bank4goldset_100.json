@@ -1,0 +1,449 @@
+[
+  {
+    "username": "house.indica",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "인테리어",
+    "predicted_account_type": "브랜드",
+    "hard_case_type": "name_misleading_category",
+    "misleading_signals": [
+      "상호명에 '하우스' 포함",
+      "키워드에 '공간', '인테리어' 등장",
+      "분위기/감성 키워드(향기, 추억)",
+      "상호 중심 계정이라 브랜드로 오분류"
+    ],
+    "dominant_signals": [
+      "카카오톡 오픈채팅 예약 링크",
+      "개인 운영 자영업 카페",
+      "음료/디저트 관련 게시물",
+      "프랜차이즈 아닌 단일 지점"
+    ],
+    "correction_rule": "상호명에 인테리어 연상 단어(하우스, 룸, 소파 등)가 있어도 실제 콘텐츠가 음식·음료 제공이면 푸드·맛집으로 분류한다. 또한 프랜차이즈가 아닌 개인 운영 자영업 카페는 account_type을 브랜드가 아닌 인플루언서로 분류한다.",
+    "reason": "'인디카 하우스'는 개인 운영 자영업 카페 상호명이다. '하우스', '공간' 등의 키워드가 인테리어를 연상시키지만, 실제 운영 내용은 카페(음료·디저트 제공)이므로 푸드·맛집이 정답이다. 프랜차이즈가 아닌 개인 카페이므로 account_type도 인플루언서가 정답.",
+    "retrieval_text": "카페 상호명에 하우스 룸 공간 포함 인테리어 오분류. 실제는 음료 디저트 자영업 카페 운영 계정. 푸드맛집이 정답. 프랜차이즈 아닌 개인 카페는 브랜드 아닌 인플루언서."
+  },
+  {
+    "username": "saeromiy__",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "패션",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "single_ad_bias",
+    "misleading_signals": [
+      "안경 협찬 1회로 패션 키워드 발생",
+      "키워드에 '패션', '착용감', '모드' 등장",
+      "LLM이 conf 85로 패션 확정"
+    ],
+    "dominant_signals": [
+      "일상 게시물 다수",
+      "여행 사진",
+      "사진관 방문",
+      "데일리 기록형 콘텐츠",
+      "패션 관련 반복 게시물 없음"
+    ],
+    "correction_rule": "패션 키워드(코디, ootd, 착장, 룩북)가 반복되지 않고 1~2회 광고에서만 등장하면 패션으로 확정하지 않는다. 일상/여행/데일리/감성/기록 키워드 빈도가 패션 키워드보다 높으면 라이프스타일로 분류한다.",
+    "reason": "안경 협찬 1회로 패션 키워드가 생겼지만, 계정 전체는 일상·여행·데일리 기록이 주를 이룬다. 패션 관련 반복 게시물이 없으므로 라이프스타일이 정답.",
+    "retrieval_text": "일상 여행 데일리 기록 감성 사진관 계정. 안경 패션 협찬 1회뿐 패션 아님. 코디 ootd 착장 반복 없으면 패션 확정 금지. 라이프스타일이 정답."
+  },
+  {
+    "username": "peki_dodo",
+    "gold_category": "반려동물",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "육아·가족",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "pet_as_child_confusion",
+    "misleading_signals": [
+      "키워드에 '애기', '귀여움', '사랑' 등 육아 연상 표현",
+      "반려동물을 아기처럼 부르는 문화"
+    ],
+    "dominant_signals": [
+      "fullName에 '페키니즈 도도' — 페키니즈는 강아지 품종명",
+      "반려견 중심 게시물"
+    ],
+    "correction_rule": "fullName이나 bio에 견종명(페키니즈, 포메라니안, 비숑 등)이나 묘종명이 포함되면 반려동물 계정으로 분류한다. '애기', '귀여움' 등의 표현만으로 육아·가족으로 판단하지 않는다.",
+    "reason": "'페키니즈'는 강아지 품종명이다. '도도'는 반려견 이름이며, '애기', '사랑' 등의 키워드는 반려동물에도 흔히 쓰이는 표현이다. 반려동물 계정이 정답.",
+    "retrieval_text": "강아지 품종명 페키니즈 포함 반려동물 계정. 애기 귀여움 사랑 키워드로 육아가족 오분류. 견종명 묘종명 확인 필수."
+  },
+  {
+    "username": "sofa.jeju",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "인테리어",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "name_misleading_category",
+    "misleading_signals": [
+      "상호명 '소파'가 가구/인테리어 연상",
+      "키워드에 '공간', '인테리어' 등장"
+    ],
+    "dominant_signals": [
+      "네이버 플레이스 음식점 링크",
+      "username에 'jeju' 지역명 포함",
+      "음식 관련 게시물"
+    ],
+    "correction_rule": "상호명이 가구·인테리어 연상 단어(소파, 테이블, 하우스 등)여도 externalUrl이 네이버 플레이스 음식점이거나 게시물이 음식 중심이면 푸드·맛집으로 분류한다.",
+    "reason": "'소파'는 제주 소재 카페/음식점 상호명이다. 네이버 플레이스 음식점 링크가 있고, 실제 콘텐츠가 음식 중심이므로 푸드·맛집이 정답이다.",
+    "retrieval_text": "카페 이름 소파 가구 인테리어 오분류. 네이버 플레이스 음식점 링크 있음. 실제 음식점 카페 계정. 푸드맛집이 정답."
+  },
+  {
+    "username": "soso_room__",
+    "gold_category": "리빙",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "육아·가족",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "multi_topic_living",
+    "misleading_signals": [
+      "키워드에 '키즈' 포함",
+      "육아·가족 카테고리로 오분류"
+    ],
+    "dominant_signals": [
+      "fullName에 '인테리어·살림템·뷰티꿀템' 명시",
+      "음식 추천, 잡화, 생활템 등 다양한 분야 꿀템 소개",
+      "링크트리 형태 외부 링크"
+    ],
+    "correction_rule": "음식·잡화·뷰티·생활용품 등 여러 분야의 '꿀템 추천', '생활 팁'을 다루는 계정은 리빙으로 분류한다. 특정 한 분야에 집중하지 않고 다양한 생활 아이템을 소개하는 것이 리빙의 특징이다.",
+    "reason": "음식 추천, 샌들, 생활템 등 여러 분야의 꿀템·생활 팁을 다루는 계정이다. 특정 분야(패션, 푸드 등)에 한정되지 않고 전반적 생활 추천을 하므로 리빙이 정답.",
+    "retrieval_text": "꿀템 추천 살림템 뷰티 음식 잡화 다양한 분야 생활팁. 특정 분야 아닌 여러 분야 추천 계정은 리빙. 육아가족 오분류."
+  },
+  {
+    "username": "everyday_dajung",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "인테리어",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "hobby_as_interior",
+    "misleading_signals": [
+      "코바늘 뜨개질 소품 사진이 인테리어 소품처럼 보임",
+      "키워드에 '인테리어' 포함",
+      "러블리 감성 키워드가 인테리어 무드와 혼동"
+    ],
+    "dominant_signals": [
+      "코바늘 뜨개질이 주된 취미 콘텐츠",
+      "개인 취미 기록형 계정",
+      "유튜브 채널 연동",
+      "집꾸미기/가구/공간연출 키워드 없음"
+    ],
+    "correction_rule": "코바늘/뜨개질/손뜨개/드로잉/캘리그라피 등 취미 키워드가 있고, 집꾸미기/가구/공간연출/리모델링 등 진짜 인테리어 키워드가 없으면 라이프스타일로 분류한다. 취미 결과물 사진이 인테리어 소품처럼 보여도 콘텐츠 핵심이 '만드는 과정/취미 기록'이면 라이프스타일.",
+    "reason": "코바늘 뜨개질이 주된 콘텐츠인 취미 기록 계정이다. 뜨개질 소품이 인테리어처럼 보일 수 있지만 집꾸미기/가구/리모델링 등 인테리어 핵심 키워드가 없고, 본질은 개인 취미 활동 기록이므로 라이프스타일.",
+    "retrieval_text": "코바늘 뜨개질 손뜨개 취미 기록 계정. 소품 사진 인테리어 리빙 오분류. 집꾸미기 가구 공간연출 없으면 인테리어 아님. 개인 취미 활동 중심은 라이프스타일."
+  },
+  {
+    "username": "eche._._g._n_._zh",
+    "gold_category": "리빙",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "multi_topic_living",
+    "misleading_signals": [
+      "맛집/포항맛집/서울맛집 등 음식 키워드가 최다",
+      "LLM이 top1(푸드) 키워드에 끌려 conf=90 확정",
+      "style_keywords에 인테리어/반지/꽃바구니/숙소 혼재하는데도 무시"
+    ],
+    "dominant_signals": [
+      "청라인테리어/광주인테리어(인테리어) 공존",
+      "명품반지(잡화) 공존",
+      "꽃바구니(꽃/선물) 공존",
+      "경주숙소(여행) 공존",
+      "style_keywords 자체가 4개+ 분야에 걸쳐 분포"
+    ],
+    "correction_rule": "style_keywords나 게시물이 4개 이상 서로 다른 분야(푸드+인테리어+잡화+여행 등)에 걸쳐있으면 어느 한 분야 전문이 아니라 '다분야 추천/홍보' 계정으로 판단하여 리빙으로 분류한다.",
+    "reason": "맛집, 인테리어, 명품반지, 꽃바구니, 숙소, 유심 등 4개+ 분야가 혼재. style_keywords 자체가 다분야에 걸쳐 있어 어느 한 분야 전문이 아니므로 리빙이 정답.",
+    "retrieval_text": "맛집 인테리어 반지 꽃바구니 숙소 유심 4개 이상 분야 혼재. 다분야 추천 홍보 계정 특정 전문 아님. 리빙이 정답. 푸드맛집 오분류. style_keywords가 여러 분야에 분포."
+  },
+  {
+    "username": "jaehun001001",
+    "gold_category": "뷰티",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "뷰티",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "correct_category_wrong_keywords",
+    "misleading_signals": [
+      "키워드에 '한우선물세트', '성수케이크', '뚝섬케이크' 등 무관한 키워드"
+    ],
+    "dominant_signals": [
+      "눈썹 문신 시술 전문 계정",
+      "반영구 눈썹문신 시술 사진 다수"
+    ],
+    "correction_rule": "카테고리는 맞더라도 키워드가 계정의 핵심 콘텐츠를 반영하지 못하면 키워드를 수정해야 한다. 일회성 협찬 게시물의 키워드가 아니라 반복적으로 등장하는 핵심 주제에서 키워드를 추출한다.",
+    "correct_keywords": [
+      "눈썹문신",
+      "반영구",
+      "눈썹 시술",
+      "아이브로우",
+      "반영구화장"
+    ],
+    "reason": "눈썹 문신 시술 전문 계정이다. 한우선물세트·케이크 등은 일회성 협찬 게시물에서 추출된 키워드이며, 실제 계정 핵심은 '눈썹문신, 반영구' 등이 되어야 한다.",
+    "retrieval_text": "눈썹문신 반영구 시술 전문 계정. 키워드가 일회성 협찬(한우 케이크)으로 오염됨. 핵심 반복 주제에서 키워드 추출 필요."
+  },
+  {
+    "username": "insight.salim",
+    "gold_category": "리빙",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "food_plus_living_confusion",
+    "misleading_signals": [
+      "키워드에 '푸드·맛집', '레시피', '식감' 포함"
+    ],
+    "dominant_signals": [
+      "키워드에 '생활', '청소', '간편', '아이템' 등 생활 전반 키워드 혼재",
+      "fullName에 '살림' 포함"
+    ],
+    "correction_rule": "레시피·음식 키워드가 있더라도 '청소', '생활', '간편', '아이템' 등 생활 전반 키워드가 함께 등장하면 리빙으로 분류한다. fullName에 '살림'이 포함되면 리빙일 가능성이 높다.",
+    "reason": "레시피 관련 키워드가 있지만, 청소·생활팁·아이템 추천 등 생활 전반을 다루는 계정이다. fullName에 '살림'이 명시되어 있으며, 푸드에만 한정되지 않으므로 리빙이 정답.",
+    "retrieval_text": "레시피 음식 키워드 있지만 청소 생활 간편 아이템 키워드 혼재. 살림 생활팁 전반 다루면 리빙. 푸드맛집 오분류."
+  },
+  {
+    "username": "gh8aaaa13931411",
+    "gold_category": "리빙",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "multi_topic_living",
+    "misleading_signals": [
+      "맛집/닭강정/베이커리 등 음식 키워드가 1위",
+      "LLM이 top1 키워드만 보고 푸드맛집으로 확정",
+      "conf 85로 재검토 미진입"
+    ],
+    "dominant_signals": [
+      "속눈썹/리프팅/아트메이크업(뷰티) 키워드 공존",
+      "꽃집(기타) 키워드 공존",
+      "3개 이상 분야가 비슷한 비중으로 혼재",
+      "top1과 top2 점수 차이 2배 미만"
+    ],
+    "correction_rule": "3개 이상 카테고리 힌트가 유의미하게(각 2회+) 잡히고, top1이 top2의 2배 미만이면 '한 분야 전문'이 아니라 '생활 전반 추천/홍보'로 판단하여 리빙으로 분류한다.",
+    "reason": "맛집, 속눈썹/리프팅(뷰티), 꽃집 등 3개+ 분야 키워드가 비슷한 비중으로 혼재. top1(푸드)과 top2(뷰티) 점수 차가 2배 미만이므로 한 분야 전문이 아닌 다분야 추천 계정 → 리빙.",
+    "retrieval_text": "맛집 뷰티 속눈썹 리프팅 꽃집 여러 분야 키워드 혼재. 다분야 광고 홍보 추천 계정. top1 top2 비슷한 점수. 3개 이상 분야 혼재 특정 전문 아님 리빙."
+  },
+  {
+    "username": "gemurosa_bakery",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "브랜드",
+    "hard_case_type": "small_business_not_brand",
+    "misleading_signals": [
+      "username에 'bakery' 포함",
+      "카카오 채널 링크",
+      "상호명 형태의 fullName"
+    ],
+    "dominant_signals": [
+      "개인 운영 소규모 베이커리",
+      "프랜차이즈가 아닌 자영업",
+      "협찬(제빵틀 등) 수령 가능한 개인 사업자"
+    ],
+    "correction_rule": "개인 운영 소규모 카페·베이커리·음식점은 account_type을 '인플루언서'로 분류한다. '브랜드'는 프랜차이즈, 공식 제품 판매 브랜드, 기업 공식 계정에 한정한다. 자영업·1인 사업자·동네 가게는 인플루언서.",
+    "reason": "개인 운영 소규모 베이커리로, 프랜차이즈나 공식 브랜드가 아니다. 협찬을 받을 수도 있는 개인 사업자 성격이므로 account_type은 인플루언서가 적합하다.",
+    "retrieval_text": "개인 베이커리 소규모 자영업. 프랜차이즈 아닌 개인 운영 카페 음식점은 인플루언서. 브랜드 오분류."
+  },
+  {
+    "username": "dearlyfae",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "리빙",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "aesthetic_lifestyle_vs_living",
+    "misleading_signals": [
+      "키워드에 'homebody', 'cozy' 등 집 관련 연상 단어",
+      "리빙 카테고리로 오분류"
+    ],
+    "dominant_signals": [
+      "감성·미학 중심 일상 기록",
+      "템 추천이나 생활 팁 콘텐츠 없음",
+      "개인 취향·분위기 공유형 계정"
+    ],
+    "correction_rule": "리빙은 '물건 추천, 생활 팁, 살림' 등 실용 정보 제공이 핵심이다. 감성·분위기·미학 중심으로 일상을 기록하되 실용 정보 제공이 없으면 라이프스타일로 분류한다.",
+    "reason": "'cozy', 'homebody' 등의 키워드가 리빙을 연상시키지만, 실제 콘텐츠는 템 추천이나 생활 팁이 아닌 감성·일상 기록이다. 실용 정보 없이 분위기·미학을 공유하는 계정은 라이프스타일.",
+    "retrieval_text": "cozy homebody aesthetic 감성 일상 기록. 템 추천 생활팁 없으면 리빙 아니고 라이프스타일. 분위기 미학 중심 계정."
+  },
+  {
+    "username": "suehart3212",
+    "gold_category": "리빙",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "뷰티",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "multi_topic_living",
+    "misleading_signals": [
+      "눈썹문신/속눈썹펌(뷰티) 키워드가 1위",
+      "LLM이 뷰티 키워드 선두만 보고 확정",
+      "conf 85로 재검토 미진입"
+    ],
+    "dominant_signals": [
+      "케이크/과일바구니(푸드) 키워드 공존",
+      "인테리어/디자인 키워드 공존",
+      "선물세트(기타) 키워드 공존",
+      "3개 이상 분야 비슷한 비중 혼재"
+    ],
+    "correction_rule": "뷰티 키워드가 선두여도 케이크/과일바구니/인테리어/선물세트 등 다양한 분야가 동시에 유의미하게 등장하면 뷰티 전문이 아닌 다분야 추천/홍보 계정으로 판단하여 리빙으로 분류한다.",
+    "reason": "눈썹문신/속눈썹펌(뷰티), 케이크/과일바구니(푸드), 인테리어, 선물세트 등 다분야 키워드가 혼재. 뷰티 전문이 아닌 여러 분야 광고/홍보 계정이므로 리빙.",
+    "retrieval_text": "뷰티 눈썹문신 속눈썹펌 있지만 케이크 과일바구니 인테리어 선물세트 다양한 분야 홍보. 3개 이상 분야 혼재 다분야 추천은 리빙. 뷰티 전문 아님."
+  },
+  {
+    "username": "amor__bom",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "여행",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "travel_posts_in_lifestyle",
+    "misleading_signals": [
+      "여행/기내/대만 등 여행 키워드 다수",
+      "LLM이 여행 키워드만 보고 여행으로 확정",
+      "호텔/숙소/항공 정보 제공형이 아닌 일상 기록형"
+    ],
+    "dominant_signals": [
+      "일상 기록 성격이 강한 계정",
+      "여행은 일상의 일부로 기록될 뿐",
+      "유튜브 채널 연동된 개인 기록형",
+      "호텔/숙소/항공/코스/여행팁 반복 없음"
+    ],
+    "correction_rule": "여행 키워드(여행, 기내, 해외)가 있어도 호텔/숙소/항공/코스/여행팁 등 여행 정보 제공이 반복되지 않으면 여행 카테고리로 확정하지 않는다. 일상/감성/기록/데일리/유튜브 키워드 빈도가 여행 정보 키워드보다 높으면 라이프스타일.",
+    "reason": "여행 게시물이 일부 있지만, 호텔/숙소/항공/코스 등 여행 정보 제공이 반복되지 않고, 전체적으로 일상 기록·감성 공유 성격이 강하다. 여행은 일상의 한 부분으로 기록될 뿐이므로 라이프스타일.",
+    "retrieval_text": "여행 기내 해외 키워드 있지만 일상 기록 감성 데일리 유튜브 성격. 호텔 숙소 항공 코스 여행팁 반복 없음 여행 정보 제공 아님. 일상 중 여행 사진 포함 기록형 라이프스타일."
+  },
+  {
+    "username": "alquimi_star",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "브랜드",
+    "hard_case_type": "small_business_not_brand",
+    "misleading_signals": [
+      "네이버 스마트스토어 링크",
+      "상호명 형태 fullName",
+      "카페 운영 계정"
+    ],
+    "dominant_signals": [
+      "개인 운영 동네 카페",
+      "프랜차이즈가 아닌 자영업",
+      "지역 기반 소규모 사업"
+    ],
+    "correction_rule": "개인 운영 소규모 카페는 프랜차이즈·공식 브랜드가 아니므로 account_type을 '인플루언서'로 분류한다. 스마트스토어 링크가 있어도 자영업·1인 카페는 인플루언서.",
+    "reason": "불광천·북가좌·응암 지역의 개인 카페이다. 스마트스토어 링크와 상호명이 있어 브랜드처럼 보이지만, 프랜차이즈가 아닌 자영업 성격이므로 account_type은 인플루언서가 적합하다.",
+    "retrieval_text": "개인 카페 자영업 소규모 사업. 스마트스토어 링크 있어도 프랜차이즈 아니면 인플루언서. 브랜드 오분류."
+  },
+  {
+    "username": "gohongmong",
+    "gold_category": "육아·가족",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "리빙",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "couple_family_account",
+    "misleading_signals": [
+      "인테리어/타일/세라믹 등 여러 분야 키워드로 multi_topic→리빙 오분류 가능",
+      "카페/골프/피부관리 등 다양한 콘텐츠",
+      "다분야 guardrail이 커플 정체성보다 먼저 적용될 경우 리빙으로 빠짐"
+    ],
+    "dominant_signals": [
+      "fullName에 '커플', '결혼준비' 명시",
+      "유튜브 채널 연동",
+      "부부/커플 일상 공유형 계정",
+      "결혼준비 과정(인테리어/타일 선택 등)이 콘텐츠의 맥락"
+    ],
+    "correction_rule": "fullName이나 bio에 '커플', '부부', '결혼준비', '신혼'이 명시되어 있으면 다분야 콘텐츠가 있어도 육아·가족으로 분류한다. 결혼준비 과정에서 인테리어/맛집/뷰티 등 다양한 주제를 다루는 것은 자연스러우며, 계정 정체성(커플)이 카테고리를 결정한다.",
+    "reason": "fullName에 '홍몽커플', '결혼준비'가 명시된 부부/커플 계정이다. 결혼준비 과정에서 인테리어/타일/카페 등 다양한 콘텐츠를 다루지만 계정 정체성은 커플 일상이므로 육아·가족이 정답. 다분야라고 리빙으로 보내면 안 된다.",
+    "retrieval_text": "커플 부부 결혼준비 계정. 인테리어 타일 카페 골프 다분야 콘텐츠 있어도 커플 정체성이 우선. 다분야라고 리빙으로 보내면 안 됨. 육아가족이 정답. 결혼준비 과정 다양한 주제는 자연스러움."
+  },
+  {
+    "username": "pekoko.zip",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "라이프스타일",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "food_content_as_lifestyle",
+    "misleading_signals": [
+      "키워드에 '라이프스타일', '일상', '유행' 등 라이프스타일 연상 키워드"
+    ],
+    "dominant_signals": [
+      "초콜릿·디저트 관련 게시물이 대부분",
+      "맛집 키워드 존재",
+      "푸드 콘텐츠 반복 비중 높음"
+    ],
+    "correction_rule": "키워드에 '일상', '라이프스타일'이 있어도 실제 게시물의 반복 주제가 음식·디저트·맛집이면 푸드·맛집으로 분류한다. 콘텐츠의 실제 반복 비중이 카테고리를 결정한다.",
+    "reason": "키워드에 '일상', '유행' 등이 있지만, 실제 게시물의 대부분이 초콜릿·디저트 관련 콘텐츠이다. 콘텐츠의 반복 주제가 푸드이므로 푸드·맛집이 정답.",
+    "retrieval_text": "초콜릿 디저트 게시물 대부분. 키워드에 일상 라이프스타일 있어도 실제 반복 주제가 음식이면 푸드맛집. 라이프스타일 오분류."
+  },
+  {
+    "username": "hxnjxhxx_",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "패션",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "single_ad_bias",
+    "misleading_signals": [
+      "등산가방(패션) 광고 1회",
+      "비건화장품(뷰티) 광고 1회",
+      "서로 다른 분야 광고가 패션 키워드를 생성"
+    ],
+    "dominant_signals": [
+      "전체 게시물 일상 기록 중심",
+      "광고 분야가 패션+뷰티로 분산",
+      "코디/ootd/착장 반복 없음"
+    ],
+    "correction_rule": "광고가 1~2회이고 서로 다른 분야(패션+뷰티)이면 어느 분야로도 확정하지 않는다. 광고 외 게시물의 반복 주제가 일상이면 라이프스타일. 패션 확정은 코디/ootd/착장이 3회 이상 반복될 때만.",
+    "reason": "등산가방(패션)과 비건화장품(뷰티) 광고가 각 1회이지만 서로 다른 분야의 단발성 협찬이다. 전체 게시물은 일상 기록이므로 라이프스타일.",
+    "retrieval_text": "일상 기록 계정 광고 1회 패션 1회 뷰티. 서로 다른 분야 단발성 협찬. 코디 ootd 착장 반복 없음 패션 아님. 라이프스타일이 정답."
+  },
+  {
+    "username": "mini_yoooon",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "라이프스타일",
+    "predicted_account_type": "브랜드",
+    "hard_case_type": "salesperson_not_brand",
+    "misleading_signals": [
+      "fullName에 '미니쿠퍼' 브랜드명 포함",
+      "외부 링크가 코오롱모터스 판매 페이지",
+      "자동차 브랜드 관련 콘텐츠"
+    ],
+    "dominant_signals": [
+      "개인 영업사원 계정",
+      "일상 게시물도 혼재",
+      "자동차 판매 + 개인 생활 공유"
+    ],
+    "correction_rule": "특정 브랜드 제품을 판매하는 개인 영업사원은 '브랜드'가 아닌 '인플루언서'로 분류한다. 공식 브랜드 계정은 기업이 직접 운영하는 계정에 한정한다. 개인 딜러·영업사원·판매원은 인플루언서.",
+    "reason": "미니쿠퍼를 판매하는 개인 딜러 계정이다. 코오롱모터스 판매 페이지 링크가 있고 자동차 콘텐츠가 많지만, 기업 공식 계정이 아닌 개인 영업사원이므로 account_type은 인플루언서가 적합하다.",
+    "retrieval_text": "자동차 딜러 개인 영업사원 판매원. 브랜드 제품 판매해도 개인 운영이면 인플루언서. 공식 브랜드 계정 아님."
+  },
+  {
+    "username": "freewill.4_jeonpo",
+    "gold_category": "푸드·맛집",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "푸드·맛집",
+    "predicted_account_type": "브랜드",
+    "hard_case_type": "small_business_not_brand",
+    "misleading_signals": [
+      "상호명이 username과 fullName에 명시",
+      "네이버 지도 링크",
+      "채용공고 게시"
+    ],
+    "dominant_signals": [
+      "개인 운영 혼술바/술집",
+      "프랜차이즈가 아닌 단일 지점 자영업",
+      "부산 전포동 소규모 음식점"
+    ],
+    "correction_rule": "개인 운영 소규모 술집·음식점은 채용공고를 올리더라도 프랜차이즈가 아니면 account_type을 '인플루언서'로 분류한다.",
+    "reason": "부산 전포동의 개인 운영 혼술바이다. 상호명과 네이버 링크가 있어 브랜드처럼 보이지만, 프랜차이즈가 아닌 단일 지점 자영업이므로 account_type은 인플루언서가 적합하다.",
+    "retrieval_text": "개인 술집 혼술바 자영업 단일 지점. 상호명 있어도 프랜차이즈 아니면 인플루언서. 브랜드 오분류."
+  },
+  {
+    "username": "nrae_wing",
+    "gold_category": "라이프스타일",
+    "gold_account_type": "인플루언서",
+    "predicted_category": "반려동물",
+    "predicted_account_type": "인플루언서",
+    "hard_case_type": "false_positive_pet",
+    "misleading_signals": [
+      "냥이 1회 언급 (길고양이와 사진 1장)",
+      "여우, 너구리 등 야생동물 키워드도 존재",
+      "LLM이 '냥이' 단어 하나로 반려동물 conf=90 확정"
+    ],
+    "dominant_signals": [
+      "벚꽃, 꽃놀이, 아이스크림 등 일상 기록 위주",
+      "길고양이와 한 번 찍은 사진일 뿐 반려동물 키워드 반복 없음",
+      "코디/ootd/착장 없음, 여행 정보 제공 없음",
+      "네이버 블로그 연동 — 개인 기록형"
+    ],
+    "correction_rule": "반려동물 판정은 최근 게시물 3개 이상에서 동물/펫용품이 반복 등장할 때만 한다. '냥이' 1회 언급, 길고양이 사진 1장, 야생동물 구경 등 일회성 동물 접촉은 반려동물로 분류하지 않는다. 동물 키워드가 1~2회뿐이고 나머지가 일상/꽃놀이/음식이면 라이프스타일.",
+    "reason": "길고양이와 1번 사진을 찍었을 뿐 반려동물을 키우는 계정이 아니다. 벚꽃, 꽃놀이, 아이스크림 등 일상 기록이 주를 이루며 동물 관련 키워드 반복이 없으므로 라이프스타일이 정답.",
+    "retrieval_text": "냥이 길고양이 1회 사진 반려동물 오분류. 벚꽃 꽃놀이 아이스크림 일상 기록 계정. 동물 키워드 1회성 반복 없음 반려동물 아님. 라이프스타일이 정답. 길냥이 야생동물 구경은 반려동물 카테고리 아님."
+  }
+]
