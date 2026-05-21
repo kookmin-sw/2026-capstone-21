@@ -1,186 +1,118 @@
-# ![Project Logo](./docs/images/project_logo.jpg)
+# Link:D Match
 
-AI 기반 인플루언서 매칭 솔루션 — 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여 최적의 인플루언서를 추천합니다
+<p align="center">
+  <img src="./docs/images/project_logo.jpg" width="90" alt="Link:D Match Logo">
+</p>
 
-## 📁 프로젝트 구조
+<h3 align="center">산학협력프로젝트</h3>
 
-```
-2026-capstone-21/
-├── app/                    # 백엔드 (FastAPI, Python 3.9)
-│   ├── routers/            # API 엔드포인트 (auth, chat, recommendation, influencer 등)
-│   ├── services/           # 비즈니스 로직 (chatbot, recommendation, mall_analyzer 등)
-│   ├── db/                 # DB 모델 및 연결 (PostgreSQL + pgvector)
-│   ├── schemas/            # Pydantic 요청/응답 스키마
-│   ├── crud/               # CRUD 함수
-│   ├── seed/               # 초기 데이터 시딩
-│   ├── utils/              # 유틸리티 (인증, 설정)
-│   └── data/               # 데이터 파일 (JSON, 프로필 이미지)
-├── frontend/               # 프론트엔드 (React + Vite + TailwindCSS)
-│   ├── src/app/components/ # 페이지 컴포넌트
-│   ├── src/api/            # API 클라이언트
-│   ├── src/app/context/    # React Context (Auth, Influencer)
-│   └── public/             # 정적 파일 (로고, 파비콘)
-├── chatwoot/               # Chatwoot 소스 (git submodule, 관리자 대시보드)
-├── model_cache/            # BGE-M3 임베딩 모델 캐시
-├── docs/                   # 문서 및 이미지
-├── docker-compose.yml      # 전체 서비스 오케스트레이션
-├── .env                    # 환경변수 (DB, API 키 등)
-├── CHANGELOG.md            # 패치노트
-└── trouble.md              # 트러블슈팅 및 수정사항 기록
-```
+<p align="center">
+  <a href="https://linkd-match.kr/">Link:D Match로 이동</a> ·
+  <a href="https://github.com/kookmin-sw/2026-capstone-21">GitHub로 이동</a>
+</p>
 
-## 🚀 실행 방법
+<p align="center">
+  <a href="#-프로젝트-배경">프로젝트 배경</a> ·
+  <a href="#-프로젝트-소개">프로젝트 소개</a> ·
+  <a href="#-주요-기능">주요 기능</a> ·
+  <a href="#-기대-효과">기대 효과</a> ·
+  <a href="#-팀원-소개">팀원 소개</a> ·
+  <a href="#-기술-스택">기술 스택</a> ·
+  <a href="#-자료">자료</a>
+</p>
 
-```bash
-# 전체 서비스 실행
-docker compose up -d
-
-# 개별 빌드
-docker compose build frontend backend
-docker compose up -d frontend backend
-```
-
-| 서비스 | 포트 | 설명 |
-|--------|------|------|
-| frontend | :80 | React 웹 앱 (Nginx) |
-| backend | :8000 | FastAPI 서버 |
-| chatwoot | :3000 | 챗봇 관리자 대시보드 |
-| redis | 내부 | Chatwoot 캐시 |
-
----
+<br>
 
 ## 💡 프로젝트 배경
 
-![Project Background](./docs/images/project_background.png)
-### ⏳ 어필리에이트 마케팅의 인플루언서 탐색에 많은 시간 소요
-- 🔍 상품과 어울리는 인플루언서를 직접 검색해야 함
-- 📊 콘텐츠 분위기, 카테고리, 팔로워 수 등을 하나씩 비교해야 함
-- 🤔 브랜드 이미지와 맞는 계정을 판단하기 어려움
-- 💸 소규모 쇼핑몰은 인력·예산 부족으로 탐색 부담 증가
+<p align="center">
+  <img src="./docs/images/project_flow.jpg" width="100%" alt="Project Flow">
+</p>
+
+> 어필리에이트 마케팅의 인플루언서 **탐색**에 많은 시간이 소요
+
+| 🔍 상품과 어울리는 인플루언서를 직접 검색해야 함 | 📊 콘텐츠 분위기, 카테고리, 팔로워 수 등을 하나씩 비교해야 함 |
+|---|---|
+| 🤔 브랜드 이미지와 맞는 계정을 판단하기 어려움 | 💸 소규모 쇼핑몰은 인력·예산 부족으로 탐색 부담 증가 |
 
 <br>
 
 ## 🚀 프로젝트 소개
 
-![Project Core](./docs/images/project_core.png)
+<p align="center">
+  <img src="./docs/images/project_poster.jpg" width="100%" alt="Link:D Match Project Poster">
+</p>
+
 ### AI 기반 인플루언서 매칭 솔루션
 
-> **“수작업 탐색에서 AI 기반 추천 매칭으로”**  
-> **“상품과 어울리는 인플루언서를 AI로 더 빠르고 정확하게”**
+> “수작업 탐색에서 **AI 기반 추천 매칭**으로”  
+> “상품과 어울리는 인플루언서를 **AI로 더 빠르고 정확하게**”
 
-Link:D Match는 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여, 상품과 가장 어울리는 인플루언서를 추천하는 AI 기반 인플루언서 매칭 솔루션
+Link:D Match는 쇼핑몰 상품 정보와 인플루언서 데이터를 분석하여, 상품과 가장 어울리는 인플루언서를 추천하는 AI 기반 인플루언서 매칭 솔루션입니다
 
-### ⏱️ 탐색 시간 및 비용 절감
+| 5,488 | 65,612 | 88%+ | 1.8s | 5 |
+|---:|---:|---:|---:|---:|
+| 인플루언서 DB 프로필 | 게시물 데이터 | 카테고리 분류 정확도 | 평균 추천 응답 지연 | 사용 가능한 화면 |
 
-- 인플루언서 탐색 과정 자동화를 통해 수작업 비교 부담을 줄이고, 탐색에 소요되는 시간과 비용을 절감할 수 있음
+<br>
 
-### 🛍️ 소규모 쇼핑몰의 마케팅 실행 지원
+| 01 인플루언서 데이터 수집 | 02 AI 기반 인플루언서 분류 |
+|---|---|
+| Apify 기반 자동 수집 파이프라인<br>약 6만 5천 개 게시글 수집 완료<br>카테고리, 스타일 기반 필터<br>5,488 규모 인플루언서 DB 구축 | LLM API 기반 AI 분류 엔진 구현<br>바이오 + 콘텐츠 분석 기능 구현<br>자동 카테고리 분류 시스템 구축<br>평균 분류 정확도 88% 이상 달성 |
 
-- 전문 마케팅 인력이 없는 소규모 쇼핑몰도 추천 결과를 활용하여 보다 쉽게 인플루언서 마케팅을 시작할 수 있음
-
-### 🎯 상품 적합도 기반 인플루언서 추천
-
-- 단순 수치 지표(팔로워 수, 좋아요 수) 중심이 아닌, 상품 적합도를 기반으로 브랜드와 어울리는 인플루언서를 추천함
+| 03 매칭 추천 API | 04 대시보드 |
+|---|---|
+| FastAPI 기반 추천 API 개발<br>유사도 계산 및 Top N 추천, 정렬, 필터 기능 구현<br>평균 1.79 추천 결과 반환 | React 기반 대시보드 개발<br>추천 결과 화면 구현<br>검색 및 필터 기능 구현<br>통계 차트 시각화 기능 구현 |
 
 <br>
 
 ## 📌 주요 기능
 
 ### 🤖 인플루언서 추천 기능
-<p align="center">
-  <img src="./docs/images/project_recommendation1.png" width="48%" alt="Recommendation 1">
-  &nbsp;
-  <img src="./docs/images/project_recommendation2.png" width="48%" alt="Recommendation 2">
-  &nbsp;
-</p>
 
-**자연어 기반 AI 추천 기능**
-
-#### ① 상품 정보 입력
-
-- 사용자는 원하는 분위기의 상품 정보를 입력할 수 있음  
-  예: “따뜻한 분위기의 인테리어 용품”
-
-#### ② 추천 요소 분석 수행
-
-- 시스템은 상품 유사도, 인플루언서 등급, 사용자 행동 로그를 종합 반영하여 추천을 수행함
-
-#### ③ 추천 결과 제공
-
-- 시스템은 분석 결과를 기반으로 적합도가 높은 순서대로 인플루언서 추천 결과를 카드 형식으로 제공함
+| 설명 | 화면 |
+|---|---|
+| **자연어 기반 AI 추천 기능**<br><br>① 상품 정보 입력<br>사용자는 원하는 분위기의 상품 정보를 입력 가능<br>예: “따뜻한 분위기의 인테리어 용품”<br><br>② 추천 요소 분석 수행<br>시스템은 상품 유사도, 인플루언서 등급, 사용자 행동 로그를 종합 반영하여 추천을 수행<br><br>③ 추천 결과 제공<br>시스템은 분석 결과를 기반으로 적합도가 높은 순서대로 인플루언서 추천 결과를 카드 형식으로 제공 | <img src="./docs/images/project_recommendation.jpg" width="280" alt="인플루언서 추천 기능 이미지"> |
 
 <br>
 
 ### ⭐ 관심목록 기능
-<p align="center">
-  <img src="./docs/images/project_favorite1.png" width="48%" alt="Favorite 1">
-  &nbsp;
-  <img src="./docs/images/project_favorite2.png" width="48%" alt="Favorite 2">
-  &nbsp;
-</p>
 
-**관심 인플루언서 저장 및 메모 기능**
-
-- 관심목록 저장 및 메모 기능을 통한 협업 후보 관리 지원
+| 설명 | 화면 |
+|---|---|
+| **관심 인플루언서 저장 및 메모 기능**<br><br>관심목록 저장 및 메모 기능을 통한 협업 후보 관리 지원 | <img src="./docs/images/project_myPicks.jpg" width="280" alt="관심 목록 기능 이미지"> |
 
 <br>
 
 ### 📊 통계 차트 기능
-<p align="center">
-  <img src="./docs/images/project_dataInsight1.png" width="48%" alt="Data Insight 1">
-  &nbsp;
-  <img src="./docs/images/project_dataInsight2.png" width="48%" alt="Data Insight 2">
-  &nbsp;
-</p>
 
-**인플루언서 통계 및 비교 기능**
-
-- 날짜별 추천 및 선택 추이 제공
-- 카테고리별 인플루언서 분포 시각화 지원
-- 팔로워 수, 반응도, 활동성을 기반으로 산정한 Grade Score 리더보드 제공
-- 인플루언서 비교 기능 지원
+| 설명 | 화면 |
+|---|---|
+| **인플루언서 통계 및 비교 기능**<br><br>날짜별 추천 및 선택 추이 제공<br>카테고리별 인플루언서 분포 시각화 지원<br>팔로워 수, 반응도, 활동성을 기반으로 산정한 Grade Score 리더보드 제공<br>인플루언서 비교 기능 지원 | <img src="./docs/images/project_dataInsight1.jpg" width="135" alt="통계 차트 기능 이미지 1"> <img src="./docs/images/project_dataInsight2.jpg" width="135" alt="통계 차트 기능 이미지 2"> |
 
 <br>
 
 ### 💬 챗봇 기능
-<p align="center">
-  <img src="./docs/images/project_chatBot1.png" width="48%" alt="ChatBot 1">
-  &nbsp;
-  <img src="./docs/images/project_chatBot2.png" width="48%" alt="ChatBot 2">
-</p>
 
-**추천 안내 및 FAQ 지원 기능**
-
-- 사용자가 입력한 상품 조건에 맞는 추천 결과 안내
-- 인플루언서 선택 방법 및 추천 기준 설명
-- 서비스 이용 중 자주 발생하는 질문에 대한 FAQ 제공
+| 설명 | 화면 |
+|---|---|
+| **추천 안내 및 FAQ 지원 기능**<br><br>사용자가 입력한 상품 조건에 맞는 추천 결과 안내<br>인플루언서 선택 방법 및 추천 기준 설명<br>서비스 이용 중 자주 발생하는 질문에 대한 FAQ 제공 | <img src="./docs/images/project_chatBot.jpg" width="280" alt="챗봇 기능 이미지"> |
 
 <br>
 
 ### 👤 내 정보 보기 기능
-<p align="center">
-  <img src="./docs/images/project_myTab1.png" width="48%" alt="MyTab 1">
-  &nbsp;
-  <img src="./docs/images/project_myTab2.png" width="48%" alt="MyTab 2">
-</p>
 
-**프로필 관리 및 추천 기록 조회 기능**
-
-- My 페이지에서 쇼핑몰 정보를 포함한 사용자 프로필 편집 지원
-- 사용자가 입력했던 추천 요청 기록을 리스트 형태로 조회 가능
+| 설명 | 화면 |
+|---|---|
+| **프로필 관리 및 추천 기록 조회 기능**<br><br>My 페이지에서 쇼핑몰 정보를 포함한 사용자 프로필 편집 지원<br>사용자가 입력했던 추천 요청 기록을 리스트 형태로 조회 가능 | <img src="./docs/images/project_myTab.jpg" width="280" alt="내 정보 보기 기능 이미지"> |
 
 <br>
 
 ## ✨ 기대 효과
 
-### 🛍️ 자사몰 마케팅 고도화
-AI 기반 인플루언서 추천 기술로 국내 자사몰과 중소형 이커머스의 마케팅 접근성과 운영 효율 향상에 기여
-
-### 🤖 AI 기술 경쟁력 강화
-데이터 기반 추천/분석 시스템을 서비스에 적용하여 국내 AI 기반 마케팅 기술 경쟁력 강화 및 서비스 고도화에 활용
-
-### 🌏 글로벌 시장 확장
-국내 인플루언서를 해외 서비스와 연계하여 글로벌 브랜드 협업과 해외 시장 진출 가능성을 확대하고, 국내 콘텐츠 기반 수익 창출에 기여
+| ⏱️ 탐색 시간 및 비용 절감 | 📈 플랫폼 가치 향상 | 🌏 글로벌 확장 가능성 |
+|---|---|---|
+| 인플루언서 탐색 과정 자동화를 통해 수작업 비교 부담을 줄이고, 탐색에 소요되는 시간과 비용을 절감 | 기존 LINK:D 서비스에 매칭 기능을 추가하여 쇼핑몰의 서비스 이탈을 방지하고, 어필리에이트 마케팅 시작까지의 전환율을 향상 | 국내 인플루언서를 해외 서비스와 연계하여 글로벌 브랜드 협업과 해외 시장 진출 가능성을 확대 |
 
 <br>
 
@@ -188,43 +120,50 @@ AI 기반 인플루언서 추천 기술로 국내 자사몰과 중소형 이커�
 
 | 사진 | 이름 | 역할 | GitHub | Email |
 |---|---|---|---|---|
-|<img src="./docs/images/joohee_profile.webp" width="120" height="120" style="object-fit: cover;"> | 고주희 (팀장) | AI & Data Processing | <a href="https://github.com/jooheeko"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @jooheeko</a> | 20222092@kookmin.ac.kr  |
-| <img src="./docs/images/eunjin_profile.jpg" width="120" height="120" style="object-fit: cover;"> | 이은진 | Back-end | <a href="https://github.com/molba2see"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @molba2see</a> | 20232861@kookmin.ac.kr |
-| <img src="./docs/images/yunji_profile.jpg" width="120" height="120" style="object-fit: cover;"> | 최윤지  | Back-end | <a href="https://github.com/yunji0417"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @yunji0417</a> | yunji0417@kookmin.ac.kr |
-| <img src="./docs/images/songhoon_profile.jpg" width="120" height="120" style="object-fit: cover;"> | 백송훈 | Front-end | <a href="https://github.com/100songhoon"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @100songhoon</a> | songhoon@kookmin.ac.kr |
-| <img src="./docs/images/hyungseok_profile.jpg" width="120" height="120" style="object-fit: cover;"> | 오형석 | Front-end | <a href="https://github.com/lovesuperlit"><img src="https://cdn.jsdelivr.net/npm/simple-icons@v11/icons/github.svg" width="20" alt="GitHub"> @lovesuperlit</a> | ohsoksk1569@kookmin.ac.kr |
+| <img src="./docs/images/joohee_profile.webp" width="120" alt="고주희 프로필"> | 고주희 (팀장) | AI & Data Processing | [@jooheeko](https://github.com/jooheeko) | 20222092@kookmin.ac.kr |
+| <img src="./docs/images/eunjin_profile.jpg" width="120" alt="이은진 프로필"> | 이은진 | Back-end | [@molba2see](https://github.com/molba2see) | 20232861@kookmin.ac.kr |
+| <img src="./docs/images/yunji_profile.jpg" width="120" alt="최윤지 프로필"> | 최윤지 | Back-end | [@yunji0417](https://github.com/yunji0417) | yunji0417@kookmin.ac.kr |
+| <img src="./docs/images/songhoon_profile.jpg" width="120" alt="백송훈 프로필"> | 백송훈 | Front-end | [@100songhoon](https://github.com/100songhoon) | songhoon@kookmin.ac.kr |
+| <img src="./docs/images/hyungseok_profile.jpg" width="120" alt="오형석 프로필"> | 오형석 | Front-end | [@lovesuperlit](https://github.com/lovesuperlit) | ohsoksk1569@kookmin.ac.kr |
 
 <br>
 
 ## 🛠️ 기술 스택
 
 ### 🔍 AI & Data Processing
+
 ![Apify](https://img.shields.io/badge/Apify-FF5A00?style=for-the-badge&logo=apify&logoColor=white) ![BeautifulSoup](https://img.shields.io/badge/BeautifulSoup-4B8BBE?style=for-the-badge&logo=python&logoColor=white) ![Pandas](https://img.shields.io/badge/Pandas-150458?style=for-the-badge&logo=pandas&logoColor=white) ![GPT-4o mini](https://img.shields.io/badge/GPT--4o%20mini-412991?style=for-the-badge&logo=openai&logoColor=white) ![BGE-M3](https://img.shields.io/badge/BGE--M3-FFD21E?style=for-the-badge&logo=huggingface&logoColor=black) ![LightFM](https://img.shields.io/badge/LightFM-00A98F?style=for-the-badge&logo=python&logoColor=white) ![Thompson Sampling](https://img.shields.io/badge/Thompson%20Sampling-7C3AED?style=for-the-badge&logo=python&logoColor=white)
 
 ### 💾 Back-end
+
 ![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white) ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-D71F00?style=for-the-badge&logo=sqlalchemy&logoColor=white) ![JWT](https://img.shields.io/badge/JWT-000000?style=for-the-badge&logo=jsonwebtokens&logoColor=white) ![Chatwoot API](https://img.shields.io/badge/Chatwoot%20API-1F93FF?style=for-the-badge&logo=chatwoot&logoColor=white)
 
 ### 🖥️ Front-end
+
 ![React](https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB) ![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E) ![TailwindCSS](https://img.shields.io/badge/TailwindCSS-0F172A?style=for-the-badge&logo=tailwindcss&logoColor=38BDF8) ![shadcn/ui](https://img.shields.io/badge/shadcn%2Fui-000000?style=for-the-badge&logo=shadcnui&logoColor=white) ![Recharts](https://img.shields.io/badge/Recharts-FF6384?style=for-the-badge&logo=chartdotjs&logoColor=white)
 
 ### 🗄️ DB / Storage
+
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?style=for-the-badge&logo=postgresql&logoColor=white) ![pgvector](https://img.shields.io/badge/pgvector-336791?style=for-the-badge&logo=postgresql&logoColor=white) ![AWS RDS](https://img.shields.io/badge/AWS%20RDS-527FFF?style=for-the-badge&logo=amazonrds&logoColor=white) ![AWS S3](https://img.shields.io/badge/AWS%20S3-569A31?style=for-the-badge&logo=amazons3&logoColor=white)
 
 ### ☁️ Infra / DevOps
+
 ![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white) ![Nginx](https://img.shields.io/badge/Nginx-009639?style=for-the-badge&logo=nginx&logoColor=white) ![AWS EC2](https://img.shields.io/badge/AWS%20EC2-FF9900?style=for-the-badge&logo=amazonec2&logoColor=white)
 
 ### 📚 Tools
+
 ![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white) ![Notion](https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white) ![ClickUp](https://img.shields.io/badge/ClickUp-7B68EE?style=for-the-badge&logo=clickup&logoColor=white) ![Discord](https://img.shields.io/badge/Discord-5865F2?style=for-the-badge&logo=discord&logoColor=white) ![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)
-
-<br>
-
-### ⚙️ 사용법
-
-소스코드제출시 설치법이나 사용법을 작성하세요.
 
 <br>
 
 ## 📝 자료
 
-발표 자료 또는 수행계획서
+| 자료명 |
+|---|
+| [[Pickple] 수행계획서 중간평가.pdf](<./docs/files/[Pickple] 수행계획서 중간평가.pdf>) |
+| [[Pickple] 수행계획서 최종평가.pdf](<./docs/files/[Pickple] 수행계획서 최종평가.pdf>) |
+| [[Pickple] 캡스톤 기말발표 자료.pdf](<./docs/files/[Pickple] 캡스톤 기말발표 자료.pdf>) |
 
+<br>
+
+<p align="center"><strong>Link:D Match</strong></p>
