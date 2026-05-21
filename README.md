@@ -8,17 +8,6 @@
 
 <p align="center">
   <a href="https://linkd-match.kr/">Link:D Match로 이동</a> ·
-  <a href="https://github.com/kookmin-sw/2026-capstone-21">GitHub로 이동</a>
-</p>
-
-<p align="center">
-  <a href="#-프로젝트-배경">프로젝트 배경</a> ·
-  <a href="#-프로젝트-소개">프로젝트 소개</a> ·
-  <a href="#-주요-기능">주요 기능</a> ·
-  <a href="#-기대-효과">기대 효과</a> ·
-  <a href="#-팀원-소개">팀원 소개</a> ·
-  <a href="#-기술-스택">기술 스택</a> ·
-  <a href="#-자료">자료</a>
 </p>
 
 <br>
