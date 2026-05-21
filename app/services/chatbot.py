@@ -591,6 +591,8 @@ class ChatbotService:
             "개인화 점수",
             "추천 이유",
             "my page",
+            "my 화면",
+            "my화면",
             "마이페이지",
             "마이 페이지",
             "프로필 수정",
@@ -636,18 +638,27 @@ class ChatbotService:
             return False
 
         # "사용법/방법/어떻게/어디서" 등 이용 안내를 묻는 패턴이면 추천이 아님
-        how_to_patterns = [
+        # 단, "추천/인플루언서" 키워드 + 사용법 패턴이 동시에 있을 때만 사이트 이용으로 분류
+        # 그 외 자유 입력(브랜드 설명 등)은 실제 추천 요청으로 처리
+        recommendation_subject_keywords = [
+            "추천", "인플루언서", "recommend", "ai 추천", "매칭",
+        ]
+        how_to_suffixes = [
             "받는법", "받는 법", "하는법", "하는 법",
             "이용법", "이용 법", "사용법", "사용 법",
             "이용방법", "이용 방법", "사용방법", "사용 방법",
-            "어떻게 받", "어떻게 하", "어떻게 이용", "어떻게 사용",
+            "어떻게 받", "어떻게 하", "어떻게 해", "어떻게 이용", "어떻게 사용",
             "어디서 받", "어디서 이용", "어디에서",
-            "뭐야", "뭔가요", "무엇인가요", "무엇인가", "무엇을",
-            "알려줘", "알려주세요", "설명해", "설명해줘",
+            "뭐야", "뭔가요", "무엇인가요", "무엇인가",
             "방법이 뭐", "방법 알려", "방법을 알려",
             "기능이 뭐", "기능 설명", "기능 안내",
+            "받으려면", "하려면", "이용하려면", "사용하려면",
+            "뭘 할 수 있", "무엇을 할 수 있",
+            "어떻게 해야", "어떻게 입력",
         ]
-        if any(pattern in normalized for pattern in how_to_patterns):
+        has_rec_subject = any(kw in normalized for kw in recommendation_subject_keywords)
+        has_how_to = any(pattern in normalized for pattern in how_to_suffixes)
+        if has_rec_subject and has_how_to:
             return False
         keywords = [
             "인플루언서 추천",
@@ -855,6 +866,8 @@ class ChatbotService:
             ],
             "My Page 및 추천 이력 안내": [
                 "my page",
+                "my 화면",
+                "my화면",
                 "마이페이지",
                 "마이 페이지",
                 "프로필 수정",
@@ -867,6 +880,7 @@ class ChatbotService:
                 "추천 기록",
                 "추천 결과 확인",
                 "my 탭",
+                "my탭",
             ],
             "인플루언서 추천 기능 안내": [
                 "추천받기",
@@ -1008,6 +1022,8 @@ class ChatbotService:
             "추천 이유",
             "추천 이유 보기",
             "my page",
+            "my 화면",
+            "my화면",
             "마이페이지",
             "마이 페이지",
             "프로필 수정",
